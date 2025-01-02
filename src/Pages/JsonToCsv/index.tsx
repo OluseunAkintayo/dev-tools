@@ -6,6 +6,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Download, RefreshCcw, X } from "lucide-react";
 import React from "react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+
 
 const JsonToCsv = () => {
   const [jsonData, setJsonData] = React.useState<string>("");
@@ -86,7 +93,6 @@ const JsonToCsv = () => {
     link.href = url;
     link.setAttribute("download", "csv-data.csv");
     document.body.appendChild(link);
-    // link.download = "csv-data.csv";
     link.click();
     URL.revokeObjectURL(url);
     document.body.removeChild(link);
@@ -99,7 +105,7 @@ const JsonToCsv = () => {
       <div>
         <h1 className="text-center text-xl">JSON to CSV Converter</h1>
         <div className="h-8" />
-        <div className="">
+        <div className="space-y-8">
           <form className="space-y-4">
             <div className="">
               <div className="space-y-2">
@@ -115,45 +121,58 @@ const JsonToCsv = () => {
                   {error && <p className="text-destructive text-sm">{error}</p>}
                 </div>
               </div>
-            </div>
-            <div>
-              {
-                csvData && (
-                  <div>
-                    <h3 className="font-semibold">CSV data preview</h3>
-                    <span className="block mb-4 text-sm">(Showing first 10 rows)</span>
-                    <Table className="table-auto w-full border-collapse border border-gray-300">
-                      <TableHeader>
-                        <TableRow>
-                          {headers.map((header, index) => (
-                            <TableHead key={index} className="px-4 py-2 border border-gray-300 bg-gray-100">
-                              {header}
-                            </TableHead>
-                          ))}
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {rows.slice(0, 10).map((row, rowIndex) => (
-                          <TableRow key={rowIndex}>
-                            {row.map((cell, cellIndex) => (
-                              <TableCell key={cellIndex} className="px-4 py-2 border border-gray-300">
-                                {cell}
-                              </TableCell>
-                            ))}
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )
-              }
-            </div>
-            <div className="space-x-2">
-              <Button disabled={loading} onClick={convert} className="w-[120px]" type="button"><RefreshCcw /> Convert</Button>
-              <Button disabled={loading} onClick={clear} className="w-[120px]" type="button" variant='destructive'><X /> Clear</Button>
-              <Button disabled={loading} onClick={download} className="w-[120px]" type="button"><Download /> Download</Button>
+              <div className="grid grid-cols-3 sm:flex gap-2">
+                <Button disabled={loading} onClick={convert} className="sm:w-[120px]" type="button"><RefreshCcw /> Convert</Button>
+                <Button disabled={loading} onClick={clear} className="sm:w-[120px]" type="button" variant='destructive'><X /> Clear</Button>
+              </div>
             </div>
           </form>
+          <div>
+            {
+              csvData && (
+                <div>
+                  <div className="flex gap gap-8 justify-between">
+                    <div>
+                      <h3 className="font-semibold">CSV data preview</h3>
+                      <span className="block mb-4 text-sm">(Showing first 10 rows)</span>
+                    </div>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Button disabled={loading || !csvData} onClick={download} size="icon" type="button"><Download /></Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Download file</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <Table className="table-auto w-full border-collapse border border-gray-300">
+                    <TableHeader>
+                      <TableRow>
+                        {headers.map((header, index) => (
+                          <TableHead key={index} className="px-4 py-2 border border-gray-300 bg-gray-100">
+                            {header}
+                          </TableHead>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {rows.slice(0, 10).map((row, rowIndex) => (
+                        <TableRow key={rowIndex}>
+                          {row.map((cell, cellIndex) => (
+                            <TableCell key={cellIndex} className="px-4 py-2 border border-gray-300">
+                              {cell}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )
+            }
+          </div>
         </div>
       </div>
     </LandingPageLayout>
