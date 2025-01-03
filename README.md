@@ -1,14 +1,14 @@
-# Invoice Generator
+# NexTools
 
-Lightweight, easy-to-use invoice generator made to streamline billing processes. Perfect for freelancers and small businesses. View at [https://invoice-maker-ui.vercel.app/](https://invoice-maker-ui.vercel.app/).
+A collection of everyday tools for developers and everyone else!
 
 
 #### In the Pipeline
-  - Currency selector
-  - View past invoices
-  - Customer / client management
-  - Deliver invoices directly to client email
-  - Dashboard and analytics
+  - JSON to CSV converter
+  - CSV to JSON converter
+  - Typescript interface generator from JSON object
+  - JSON formatter
+  - ShadCN theme generator (generate CSS files for ShadCN theme)
 
 <br />
 

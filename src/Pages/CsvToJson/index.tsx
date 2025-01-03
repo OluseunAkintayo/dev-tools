@@ -103,7 +103,6 @@ const CsvToJson = () => {
     reader.onloadend = () => {
       setLoading(false);
     }
-    return;
   };
 
   return (
