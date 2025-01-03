@@ -1,6 +1,6 @@
 # NexTools
 
-A collection of everyday tools for developers and everyone else!
+A collection of everyday utility tools everyone!
 
 
 #### In the Pipeline
