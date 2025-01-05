@@ -31,7 +31,7 @@ const LandingPageLayout = ({ children }: ILandingPageLayout) => {
           <div className='flex items-center justify-between'>
             <div className="flex items-center gap-2">
               <span className="p-2 bg-slate-700 rounded-tr-md rounded-bl-md"><Wrench className="text-white w-3 h-3" /></span>
-              <h3 className="text-xl font-semibold text-slate-700">DevTools</h3>
+              <h3 className="text-xl font-semibold text-slate-700">NexTools</h3>
             </div>
             <Button onClick={login}>Login / Signup</Button>
           </div>

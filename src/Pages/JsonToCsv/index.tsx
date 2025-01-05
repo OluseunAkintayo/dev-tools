@@ -54,24 +54,23 @@ const JsonToCsv = () => {
       // Flatten all objects in the array
       const flattenedData = dataArray.map((item) => flattenObject(item));
 
-      // Extract unique headers
       const headers = Array.from(
         new Set(flattenedData.flatMap((item) => Object.keys(item)))
       );
 
-      // Generate CSV rows
       const rows = flattenedData.map((item) =>
         headers.map((header) => (item[header] !== undefined ? item[header] : "")).join(",")
       );
 
-      // Construct final CSV
+      // Construct CSV output
       const convertedData = `${headers.join(",")}\n${rows.join("\n")}`;
-      setCsvData(convertedData);
+      setTimeout(() => {
+        setCsvData(convertedData)
+        setLoading(false);
+      }, 2000);
     } catch (error) {
       console.log({ error });
       setError(error instanceof Error ? error.message : "Unable to convert data at this time.");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -114,6 +113,7 @@ const JsonToCsv = () => {
                   className="border border-slate-400 resize-none"
                   placeholder="Paste JSON data here"
                   rows={12}
+                  disabled={loading}
                   value={jsonData}
                   onChange={(e) => setJsonData(e.target.value)}
                 />
@@ -122,7 +122,9 @@ const JsonToCsv = () => {
                 </div>
               </div>
               <div className="grid grid-cols-3 sm:flex gap-2">
-                <Button disabled={loading} onClick={convert} className="sm:w-[120px]" type="button"><RefreshCcw /> Convert</Button>
+                <Button disabled={loading} onClick={convert} className="sm:w-[120px]" type="button">
+                  {loading ? <RefreshCcw className="animate-spin" /> : <><RefreshCcw /> Convert</>}
+                </Button>
                 <Button disabled={loading} onClick={clear} className="sm:w-[120px]" type="button" variant='destructive'><X /> Clear</Button>
               </div>
             </div>

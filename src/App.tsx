@@ -3,6 +3,7 @@ import NotFound from './Pages/NotFound';
 import Home from './Pages/Home/index.tsx';
 import JsonToCsv from './Pages/JsonToCsv/index.tsx';
 import CsvToJson from './Pages/CsvToJson/index.tsx';
+import InterfaceGenerator from './Pages/InterfaceGenerator/index.tsx';
 
 function App() {
 
@@ -18,6 +19,10 @@ function App() {
     {
       path: "/csv-to-json",
       element: <CsvToJson />
+    },
+    {
+      path: "/json-to-interface",
+      element: <InterfaceGenerator />
     },
     {
       path: "*",
