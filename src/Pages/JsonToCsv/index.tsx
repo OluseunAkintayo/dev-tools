@@ -96,12 +96,11 @@ const JsonToCsv = () => {
     URL.revokeObjectURL(url);
     document.body.removeChild(link);
     setLoading(false);
-    // setTimeout(() => clear(), 1000);
   }
 
   return (
     <LandingPageLayout>
-      <div>
+      <div className="px-4 py-8 container">
         <h1 className="text-center text-xl">JSON to CSV Converter</h1>
         <div className="h-8" />
         <div className="space-y-8">

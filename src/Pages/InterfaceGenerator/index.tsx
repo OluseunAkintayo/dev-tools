@@ -24,17 +24,17 @@ const InterfaceGenerator = () => {
     }
 
     const entries = Object.entries(json_input).map(([key, value]) => `${key}: ${getType(value)}`).join('\n');
-    // return `interface ${capitalize(name)} {\n ${entries} \n}`;
     return `{\n ${entries} \n}`;
   }
 
   const [loading, setLoading] = React.useState<boolean>(false);
   const [input, setInput] = React.useState<string>("");
   const [result, setResult] = React.useState<string | null>(null);
-  const [interfaceName, setInterfaceName] = React.useState<string>("Users");
+  const [interfaceName, setInterfaceName] = React.useState<string>("");
   const [error, setError] = React.useState<string | null>(null);
 
-  const generateInterface = () => {
+  const generateInterface = (e: React.FormEvent) => {
+    e.preventDefault();
     try {
       if (!input) {
         setError("Input cannot be empty");
@@ -50,7 +50,7 @@ const InterfaceGenerator = () => {
         return;
       }
       if (Array.isArray(parsedData)) {
-        const interface_result = `interface ${interface_name} ` +  generateTsInterface(parsedData[0]);
+        const interface_result = `interface ${interface_name} ` + generateTsInterface(parsedData[0]);
         setResult(interface_result);
         return;
       }
@@ -77,63 +77,64 @@ const InterfaceGenerator = () => {
       title: "Copied to clipboard!",
       className: 'top-0 right-0 flex fixed md:max-w-[320px] md:top-4 md:right-4'
     });
-    return;
   }
 
   return (
     <LandingPageLayout>
-      <h1 className="text-center text-xl">Generate TypeScript interface from JSON</h1>
-      <div className="h-8" />
-      <div>
-        <div className="flex flex-col sm:flex-row w-full gap-8 sm:gap-4">
-          <div className="space-y-2 w-full">
-            <div className="space-y-2">
-              <div className="flex gap-1 items-center mt-[1.625rem]">
-                {/* <Button className="hidden sm:inline-flex" size="icon"><FileJson /></Button> */}
-                <Label className="font-semibold text-slate-700">Enter JSON data</Label>
+      <div className="container px-4 py-8">
+        <h1 className="text-center text-xl">Generate TypeScript interface from JSON</h1>
+        <div className="h-8" />
+        <div>
+          <div className="flex flex-col sm:flex-row w-full gap-8 sm:gap-4">
+            <form className="space-y-2 w-full" onSubmit={generateInterface}>
+              <div className="space-y-2">
+                <div className="flex gap-1 items-center mt-[1.625rem]">
+                  {/* <Button className="hidden sm:inline-flex" size="icon"><FileJson /></Button> */}
+                  <Label className="font-semibold text-slate-700">Enter JSON data</Label>
+                </div>
+                <Textarea
+                  rows={12}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  className="text-sm border-slate-400 rounded-md resize-none"
+                />
+                <div className="h-8">
+                  {error && <p className="text-sm text-destructive">{error}</p>}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="block text-sm font-medium text-slate-500">Interface name</Label>
+                <Input
+                  value={interfaceName} required
+                  onChange={(e) => setInterfaceName(e.target.value)}
+                  className="text-sm border-slate-400"
+                />
+              </div>
+              <div className="grid gap-2 grid-cols-2 pt-4 sm:flex">
+                <Button className="sm:w-[140px]"><RotateCcw /> Generate</Button>
+                <Button className="sm:w-[140px]" type="button" onClick={clear} variant="destructive"><X /> Clear</Button>
+              </div>
+            </form>
+
+            <div className="space-y-2 w-full">
+              <div className="flex gap-8 items-end justify-between">
+                <Label className="block text-sm font-medium text-slate-700">TS Interface</Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Button className="border border-slate-400" variant="outline" disabled={loading || !result} onClick={copy} size="icon" type="button"><Copy /></Button>
+                    </TooltipTrigger>
+                    <TooltipContent><p>Copy text</p></TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
               <Textarea
                 rows={12}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
+                value={result ?? ""}
+                readOnly
                 className="text-sm border-slate-400 rounded-md resize-none"
               />
-              <div className="h-8">
-                {error && <p className="text-sm text-destructive">{error}</p>}
-              </div>
             </div>
-            <div className="space-y-2">
-              <Label className="block text-sm font-medium text-slate-500">Interface name</Label>
-              <Input
-                value={interfaceName}
-                onChange={(e) => setInterfaceName(e.target.value)}
-                className="text-sm border-slate-400"
-              />
-            </div>
-            <div className="grid gap-2 grid-cols-2 pt-4 sm:flex">
-              <Button className="sm:w-[140px]" onClick={generateInterface}><RotateCcw /> Generate</Button>
-              <Button className="sm:w-[140px]" onClick={clear} variant="destructive"><X /> Clear</Button>
-            </div>
-          </div>
-
-          <div className="space-y-2 w-full">
-            <div className="flex gap-8 items-end justify-between">
-              <Label className="block text-sm font-medium text-slate-700">TS Interface</Label>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Button className="border border-slate-400" variant="outline" disabled={loading || !result} onClick={copy} size="icon" type="button"><Copy /></Button>
-                  </TooltipTrigger>
-                  <TooltipContent><p>Copy text</p></TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-            <Textarea
-              rows={12}
-              value={result ?? ""}
-              readOnly
-              className="text-sm border-slate-400 rounded-md resize-none"
-            />
           </div>
         </div>
       </div>
