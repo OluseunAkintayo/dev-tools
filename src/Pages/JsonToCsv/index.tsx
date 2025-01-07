@@ -13,8 +13,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
-
 const JsonToCsv = () => {
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const [jsonData, setJsonData] = React.useState<string>("");
   const [csvData, setCsvData] = React.useState<string | null>("");
   const [error, setError] = React.useState<string | null>("");
@@ -26,7 +29,7 @@ const JsonToCsv = () => {
       const newKey = prefix ? `${prefix}.${key}` : key;
 
       if (typeof value === "object" && value !== null && !Array.isArray(value)) {
-        // Recursively flatten
+        // Recursively flatten nested objects
         Object.assign(acc, flattenObject(value, newKey));
       } else {
         acc[newKey] = value;
@@ -49,7 +52,6 @@ const JsonToCsv = () => {
       }
 
       const dataArray = Array.isArray(parsedData) ? parsedData : [parsedData]; // Ensure array
-      console.log({ dataArray });
 
       // Flatten all objects in the array
       const flattenedData = dataArray.map((item) => flattenObject(item));

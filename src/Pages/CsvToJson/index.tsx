@@ -14,6 +14,10 @@ import {
 import { useToast } from "@/hooks/use-toast";
 
 const CsvToJson = () => {
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const toast = useToast().toast;
   const [loading, setLoading] = React.useState<boolean>(false);
   const [csvData, setCsvData] = React.useState<string>("");
@@ -22,7 +26,8 @@ const CsvToJson = () => {
   const [delimiter, setDelimiter] = React.useState<string>(",");
   const [csvFile, setCsvFile] = React.useState<File | null>(null);
 
-  const convert = () => {
+  const convert = (e: React.FormEvent) => {
+    e.preventDefault();
     setLoading(true);
     try {
       const rows = csvData.split("\n").map((row) => row.trim()).filter((row) => row !== "");
@@ -53,12 +58,18 @@ const CsvToJson = () => {
     } catch (err) {
       console.log({ err });
       setError("Invalid CSV format! Please check your data.");
+      setLoading(false);
     }
   };
 
-  const clear = () => window.location.reload();
+  const clear = () => {
+    if (csvData) setCsvData("");
+    if (jsonData) setJsonData("");
+    if (error) setError(null);
+    if (csvFile) setCsvFile(null);
+  }
 
-  const handleDelimiterChange = (e: React.ChangeEvent<HTMLInputElement>) => setDelimiter(e.target.value);
+  const onDelimiterChange = (e: React.ChangeEvent<HTMLInputElement>) => setDelimiter(e.target.value);
 
   const download = () => {
     if (!jsonData) return;
@@ -85,11 +96,19 @@ const CsvToJson = () => {
   }
 
   const upload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (jsonData) setJsonData("");
+    if (error) setError(null);
+    if (csvFile) setCsvFile(null);
     const file = e.target.files ? e.target.files[0] : null;
     if (!file) {
+      setError("No file selected");
       return;
     }
-    setLoading(true);
+    if (file.type !== "text/csv" || !file.name.endsWith(".csv")) {
+      setError("Invalid file type! Please upload a CSV file.");
+      return;
+    }
+
     setCsvFile(file);
     if (jsonData) setJsonData("");
     const reader = new FileReader();
@@ -98,9 +117,7 @@ const CsvToJson = () => {
       setCsvData(fileContent);
     };
     reader.readAsText(file);
-    reader.onloadend = () => {
-      setLoading(false);
-    }
+    reader.onloadend = () => { }
   };
 
   return (
@@ -108,47 +125,31 @@ const CsvToJson = () => {
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-xl text-center">CSV to JSON Converter</h1>
         <div className="h-8" />
-        <form className="space-y-4">
-          <div className="mb-4 flex items-end gap-4">
-            <div>
-              <Label className="block mb-2 font-semibold">Upload CSV file</Label>
-              <Button variant="outline" className="p-0 border-0" type="button">
-                <Label role="button" className="flex items-center gap-2 justify-center px-4 h-10 border border-slate-400 rounded-md sm:w-[120px] cursor-pointer text-primary hover:bg-primary/5" htmlFor="file">
-                  <Upload className="w-4 h-4" /> Upload
+        <div className="max-w-[400px] mx-auto">
+          <form onSubmit={convert} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Upload CSV File</Label>
+              <Input type="file" id="csvFile" accept=".csv" className="hidden" onChange={upload} />
+              <Button type="button" className="p-0 m-0 block w-full bg-slate-200 hover:bg-slate-200/80 border-none outline-none">
+                <Label htmlFor="csvFile" className="flex items-center justify-center cursor-pointer h-10 px-4 rounded-md text-slate-700">
+                  <Upload className="mr-2 h-4 w-4" /> Upload
                 </Label>
               </Button>
-              <input
-                id="file"
-                type="file"
-                accept=".csv"
-                onChange={upload}
-                className="border border-slate-400 hidden"
-              />
+              {csvFile && <span className="text-xs text-slate-500">{csvFile.name}</span>}
+              {error && <span className="text-xs text-destructive">{error}</span>}
             </div>
-            <span className="text-slate-500 italic">{csvFile ? csvFile.name : "No file selected"}</span>
-          </div>
-          <div className="space-y-2">
-            <Label className="font-semibold">Delimiter</Label>
-            <Input
-              type="text"
-              value={delimiter}
-              disabled={loading}
-              onChange={handleDelimiterChange}
-              placeholder="Enter delimiter (e.g., , ; tab)"
-              className="border border-slate-400"
-            />
-          </div>
-          <div className="grid grid-cols-3 sm:flex gap-2">
-            <Button disabled={loading || !csvFile} onClick={convert} className="sm:w-[120px]" type="button">
-              {loading ? <RefreshCcw className="animate-spin" /> : <><RefreshCcw /> Convert</>}
-            </Button>
-            <Button disabled={loading} onClick={clear} className="sm:w-[120px]" type="button" variant='destructive'>
-              <X /> Clear
-            </Button>
-          </div>
-        </form>
-
-        {/* {error && <Alert variant="destructive" className="mb-4">{error}</Alert>} */}
+            <div className="space-y-1">
+              <Label>Delimiter</Label>
+              <Input type="text" value={delimiter} onChange={onDelimiterChange} />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Button disabled={loading || !csvFile} type="submit">
+                {loading ? <><RefreshCcw className="animate-spin" /> Converting</> : <><RefreshCcw /> Convert</>}
+              </Button>
+              <Button disabled={loading} type="button" onClick={clear} variant="destructive"><X /> Clear</Button>
+            </div>
+          </form>
+        </div>
 
         {jsonData && (
           <div className="mt-12">

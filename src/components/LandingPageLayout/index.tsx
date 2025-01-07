@@ -25,7 +25,7 @@ const LandingPageLayout = ({ children }: ILandingPageLayout) => {
           </div>
         </div>
       </header>
-      <div className='min-h-screen'>
+      <div className='min-h-[calc(100dvh-108px)]'>
         {children}
       </div>
       <footer className="bg-slate-800 py-4">
