@@ -39,6 +39,10 @@ const JsonToCsv = () => {
   };
 
   const convert = async () => {
+    if(!jsonData || jsonData.trim() === "") {
+      setError("Please enter valid JSON data.");
+      return;
+    }
     setLoading(true);
     if (error) setError(null);
 
@@ -73,6 +77,7 @@ const JsonToCsv = () => {
     } catch (error) {
       console.log({ error });
       setError(error instanceof Error ? error.message : "Unable to convert data at this time.");
+      setLoading(false);
     }
   };
 
@@ -123,7 +128,7 @@ const JsonToCsv = () => {
                 </div>
               </div>
               <div className="grid grid-cols-3 sm:flex gap-2">
-                <Button disabled={loading} onClick={convert} className="sm:w-[120px]" type="button">
+                <Button disabled={loading || !jsonData || jsonData.trim() === ""} onClick={convert} className="sm:w-[120px]" type="button">
                   {loading ? <RefreshCcw className="animate-spin" /> : <><RefreshCcw /> Convert</>}
                 </Button>
                 <Button disabled={loading} onClick={clear} className="sm:w-[120px]" type="button" variant='destructive'><X /> Clear</Button>
