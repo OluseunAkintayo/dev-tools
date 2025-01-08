@@ -93,7 +93,7 @@ const JsonFormatter = () => {
               <div className="space-y-2">
                 <Label className="font-semibold text-slate-700">Enter data to format</Label>
                 <Textarea
-                  className="border border-slate-400 resize-none"
+                  className="border border-slate-400 resize-none text-sm"
                   placeholder="Paste JSON data here"
                   rows={12}
                   disabled={loading}
@@ -147,7 +147,7 @@ const JsonFormatter = () => {
                   <div className="h-4" />
                   <div>
                     <Textarea
-                      className="border border-slate-400 resize-none"
+                      className="border border-slate-400 resize-none text-sm"
                       rows={15} readOnly
                       value={formattedData}
                     />

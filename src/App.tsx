@@ -5,6 +5,7 @@ import JsonToCsv from './Pages/JsonToCsv/index.tsx';
 import CsvToJson from './Pages/CsvToJson/index.tsx';
 import InterfaceGenerator from './Pages/InterfaceGenerator/index.tsx';
 import JsonFormatter from './Pages/JsonFormatter/index.tsx';
+import ComingSoon from './Pages/Coming Soon/index.tsx';
 
 function App() {
 
@@ -28,6 +29,10 @@ function App() {
     {
       path: "/json-formatter",
       element: <JsonFormatter />
+    },
+    {
+      path: "/shadcn-theme-generator",
+      element: <ComingSoon />
     },
     {
       path: "*",

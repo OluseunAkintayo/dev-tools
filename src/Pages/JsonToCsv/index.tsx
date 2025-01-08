@@ -110,13 +110,13 @@ const JsonToCsv = () => {
       <div className="px-4 py-8 container">
         <h1 className="text-center text-xl">JSON to CSV Converter</h1>
         <div className="h-8" />
-        <div className="space-y-8">
+        <div className="space-y-12">
           <form className="space-y-4">
             <div className="">
               <div className="space-y-2">
                 <Label className="font-semibold text-slate-700">Enter JSON data</Label>
                 <Textarea
-                  className="border border-slate-400 resize-none"
+                  className="border border-slate-400 resize-none text-sm"
                   placeholder="Paste JSON data here"
                   rows={12}
                   disabled={loading}
@@ -127,7 +127,7 @@ const JsonToCsv = () => {
                   {error && <p className="text-destructive text-sm">{error}</p>}
                 </div>
               </div>
-              <div className="grid grid-cols-3 sm:flex gap-2">
+              <div className="grid grid-cols-2 sm:flex gap-2">
                 <Button disabled={loading || !jsonData || jsonData.trim() === ""} onClick={convert} className="sm:w-[120px]" type="button">
                   {loading ? <RefreshCcw className="animate-spin" /> : <><RefreshCcw /> Convert</>}
                 </Button>

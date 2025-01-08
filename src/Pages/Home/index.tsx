@@ -1,6 +1,6 @@
 import LandingPageLayout from "@/components/LandingPageLayout";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Code, FileJson, FileText, Settings } from "lucide-react";
+import { ArrowRight, Braces, Code, FileJson, FileText, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Home = () => {
@@ -24,10 +24,16 @@ const Home = () => {
       link: "/json-formatter"
     },
     {
-      title: "TypeScript Generator",
+      title: "TS Interface Generator",
       description: "Generate TypeScript interfaces from JSON data with smart type inference.",
-      icon: Settings,
+      icon: Braces,
       link: "/json-to-interface"
+    },
+    {
+      title: "Shadcn Theme Generator",
+      description: "Generate css files for shadcn ui component library.",
+      icon: Settings,
+      link: "/shadcn-theme-generator"
     }
   ];
 
@@ -54,11 +60,11 @@ const Home = () => {
         </section>
       </section>
 
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-indigo-300/10" id="start">
+      <section className="py-20 bg-indigo-300/10" id="start">
         <div className="container mx-auto">
           <h3 className="text-3xl font-bold text-center text-gray-900 mb-4">Powerful Tools at Your Fingertips</h3>
           <p className="text-md text-center leading-8 text-gray-600">Powerful tools in one place to handle all your data conversion needs</p>
-          <div className="mx-auto mt-16 max-w-7xl grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mx-auto mt-16 max-w-5xl grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {apps.map(item => (
               <Link key={item.description} to={item.link} className="shadow shadow-slate-200 border border-slate-500/10 rounded hover:bg-indigo-300/10">
                 <div className="feature-card-gradient rounded-2xl p-8 transition-all duration-300">
