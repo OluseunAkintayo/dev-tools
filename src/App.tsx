@@ -4,6 +4,7 @@ import Home from './Pages/Home/index.tsx';
 import JsonToCsv from './Pages/JsonToCsv/index.tsx';
 import CsvToJson from './Pages/CsvToJson/index.tsx';
 import InterfaceGenerator from './Pages/InterfaceGenerator/index.tsx';
+import JsonFormatter from './Pages/JsonFormatter/index.tsx';
 
 function App() {
 
@@ -23,6 +24,10 @@ function App() {
     {
       path: "/json-to-interface",
       element: <InterfaceGenerator />
+    },
+    {
+      path: "/json-formatter",
+      element: <JsonFormatter />
     },
     {
       path: "*",
