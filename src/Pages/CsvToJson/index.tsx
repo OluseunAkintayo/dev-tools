@@ -125,7 +125,7 @@ const CsvToJson = () => {
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-xl text-center">CSV to JSON Converter</h1>
         <div className="h-8" />
-        <div className="sm:max-w-[400px] mx-auto">
+        <div className="sm:max-w-[600px] mx-auto">
           <form onSubmit={convert} className="space-y-4">
             <div className="space-y-2">
               <Label>Upload CSV File</Label>

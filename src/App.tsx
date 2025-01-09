@@ -7,6 +7,7 @@ import InterfaceGenerator from './Pages/InterfaceGenerator/index.tsx';
 import JsonFormatter from './Pages/JsonFormatter/index.tsx';
 import ComingSoon from './Pages/Coming Soon/index.tsx';
 
+
 function App() {
 
   const router = createBrowserRouter([
@@ -30,6 +31,10 @@ function App() {
       path: "/json-formatter",
       element: <JsonFormatter />
     },
+    // {
+    //   path: "/xml-to-json",
+    //   element: <XmlToJson />
+    // },
     {
       path: "/shadcn-theme-generator",
       element: <ComingSoon />
