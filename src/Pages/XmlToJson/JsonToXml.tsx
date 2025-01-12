@@ -17,10 +17,6 @@ import { useToast } from "@/hooks/use-toast";
 import X2JS from "x2js";
 
 const XmlToJson = () => {
-  React.useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
   const toast = useToast().toast;
   const [loading, setLoading] = React.useState<boolean>(false);
   const [xmlData, setXmlData] = React.useState<string>("");

@@ -1,6 +1,6 @@
 import LandingPageLayout from "@/components/LandingPageLayout";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Braces, Code, FileJson, FileText, Settings } from "lucide-react";
+import { ArrowRight, Braces, Code, FileCode2, FileJson, FileText, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Home = () => {
@@ -28,6 +28,12 @@ const Home = () => {
       description: "Generate TypeScript interfaces from JSON data with smart type inference.",
       icon: Braces,
       link: "/json-to-interface"
+    },
+    {
+      title: "XML to JSON Converter",
+      description: "Convert XML files and strings to JSON.",
+      icon: FileCode2,
+      link: "/xml-to-json"
     },
     {
       title: "Shadcn Theme Generator",
