@@ -16,7 +16,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import X2JS from "x2js";
 
-const JsonToXml = () => {
+const XmlToJson = () => {
   const toast = useToast().toast;
   const [loading, setLoading] = React.useState<boolean>(false);
   const [xmlData, setXmlData] = React.useState<string>("");
@@ -183,4 +183,4 @@ const JsonToXml = () => {
   );
 };
 
-export default JsonToXml;
+export default XmlToJson;
