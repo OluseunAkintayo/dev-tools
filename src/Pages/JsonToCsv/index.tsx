@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { Download, RefreshCcw, X } from "lucide-react";
+import { Download, RefreshCcw, Upload, X } from "lucide-react";
 import React from "react";
 import {
   Tooltip,
@@ -12,6 +12,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { Input } from "@/components/ui/input";
+import { flattenNestedObject } from "@/lib/flattenNestedObject";
 
 const JsonToCsv = () => {
   React.useEffect(() => {
@@ -19,27 +21,13 @@ const JsonToCsv = () => {
   }, []);
 
   const [jsonData, setJsonData] = React.useState<string>("");
+  const [jsonFile, setJsonFile] = React.useState<File | null>(null);
   const [csvData, setCsvData] = React.useState<string | null>("");
   const [error, setError] = React.useState<string | null>("");
   const [loading, setLoading] = React.useState<boolean>(false);
 
-  const flattenObject = (obj: Record<string, any>, prefix = ""): Record<string, any> => {
-    return Object.keys(obj).reduce((acc, key) => {
-      const value = obj[key];
-      const newKey = prefix ? `${prefix}.${key}` : key;
-
-      if (typeof value === "object" && value !== null && !Array.isArray(value)) {
-        // Recursively flatten nested objects
-        Object.assign(acc, flattenObject(value, newKey));
-      } else {
-        acc[newKey] = value;
-      }
-      return acc;
-    }, {} as Record<string, any>);
-  };
-
   const convert = async () => {
-    if(!jsonData || jsonData.trim() === "") {
+    if (!jsonData || jsonData.trim() === "") {
       setError("Please enter valid JSON data.");
       return;
     }
@@ -49,24 +37,20 @@ const JsonToCsv = () => {
     try {
       const parsedData = JSON.parse(jsonData);
 
-      if (typeof parsedData !== "object" || parsedData === null) {
+      if (typeof parsedData !== "object" || Array.isArray(parsedData) || parsedData === null) {
         setError("Invalid JSON data! Please check your data and try again.");
+        if(jsonFile) setJsonFile(null);
         setLoading(false);
         return;
       }
 
-      const dataArray = Array.isArray(parsedData) ? parsedData : [parsedData]; // Ensure array
+      // Ensure that parsed data is an array
+      const dataArray = Array.isArray(parsedData) ? parsedData : [parsedData];
 
       // Flatten all objects in the array
-      const flattenedData = dataArray.map((item) => flattenObject(item));
-
-      const headers = Array.from(
-        new Set(flattenedData.flatMap((item) => Object.keys(item)))
-      );
-
-      const rows = flattenedData.map((item) =>
-        headers.map((header) => (item[header] !== undefined ? item[header] : "")).join(",")
-      );
+      const flattenedData = dataArray.map((item) => flattenNestedObject(item));
+      const headers = Array.from(new Set(flattenedData.flatMap((item) => Object.keys(item))));
+      const rows = flattenedData.map((item) => headers.map((header) => (item[header] !== undefined ? item[header] : "")).join(","));
 
       // Construct CSV output
       const convertedData = `${headers.join(",")}\n${rows.join("\n")}`;
@@ -77,6 +61,7 @@ const JsonToCsv = () => {
     } catch (error) {
       console.log({ error });
       setError(error instanceof Error ? error.message : "Unable to convert data at this time.");
+      if(jsonFile) setJsonFile(null);
       setLoading(false);
     }
   };
@@ -84,8 +69,42 @@ const JsonToCsv = () => {
   const clear = () => {
     if (jsonData) setJsonData("");
     if (csvData) setCsvData(null);
+    if (jsonFile) setJsonFile(null);
     if (error) setError(null);
   }
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    clear();
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (file.type !== 'application/json') {
+      setError('Please upload a JSON file');
+      return;
+    }
+    if(file.size / 1000 > 5000) {
+      setError('File size is too large. Please upload a file less than 5MB.');
+      return;
+    }
+    setLoading(true);
+    setJsonFile(file);
+
+    try {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target?.result as string;
+        setJsonData(text);
+        setLoading(false);
+      };
+      reader.onerror = () => {
+        setError('Error reading file');
+        setLoading(false);
+      };
+      reader.readAsText(file);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Error uploading file.");
+      setLoading(false);
+    }
+  };
 
   const [headers, ...rows] = (csvData ?? "").split("\n").map((line) => line.split(","));
 
@@ -124,10 +143,19 @@ const JsonToCsv = () => {
                   onChange={(e) => setJsonData(e.target.value)}
                 />
                 <div className="h-6">
-                  {error && <p className="text-destructive text-sm">{error}</p>}
+                  {jsonFile && <p className="text-xs">{jsonFile.name}</p>}
+                  {error && <p className="text-destructive text-xs">{error}</p>}
                 </div>
               </div>
-              <div className="grid grid-cols-2 sm:flex gap-2">
+              <div className="grid grid-cols-3 sm:grid-cols-2 sm:flex gap-2">
+                <Input type="file"
+                  // accept="application/json"
+                  className="hidden" id="jsonFile" onChange={handleFileUpload} />
+                <Button variant="outline" className="sm:min-w-[120px] p-0" type="button">
+                  <Label htmlFor="jsonFile" className="inline-flex items-center justify-center w-full gap-2 h-full cursor-pointer">
+                    <Upload className="w-4 h-4" /> <span>Upload</span>
+                  </Label>
+                </Button>
                 <Button disabled={loading || !jsonData || jsonData.trim() === ""} onClick={convert} className="sm:w-[120px]" type="button">
                   {loading ? <RefreshCcw className="animate-spin" /> : <><RefreshCcw /> Convert</>}
                 </Button>
