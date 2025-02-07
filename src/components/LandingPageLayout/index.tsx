@@ -8,7 +8,12 @@ interface ILandingPageLayout {
 }
 
 const LandingPageLayout = ({ children }: ILandingPageLayout) => {
+
   const location = useLocation();
+  React.useEffect(() => {
+    console.log({ location: location.pathname });
+  }, [location.pathname]);
+
   return (
     <main>
       <header className='bg-slate-100/20 shadow-md shadow-slate-200'>
