@@ -90,7 +90,7 @@ const Home = () => {
         <div className="container mx-auto text-center">
           <h3 className="text-3xl font-bold text-gray-900 mb-4">Ready to Supercharge Your Data Workflow?</h3>
           <p className="text-xl text-gray-600 mb-8">
-            Join thousands of developers who trust DataMorphosis for their data transformation needs.<br />
+            Join thousands of developers who trust NexTools for their data transformation needs.<br />
             It's fast, it's simple, it's developer-friendly, and best of all, it's free!
           </p>
           <a href="#start">
