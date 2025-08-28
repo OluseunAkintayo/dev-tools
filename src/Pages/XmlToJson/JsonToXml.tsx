@@ -38,6 +38,7 @@ const JsonToXml = () => {
         const xml = x2js.js2xml(jsonObj);
         setTimeout(() => {
           setXmlData(formatXml(xml));
+          setLoading(false);
         }, 1200);
       } catch {
         setError("Invalid JSON format. Please check your input.");
@@ -46,8 +47,6 @@ const JsonToXml = () => {
       }
     } catch {
       setError("Conversion failed. Please check your JSON input.");
-    }
-    finally {
       setLoading(false);
     }
   };
