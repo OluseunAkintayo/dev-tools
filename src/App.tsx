@@ -7,6 +7,7 @@ import InterfaceGenerator from './Pages/InterfaceGenerator/index.tsx';
 import JsonFormatter from './Pages/JsonFormatter/index.tsx';
 import ComingSoon from './Pages/Coming Soon/index.tsx';
 import XmlToJson from './Pages/XmlToJson/index.tsx';
+import JsonToXml from './Pages/XmlToJson/JsonToXml.tsx';
 
 function App() {
 
@@ -34,6 +35,10 @@ function App() {
     {
       path: "/xml-to-json",
       element: <XmlToJson />
+    },
+    {
+      path: "/json-to-xml",
+      element: <JsonToXml />
     },
     {
       path: "/shadcn-theme-generator",

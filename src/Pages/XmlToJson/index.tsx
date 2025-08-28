@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -108,8 +107,8 @@ const XmlToJson = () => {
           <form onSubmit={convert} className="space-y-4">
             <Tabs defaultValue="upload" className="sm:max-w-[600px] mx-auto">
               <TabsList className="w-full">
-                <TabsTrigger className="w-full" value="paste">Paste XML</TabsTrigger>
                 <TabsTrigger className="w-full" value="upload">Upload XML File</TabsTrigger>
+                <TabsTrigger className="w-full" value="paste">Paste XML</TabsTrigger>
               </TabsList>
               <TabsContent value="paste">
                 <div className="pt-4">

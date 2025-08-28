@@ -1,47 +1,11 @@
 import LandingPageLayout from "@/components/LandingPageLayout";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Braces, Code, FileCode2, FileJson, FileText, Settings } from "lucide-react";
+import { apps } from "@/lib/data";
+import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Home = () => {
-  const apps = [
-    {
-      title: "CSV to JSON",
-      description: "Convert CSV files to JSON format with support for custom delimiters and nested structures.",
-      icon: FileText,
-      link: "/csv-to-json"
-    },
-    {
-      title: "JSON to CSV",
-      description: "Transform JSON data into CSV format with automatic column detection and field mapping.",
-      icon: FileJson,
-      link: "/json-to-csv"
-    },
-    {
-      title: "JSON Formatter",
-      description: "Format and validate JSON with customizable indentation and sorting options.",
-      icon: Code,
-      link: "/json-formatter"
-    },
-    {
-      title: "TS Interface Generator",
-      description: "Generate TypeScript interfaces from JSON data with smart type inference.",
-      icon: Braces,
-      link: "/json-to-interface"
-    },
-    {
-      title: "XML to JSON Converter",
-      description: "Convert XML files and strings to JSON.",
-      icon: FileCode2,
-      link: "/xml-to-json"
-    },
-    {
-      title: "Shadcn Theme Generator",
-      description: "Generate css files for shadcn ui component library.",
-      icon: Settings,
-      link: "/shadcn-theme-generator"
-    }
-  ];
+
 
   return (
     <LandingPageLayout>
