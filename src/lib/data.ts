@@ -1,4 +1,4 @@
-import { Braces, Code, FileCode2, FileJson, FileText, Settings } from "lucide-react";
+import { Braces, Code, FileCode2, FileJson, FileText, Settings, Lock } from "lucide-react";
 
 export const apps = [
     {
@@ -36,6 +36,12 @@ export const apps = [
       description: "Generate TypeScript interfaces from JSON data with smart type inference.",
       icon: Braces,
       link: "/json-to-interface"
+    },
+    {
+      title: "Base64 Encoder/Decoder",
+      description: "Encode plain text to Base64 format or decode Base64 strings back to plain text.",
+      icon: Lock,
+      link: "/base64-encoder-decoder"
     },
     {
       title: "Shadcn Theme Generator",

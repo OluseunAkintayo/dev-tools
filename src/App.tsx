@@ -8,6 +8,7 @@ import JsonFormatter from './Pages/JsonFormatter/index.tsx';
 import ComingSoon from './Pages/Coming Soon/index.tsx';
 import XmlToJson from './Pages/XmlToJson/index.tsx';
 import JsonToXml from './Pages/XmlToJson/JsonToXml.tsx';
+import Base64EncoderDecoder from './Pages/Base64EncoderDecoder/index.tsx';
 
 function App() {
 
@@ -39,6 +40,10 @@ function App() {
     {
       path: "/json-to-xml",
       element: <JsonToXml />
+    },
+    {
+      path: "/base64-encoder-decoder",
+      element: <Base64EncoderDecoder />
     },
     {
       path: "/shadcn-theme-generator",
