@@ -1,19 +1,21 @@
 # NexTools
 
-A collection of everyday utility tools everyone!
+A collection of everyday utility tools for everyone!
 
+#### Tools
+  - CSV to JSON converter
+  - JSON to CSV converter
+  - XML to JSON converter
+  - JSON to XML converter
+  - JSON formatter
+  - TypeScript interface generator from JSON object
+  - Base64 encoder/decoder
 
 #### In the Pipeline
-  - JSON to CSV converter
-  - CSV to JSON converter
-  - Typescript interface generator from JSON object
-  - JSON formatter
-  - XML to JSON converter (in the pipeline)
-  - XML to CSV converter (in the pipeline)
-  - ShadCN theme generator - generate CSS files for ShadCN theme (in progess)
+  - XML to CSV converter
+  - ShadCN theme generator - generate CSS files for ShadCN theme
 
 <br />
 
 #### Built With
 React + Tailwind CSS + Shadcn UI
-

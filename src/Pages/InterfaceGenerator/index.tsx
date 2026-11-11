@@ -1,160 +1,104 @@
+import React from "react";
 import LandingPageLayout from "@/components/LandingPageLayout";
+import IconButton from "@/components/IconButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useToast } from "@/hooks/use-toast";
 import { Copy, RotateCcw, X } from "lucide-react";
-import React from "react";
+import { useCopy } from "@/hooks/use-copy";
+import { generateInterface } from "@/lib/generateInterface";
 
 const InterfaceGenerator = () => {
-  const toast = useToast().toast;
-  const generateTsInterface = (json_input: Record<string, string | number | boolean | Array<unknown>>): string => {
-    const getType = (val: unknown): string => {
-      if (val === null) return 'null';
-      if (Array.isArray(val)) {
-        const types = new Set(val.map(item => getType(item)));
-        return types.size === 1 ? [...types].join(' | ') : `Array<${[...types].join(' | ')}>`;
-      }
-      if (typeof val === 'object') {
-        return generateTsInterface(val as Record<string, string | number | boolean | Array<unknown>>);
-      }
-      return typeof val;
-    }
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
-    const entries = Object.entries(json_input).map(([key, value]) => `${key}: ${getType(value)}`).join('\n');
-    return `{\n ${entries} \n}`;
-  }
-
-  const [loading, setLoading] = React.useState<boolean>(false);
+  const copy = useCopy();
   const [input, setInput] = React.useState<string>("");
-  const [result, setResult] = React.useState<string | null>(null);
+  const [result, setResult] = React.useState<string>("");
   const [interfaceName, setInterfaceName] = React.useState<string>("");
   const [error, setError] = React.useState<string | null>(null);
 
-  const generateInterface = (e: React.FormEvent) => {
-    if(error) setError(null);
+  const handleGenerate = (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      if (!input) {
-        setError("Input cannot be empty");
-        return;
-      }
-
-      setLoading(true);
-      const parsedData = JSON.parse(input);
-
-      if (typeof parsedData !== "object" || parsedData === null) {
-        setError("Invalid JSON data! Please check your data and try again.");
-        setLoading(false);
-        return;
-      }
-
-      const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
-      const interface_name = interfaceName.split(" ").map(item => capitalize(item)).join("");
-
-      if (Array.isArray(parsedData)) {
-        const interface_result = `interface ${interface_name} ` + generateTsInterface(parsedData[0]);
-        setTimeout(() => {
-          setResult(interface_result);
-          setLoading(false);
-        }, 2000);
-        return;
-      }
-
-      let interface_result = generateTsInterface(parsedData);
-      interface_result = `interface ${interface_name} ` + interface_result;
-      setTimeout(() => {
-        setResult(interface_result);
-        setLoading(false);
-      }, 2000);
-    } catch (error) {
-      console.log({ error });
-      setError(error instanceof Error ? error.message : "Unable to convert data at this time.");
-      setLoading(false);
+    setError(null);
+    if (!input.trim()) {
+      setError("Input cannot be empty");
+      return;
     }
-  }
+    try {
+      setResult(generateInterface(JSON.parse(input), interfaceName));
+    } catch (err) {
+      setResult("");
+      setError(err instanceof Error ? err.message : "Unable to convert data at this time.");
+    }
+  };
 
   const clear = () => {
-    if (input) setInput("");
-    if (result) setResult(null);
-    if (error) setError(null);
-    if (interfaceName) setInterfaceName("");
-  }
-
-  const copy = async () => {
-    if (!result) return;
-    await navigator.clipboard.writeText(result);
-    toast({
-      title: "Copied to clipboard!",
-      className: 'top-0 right-0 flex fixed md:max-w-[320px] md:top-4 md:right-4'
-    });
-  }
+    setInput("");
+    setResult("");
+    setError(null);
+    setInterfaceName("");
+  };
 
   return (
     <LandingPageLayout>
       <div className="container px-4 py-8">
         <h1 className="text-center text-xl">Generate TypeScript interface from JSON</h1>
         <div className="h-8" />
-        <div className="">
-          <div className="flex flex-col sm:flex-row w-full gap-12 sm:gap-4">
-            <form className="space-y-2 w-full" onSubmit={generateInterface}>
-              <div className="space-y-2">
-                <div className="flex gap-1 items-center mt-[1.625rem]">
-                  {/* <Button className="hidden sm:inline-flex" size="icon"><FileJson /></Button> */}
-                  <Label className="font-semibold text-slate-700">Enter JSON data</Label>
-                </div>
-                <Textarea
-                  rows={12} disabled={loading}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  className="text-sm border-slate-400 rounded-md resize-none"
-                />
-                <div className="h-8">
-                  {error && <p className="text-sm text-destructive">{error}</p>}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label className="block text-sm font-medium text-slate-500">Interface name</Label>
-                <Input
-                  value={interfaceName} required disabled={loading}
-                  onChange={(e) => setInterfaceName(e.target.value)}
-                  className="text-sm border-slate-400"
-                />
-              </div>
-              <div className="grid gap-2 grid-cols-2 pt-4 sm:flex">
-                <Button className="sm:w-[140px]" disabled={loading || !input || !interfaceName}>
-                  {loading ? <><RotateCcw className="animate-spin" /> Generating</> : <><RotateCcw /> Generate</>}
-                </Button>
-                <Button className="sm:w-[140px]" disabled={loading} type="button" onClick={clear} variant="destructive"><X /> Clear</Button>
-              </div>
-            </form>
-
-            <div className="space-y-2 w-full">
-              <div className="flex gap-8 items-end justify-between">
-                <Label className="block text-sm font-medium text-slate-700">TS Interface</Label>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Button className="border border-slate-400" variant="outline" disabled={loading || !result} onClick={copy} size="icon" type="button"><Copy /></Button>
-                    </TooltipTrigger>
-                    <TooltipContent><p>Copy text</p></TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+        <div className="flex flex-col sm:flex-row w-full gap-12 sm:gap-4">
+          <form className="space-y-2 w-full" onSubmit={handleGenerate}>
+            <div className="space-y-2">
+              <div className="flex gap-1 items-center mt-[1.625rem]">
+                <Label htmlFor="json-input" className="font-semibold text-slate-700">Enter JSON data</Label>
               </div>
               <Textarea
+                id="json-input"
                 rows={12}
-                value={result ?? ""}
-                readOnly
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
                 className="text-sm border-slate-400 rounded-md resize-none"
               />
+              <div className="h-8">
+                {error && <p className="text-sm text-destructive">{error}</p>}
+              </div>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="interface-name" className="block text-sm font-medium text-slate-500">Interface name</Label>
+              <Input
+                id="interface-name"
+                value={interfaceName}
+                required
+                onChange={(e) => setInterfaceName(e.target.value)}
+                className="text-sm border-slate-400"
+              />
+            </div>
+            <div className="grid gap-2 grid-cols-2 pt-4 sm:flex">
+              <Button className="sm:w-[140px]" type="submit" disabled={!input.trim() || !interfaceName.trim()}>
+                <RotateCcw /> Generate
+              </Button>
+              <Button className="sm:w-[140px]" type="button" onClick={clear} variant="destructive"><X /> Clear</Button>
+            </div>
+          </form>
+
+          <div className="space-y-2 w-full">
+            <div className="flex gap-8 items-end justify-between">
+              <Label htmlFor="ts-output" className="block text-sm font-medium text-slate-700">TS Interface</Label>
+              <IconButton label="Copy text" className="border border-slate-400" variant="outline" disabled={!result} onClick={() => copy(result)}><Copy /></IconButton>
+            </div>
+            <Textarea
+              id="ts-output"
+              rows={12}
+              value={result}
+              readOnly
+              className="text-sm border-slate-400 rounded-md resize-none font-mono"
+            />
           </div>
         </div>
       </div>
     </LandingPageLayout>
-  )
-}
+  );
+};
 
 export default InterfaceGenerator;

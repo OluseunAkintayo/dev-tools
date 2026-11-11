@@ -8,11 +8,7 @@ interface ILandingPageLayout {
 }
 
 const LandingPageLayout = ({ children }: ILandingPageLayout) => {
-
   const location = useLocation();
-  React.useEffect(() => {
-    console.log({ location: location.pathname });
-  }, [location.pathname]);
 
   return (
     <main>
@@ -25,8 +21,11 @@ const LandingPageLayout = ({ children }: ILandingPageLayout) => {
                 <h3 className="text-xl font-semibold text-slate-700">NexTools</h3>
               </div>
             </Link>
-            {/* <Button onClick={login}>Login / Signup</Button> */}
-            {location.pathname === "/" && <a href="#start"><Button>Get Started</Button></a>}
+            {location.pathname === "/" && (
+              <Button asChild>
+                <a href="#start">Get Started</a>
+              </Button>
+            )}
           </div>
         </div>
       </header>
@@ -36,8 +35,8 @@ const LandingPageLayout = ({ children }: ILandingPageLayout) => {
       <footer className="bg-slate-800 py-4">
         <div className="container mx-auto">
           <div className="flex items-center justify-between gap-4 text-white text-xs">
-            <p>&copy; {new Date().getFullYear()} NextTools. All rights reserved</p>
-            <p>Made by <a href="https://techydna.vercel.app/" target="_blank">TechyDNA</a></p>
+            <p>&copy; {new Date().getFullYear()} NexTools. All rights reserved</p>
+            <p>Made by <a href="https://techydna.vercel.app/" target="_blank" rel="noopener noreferrer">TechyDNA</a></p>
           </div>
         </div>
       </footer>

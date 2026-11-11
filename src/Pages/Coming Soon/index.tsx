@@ -18,12 +18,12 @@ export default function ComingSoon() {
             <p className="mt-2 text-lg text-gray-600">This module is under development. Please check again soon</p>
           </div>
           <div className="mt-8">
-            <Link to="/">
-              <Button className="inline-flex items-center h-auto px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-slate-700 hover:bg-slate-600 transition-colors duration-300">
+            <Button asChild className="inline-flex items-center h-auto px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-slate-700 hover:bg-slate-600 transition-colors duration-300">
+              <Link to="/">
                 Go back home
                 <MoveRight className="ml-2 -mr-1 h-5 w-5" aria-hidden="true" />
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         </div>
       </div>

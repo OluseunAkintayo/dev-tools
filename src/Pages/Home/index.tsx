@@ -19,12 +19,12 @@ const Home = () => {
               Lightning-fast, developer-friendly, and completely free. Your all-in-one solution for data conversion, formatting, and TypeScript interface generation.
             </p>
             <div className="mt-10">
-              <a href="#start">
-                <Button className="inline-flex items-center bg-slate-700">
+              <Button asChild className="inline-flex items-center bg-slate-700">
+                <a href="#start">
                   Try It Now
                   <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </a>
+                </a>
+              </Button>
             </div>
           </div>
         </section>
@@ -36,7 +36,7 @@ const Home = () => {
           <p className="text-md text-center leading-8 text-gray-600">Powerful tools in one place to handle all your data conversion needs</p>
           <div className="mx-auto mt-16 max-w-5xl grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {apps.map(item => (
-              <Link key={item.description} to={item.link} className="shadow shadow-slate-200 border border-slate-500/10 rounded hover:bg-indigo-300/10">
+              <Link key={item.link} to={item.link} className="shadow shadow-slate-200 border border-slate-500/10 rounded hover:bg-indigo-300/10">
                 <div className="feature-card-gradient rounded-2xl p-8 transition-all duration-300">
                   <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-500/10">
                     <item.icon className="h-6 w-6 text-slate-500" />
@@ -57,12 +57,12 @@ const Home = () => {
             Join thousands of developers who trust NexTools for their data transformation needs.<br />
             It's fast, it's simple, it's developer-friendly, and best of all, it's free!
           </p>
-          <a href="#start">
-            <Button size="lg" className="inline-flex items-center bg-slate-700">
+          <Button asChild size="lg" className="inline-flex items-center bg-slate-700">
+            <a href="#start">
               Get Started
               <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          </a>
+            </a>
+          </Button>
         </div>
       </section>
     </LandingPageLayout>
