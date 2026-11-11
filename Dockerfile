@@ -1,14 +1,10 @@
 FROM node:20 AS build
 
-# RUN npm install -g yarn
-
-# RUN exec bash
-
 WORKDIR /frontend
 
-COPY package.json .
+COPY package.json yarn.lock ./
 
-RUN yarn
+RUN yarn install --frozen-lockfile
 
 COPY . .
 

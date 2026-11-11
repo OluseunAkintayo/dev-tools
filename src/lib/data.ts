@@ -27,7 +27,7 @@ export const apps = [
     },
     {
       title: "JSON Formatter",
-      description: "Format and validate JSON with customizable indentation and sorting options.",
+      description: "Format and validate JSON with customizable indentation and key sorting.",
       icon: Code,
       link: "/json-formatter"
     },
