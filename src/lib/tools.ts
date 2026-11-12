@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
-import { ArrowLeftRight, BadgeCheck, Binary, Braces, Clock, FileCode2, FileJson, FileText, Fingerprint, IdCard, KeyRound, Link2, Palette, Sheet, WandSparkles } from "lucide-react";
+import { ArrowLeftRight, BadgeCheck, Binary, Braces, Clock, FileCode2, FileJson, FileText, Fingerprint, GitCompareArrows, IdCard, KeyRound, Link2, Palette, Sheet, WandSparkles } from "lucide-react";
 
-export type CategoryId = "format" | "convert" | "generate" | "encode" | "design";
+export type CategoryId = "format" | "convert" | "generate" | "encode" | "compare" | "design";
 
 export interface Category {
   id: CategoryId;
@@ -14,6 +14,7 @@ export const categories: Category[] = [
   { id: "convert", label: "Convert", icon: ArrowLeftRight },
   { id: "generate", label: "Generate", icon: Braces },
   { id: "encode", label: "Encode", icon: Binary },
+  { id: "compare", label: "Compare", icon: GitCompareArrows },
   { id: "design", label: "Design", icon: Palette },
 ];
 
@@ -21,6 +22,7 @@ export type ToolId =
   | "json-formatter"
   | "json-to-interface"
   | "json-to-zod"
+  | "json-diff"
   | "base64"
   | "jwt"
   | "timestamp"
@@ -88,6 +90,18 @@ export const tools: Tool[] = [
     link: "/json-to-zod",
     status: "live",
     keywords: ["zod", "schema", "validation", "typescript", "json", "infer", "runtime"],
+    size: "normal",
+  },
+  {
+    id: "json-diff",
+    title: "JSON Diff",
+    description: "Compare two JSON documents and list every difference by path.",
+    intro: "Paste two JSON documents. Every added, removed and changed value is listed by its JSONPath, ignoring key order.",
+    category: "compare",
+    icon: GitCompareArrows,
+    link: "/json-diff",
+    status: "live",
+    keywords: ["diff", "compare", "json", "difference", "changes", "delta", "versus"],
     size: "normal",
   },
   {
