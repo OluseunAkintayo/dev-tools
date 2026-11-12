@@ -3,6 +3,7 @@ import { Clock } from "lucide-react";
 import { ToolLayout } from "@/components/layout/ToolLayout";
 import { Button } from "@/components/ui/button";
 import { Combobox } from "@/components/workspace/Combobox";
+import { CopyRow } from "@/components/workspace/CopyRow";
 import { Segmented } from "@/components/workspace/controls";
 import { EmptyState, ErrorNotice } from "@/components/workspace/Feedback";
 import { CopyButton, PasteButton } from "@/components/workspace/actions";
@@ -13,7 +14,6 @@ import { useNow } from "@/hooks/use-now";
 import { useToolRunner } from "@/hooks/use-tool-runner";
 import { useHandoff } from "@/lib/handoff";
 import { localTimeZone, parseTimestamp, timeFormats, timeZoneLabel, timeZoneOptions, toDateTimeLocal, type TimestampUnit } from "@/lib/time";
-import { FormatRow } from "./FormatRow";
 
 const UNIT_OPTIONS: { value: TimestampUnit; label: string }[] = [
   { value: "auto", label: "Auto" },
@@ -121,7 +121,7 @@ const TimestampConverter = () => {
             <div className="h-full overflow-auto">
               <dl>
                 {formats.map((format) => (
-                  <FormatRow key={format.id} label={format.label} value={format.value} dimmed={dimmed} />
+                  <CopyRow key={format.id} label={format.label} value={format.value} dimmed={dimmed} />
                 ))}
               </dl>
             </div>

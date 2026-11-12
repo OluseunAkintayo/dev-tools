@@ -4,14 +4,14 @@ import { Button } from "@/components/ui/button";
 import { useCopy } from "@/hooks/use-copy";
 import { cn } from "@/lib/utils";
 
-interface FormatRowProps {
+interface CopyRowProps {
   label: string;
   value: string;
   dimmed?: boolean;
 }
 
-/** One output format: label, monospace value and an icon copy button with inline confirmation. */
-export const FormatRow = ({ label, value, dimmed = false }: FormatRowProps) => {
+/** A label above a monospace value, with an icon copy button that confirms inline. */
+export const CopyRow = ({ label, value, dimmed = false }: CopyRowProps) => {
   const copy = useCopy();
   const [copied, setCopied] = React.useState(false);
   const timer = React.useRef<number>();

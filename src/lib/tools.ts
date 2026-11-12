@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { ArrowLeftRight, Binary, Braces, Clock, FileCode2, FileJson, FileText, KeyRound, Palette, Sheet, WandSparkles } from "lucide-react";
+import { ArrowLeftRight, Binary, Braces, Clock, FileCode2, FileJson, FileText, KeyRound, Link2, Palette, Sheet, WandSparkles } from "lucide-react";
 
 export type CategoryId = "format" | "convert" | "generate" | "encode" | "design";
 
@@ -23,6 +23,7 @@ export type ToolId =
   | "base64"
   | "jwt"
   | "timestamp"
+  | "url"
   | "csv-to-json"
   | "json-to-csv"
   | "xml-to-json"
@@ -94,6 +95,18 @@ export const tools: Tool[] = [
     link: "/jwt",
     status: "live",
     keywords: ["jwt", "token", "jws", "bearer", "decode", "encode", "sign", "verify", "signature", "claims", "oauth", "jwk"],
+    size: "normal",
+  },
+  {
+    id: "url",
+    title: "URL Encoder / Decoder",
+    description: "Percent-encode or decode text, or split a URL into its parts.",
+    intro: "Encode or decode percent-escapes, or switch to Parse to see a URL's parts and edit its query parameters.",
+    category: "encode",
+    icon: Link2,
+    link: "/url-encoder-decoder",
+    status: "live",
+    keywords: ["url", "uri", "percent", "encode", "decode", "escape", "query", "querystring", "params", "parse", "%20"],
     size: "normal",
   },
   {

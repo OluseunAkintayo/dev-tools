@@ -13,6 +13,7 @@ import JsonToXml from "./Pages/XmlToJson/JsonToXml.tsx";
 import Base64EncoderDecoder from "./Pages/Base64EncoderDecoder/index.tsx";
 import JwtTool from "./Pages/Jwt/index.tsx";
 import TimestampConverter from "./Pages/TimestampConverter/index.tsx";
+import UrlTools from "./Pages/UrlTools/index.tsx";
 
 /** Shared shell: ⌘K menu, tooltips and scroll restoration for every route. */
 const Root = () => (
@@ -38,6 +39,7 @@ const router = createBrowserRouter([
       { path: "/base64-encoder-decoder", element: <Base64EncoderDecoder /> },
       { path: "/jwt", element: <JwtTool /> },
       { path: "/timestamp-converter", element: <TimestampConverter /> },
+      { path: "/url-encoder-decoder", element: <UrlTools /> },
       { path: "/shadcn-theme-generator", element: <ComingSoon /> },
       { path: "*", element: <NotFound /> },
     ],
