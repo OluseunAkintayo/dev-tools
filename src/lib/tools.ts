@@ -30,6 +30,8 @@ export type ToolId =
   | "json-to-csv"
   | "xml-to-json"
   | "json-to-xml"
+  | "yaml-to-json"
+  | "json-to-yaml"
   | "shadcn-theme";
 
 export interface Tool {
@@ -199,6 +201,32 @@ export const tools: Tool[] = [
     keywords: ["json", "xml", "convert"],
     size: "normal",
     pair: ["JSON", "XML"],
+  },
+  {
+    id: "yaml-to-json",
+    title: "YAML to JSON",
+    description: "Anchors, merge keys and multiple documents.",
+    intro: "Paste or open a YAML file. The JSON result appears as you type, with anchors, aliases and merge keys expanded.",
+    category: "convert",
+    icon: FileCode2,
+    link: "/yaml-to-json",
+    status: "live",
+    keywords: ["yaml", "yml", "json", "convert", "kubernetes", "k8s", "compose", "config", "openapi"],
+    size: "normal",
+    pair: ["YAML", "JSON"],
+  },
+  {
+    id: "json-to-yaml",
+    title: "JSON to YAML",
+    description: "Clean block-style YAML.",
+    intro: "Paste a JSON value. The YAML result appears as you type, with strings like \"yes\" quoted so every parser reads them as text.",
+    category: "convert",
+    icon: FileText,
+    link: "/json-to-yaml",
+    status: "live",
+    keywords: ["json", "yaml", "yml", "convert", "config"],
+    size: "normal",
+    pair: ["JSON", "YAML"],
   },
   {
     id: "shadcn-theme",
