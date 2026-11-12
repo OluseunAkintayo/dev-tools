@@ -66,22 +66,8 @@ export const decodeJwt = (input: string): DecodedJwt => {
 
 export type TimeState = "valid" | "expired" | "not-yet-valid" | "none";
 
-const relative = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
-const UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
-  ["year", 31_536_000],
-  ["month", 2_592_000],
-  ["day", 86_400],
-  ["hour", 3_600],
-  ["minute", 60],
-  ["second", 1],
-];
-
-/** "in 2 hours", "3 days ago". */
-export const relativeTime = (seconds: number, now = Date.now() / 1000) => {
-  const delta = seconds - now;
-  const [unit, size] = UNITS.find(([, size]) => Math.abs(delta) >= size) ?? UNITS[UNITS.length - 1];
-  return relative.format(Math.round(delta / size), unit);
-};
+/** Kept as a re-export so the JWT pages can import every claim helper from one place. */
+export { relativeTime } from "@/lib/time";
 
 export const timeState = (payload: unknown, now = Date.now() / 1000): TimeState => {
   if (typeof payload !== "object" || payload === null) return "none";
