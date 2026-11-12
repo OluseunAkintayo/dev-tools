@@ -22,7 +22,11 @@ const convert = (text: string) => {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw new Error('JSON must be an object, for example {"root": {...}}.');
   }
-  return formatXml(new X2JS().js2xml(value));
+  // XML needs exactly one root element. Several top-level keys, or a single key
+  // holding an array, would produce several sibling roots, so wrap them.
+  const keys = Object.keys(value);
+  const hasSingleRoot = keys.length === 1 && !Array.isArray((value as Record<string, unknown>)[keys[0]]);
+  return formatXml(new X2JS().js2xml(hasSingleRoot ? value : { root: value }));
 };
 
 const JsonToXml = () => {
@@ -54,7 +58,7 @@ const JsonToXml = () => {
   return (
     <ToolLayout toolId="json-to-xml" next={[{ to: "xml-to-json", label: "Convert back to JSON", handoff: output ? { input: output } : undefined }]}>
       <Toolbar>
-        <p className="pl-1 text-[13px] text-ink-3">Wrap your data in a single top-level key to name the root element.</p>
+        <p className="pl-1 text-[13px] text-ink-3">Wrap your data in a single top-level key to name the root element, otherwise it goes inside &lt;root&gt;.</p>
         <ToolbarSpacer />
         <ToolbarGroup>
           <ClearButton onClick={clear} disabled={!input} />
