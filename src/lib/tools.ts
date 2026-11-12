@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { ArrowLeftRight, Binary, Braces, FileCode2, FileJson, FileText, Palette, Sheet, WandSparkles } from "lucide-react";
+import { ArrowLeftRight, Binary, Braces, FileCode2, FileJson, FileText, KeyRound, Palette, Sheet, WandSparkles } from "lucide-react";
 
 export type CategoryId = "format" | "convert" | "generate" | "encode" | "design";
 
@@ -21,6 +21,7 @@ export type ToolId =
   | "json-formatter"
   | "json-to-interface"
   | "base64"
+  | "jwt"
   | "csv-to-json"
   | "json-to-csv"
   | "xml-to-json"
@@ -81,6 +82,18 @@ export const tools: Tool[] = [
     status: "live",
     keywords: ["base64", "encode", "decode", "b64", "atob", "btoa"],
     size: "wide",
+  },
+  {
+    id: "jwt",
+    title: "JWT Decoder",
+    description: "Decode a JWT, check its expiry and verify the signature.",
+    intro: "Paste a JWT to see its header, payload and claims. Add a secret or public key to verify the signature.",
+    category: "encode",
+    icon: KeyRound,
+    link: "/jwt-decoder",
+    status: "live",
+    keywords: ["jwt", "token", "jws", "bearer", "decode", "verify", "signature", "claims", "oauth", "jwk"],
+    size: "normal",
   },
   {
     id: "csv-to-json",
