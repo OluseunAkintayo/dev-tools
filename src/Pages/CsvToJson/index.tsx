@@ -1,139 +1,150 @@
 import React from "react";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Copy, Download, RefreshCcw, X } from "lucide-react";
-import LandingPageLayout from "@/components/LandingPageLayout";
-import IconButton from "@/components/IconButton";
-import FileUploadButton from "@/components/FileUploadButton";
-import { useCopy } from "@/hooks/use-copy";
+import { ArrowLeftRight, FileJson } from "lucide-react";
+import { ToolLayout } from "@/components/layout/ToolLayout";
+import { CodeEditor } from "@/components/workspace/CodeEditor";
+import { CodeView } from "@/components/workspace/CodeView";
+import { Segmented } from "@/components/workspace/controls";
+import { EmptyState, ErrorNotice } from "@/components/workspace/Feedback";
+import { CopyButton, DownloadButton, OpenFileButton, PasteButton } from "@/components/workspace/actions";
+import { ClearButton, RunButton } from "@/components/workspace/run";
+import { outputOf, statusFor } from "@/components/workspace/status";
+import { Pane, Panes, StatusBar, Toolbar, ToolbarGroup, ToolbarLabel, ToolbarSpacer } from "@/components/workspace/Workspace";
+import { useFileLoader } from "@/hooks/use-file-loader";
+import { useShortcut } from "@/hooks/use-shortcut";
+import { useToolRunner } from "@/hooks/use-tool-runner";
 import { csvToObjects } from "@/lib/csv";
-import { downloadFile, hasExtension, readFileAsText } from "@/lib/download";
+import { useHandoff } from "@/lib/handoff";
+import { plural } from "@/lib/text";
+
+type DelimiterChoice = "," | ";" | "\t" | "|" | "custom";
+
+const DELIMITER_OPTIONS: { value: DelimiterChoice; label: string }[] = [
+  { value: ",", label: "Comma" },
+  { value: ";", label: "Semicolon" },
+  { value: "\t", label: "Tab" },
+  { value: "|", label: "Pipe" },
+  { value: "custom", label: "Other" },
+];
+
+const initialChoice = (delimiter?: string): DelimiterChoice =>
+  delimiter && DELIMITER_OPTIONS.some((option) => option.value === delimiter) ? (delimiter as DelimiterChoice) : ",";
 
 const CsvToJson = () => {
-  React.useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+  const handoff = useHandoff();
+  const [input, setInput] = React.useState(handoff?.input ?? "");
+  const [fileName, setFileName] = React.useState<string | null>(null);
+  const [choice, setChoice] = React.useState<DelimiterChoice>(() => initialChoice(handoff?.options?.delimiter));
+  const [custom, setCustom] = React.useState("");
 
-  const copy = useCopy();
-  const [loading, setLoading] = React.useState<boolean>(false);
-  const [csvData, setCsvData] = React.useState<string>("");
-  const [jsonData, setJsonData] = React.useState<string>("");
-  const [error, setError] = React.useState<string | null>(null);
-  const [delimiter, setDelimiter] = React.useState<string>(",");
-  const [csvFile, setCsvFile] = React.useState<File | null>(null);
+  const delimiter = choice === "custom" ? (custom === "\\t" ? "\t" : custom) : choice;
 
-  const convert = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    try {
-      const actualDelimiter = delimiter === "\\t" ? "\t" : delimiter;
-      if (actualDelimiter.length !== 1) {
-        setError("Delimiter must be a single character (use \\t for tab).");
-        return;
-      }
-      if (!csvData.trim()) {
-        setError("Please provide CSV data.");
-        return;
-      }
-      setJsonData(JSON.stringify(csvToObjects(csvData, actualDelimiter), null, 2));
-    } catch (err) {
-      setJsonData("");
-      setError(err instanceof Error ? err.message : "Invalid CSV format! Please check your data.");
-    }
-  };
+  const runner = useToolRunner(
+    input,
+    (text) => {
+      if (delimiter.length !== 1) throw new Error("The delimiter must be a single character. Use \\t for tab.");
+      const rows = csvToObjects(text, delimiter);
+      return { json: JSON.stringify(rows, null, 2), rows: rows.length, columns: rows[0] ? Object.keys(rows[0]).length : 0 };
+    },
+    [delimiter]
+  );
+  useShortcut({ key: "Enter", mod: true }, runner.run);
+
+  const files = useFileLoader({
+    extensions: [".csv", ".tsv", ".txt"],
+    onLoad: (text, file) => {
+      setInput(text);
+      setFileName(file.name);
+      if (file.name.toLowerCase().endsWith(".tsv")) setChoice("\t");
+    },
+  });
+
+  const result = outputOf(runner);
+  const output = result?.json ?? "";
+  const status = statusFor(runner, { ok: "Converted", error: "Could not convert", runLabel: "Convert" });
+  const error = runner.visibleError;
 
   const clear = () => {
-    setCsvData("");
-    setJsonData("");
-    setError(null);
-    setCsvFile(null);
-  };
-
-  const upload = async (file: File) => {
-    setJsonData("");
-    setError(null);
-    setCsvFile(null);
-    if (!hasExtension(file, ".csv", ".tsv", ".txt")) {
-      setError("Invalid file type! Please upload a CSV file.");
-      return;
-    }
-    setLoading(true);
-    try {
-      setCsvData(await readFileAsText(file));
-      setCsvFile(file);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error reading file.");
-    } finally {
-      setLoading(false);
-    }
+    setInput("");
+    setFileName(null);
   };
 
   return (
-    <LandingPageLayout>
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-xl text-center">CSV to JSON Converter</h1>
-        <div className="h-8" />
-        <div className="sm:max-w-[600px] mx-auto">
-          <form onSubmit={convert} className="space-y-4">
-            <Tabs defaultValue="upload">
-              <TabsList className="w-full">
-                <TabsTrigger className="w-full" value="upload">Upload CSV File</TabsTrigger>
-                <TabsTrigger className="w-full" value="paste">Paste CSV</TabsTrigger>
-              </TabsList>
-              <TabsContent value="upload" className="pt-4 space-y-2">
-                <Label>Upload CSV File</Label>
-                <FileUploadButton
-                  accept=".csv,.tsv,.txt,text/csv"
-                  onFileSelect={upload}
-                  disabled={loading}
-                  className="w-full bg-slate-200 hover:bg-slate-200/80 text-slate-700"
-                />
-                {csvFile && <span className="block text-xs text-slate-500">{csvFile.name}</span>}
-              </TabsContent>
-              <TabsContent value="paste" className="pt-4">
-                <Textarea
-                  aria-label="CSV data"
-                  value={csvData}
-                  rows={12}
-                  onChange={(e) => setCsvData(e.target.value)}
-                  className="text-xs"
-                  placeholder="Paste your CSV data here..."
-                />
-              </TabsContent>
-            </Tabs>
-            <div className="h-4">
-              {error && <span className="text-xs text-destructive">{error}</span>}
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="delimiter">Delimiter</Label>
-              <Input id="delimiter" type="text" value={delimiter} onChange={(e) => setDelimiter(e.target.value)} />
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <Button disabled={loading || !csvData.trim()} type="submit">
-                <RefreshCcw /> Convert
-              </Button>
-              <Button disabled={loading} type="button" onClick={clear} variant="destructive"><X /> Clear</Button>
-            </div>
-          </form>
-        </div>
+    <ToolLayout
+      toolId="csv-to-json"
+      next={[
+        { to: "json-to-interface", label: "Generate interface from this", handoff: output ? { input: output } : undefined },
+        { to: "json-formatter", label: "Open in JSON Formatter", handoff: output ? { input: output } : undefined },
+      ]}
+    >
+      <Toolbar>
+        <ToolbarGroup>
+          <ToolbarLabel>Delimiter</ToolbarLabel>
+          <Segmented label="Delimiter" value={choice} options={DELIMITER_OPTIONS} onChange={setChoice} />
+          {choice === "custom" && (
+            <input
+              aria-label="Custom delimiter"
+              value={custom}
+              maxLength={2}
+              autoFocus
+              onChange={(event) => setCustom(event.target.value)}
+              placeholder="e.g. ~"
+              className="h-8 w-16 rounded-lg border border-line-strong bg-surface px-2 text-center font-mono text-[13px] text-ink outline-none focus:border-brand/60 focus:ring-2 focus:ring-brand/20"
+            />
+          )}
+        </ToolbarGroup>
+        <ToolbarSpacer />
+        <ToolbarGroup>
+          <ClearButton onClick={clear} disabled={!input} />
+          <RunButton label="Convert" icon={ArrowLeftRight} onClick={runner.run} disabled={!input.trim()} />
+        </ToolbarGroup>
+      </Toolbar>
 
-        {jsonData && (
-          <div className="mt-12">
-            <div className="flex items-center justify-between gap-8 mb-4">
-              <h3 className="font-semibold">JSON Data</h3>
-              <div className="flex gap-2">
-                <IconButton label="Copy" className="border border-slate-400" variant="outline" onClick={() => copy(jsonData)}><Copy /></IconButton>
-                <IconButton label="Download file" onClick={() => downloadFile(jsonData, "json-data.json", "application/json")}><Download /></IconButton>
-              </div>
-            </div>
-            <Textarea className="border border-slate-400 p-4 text-sm" readOnly rows={12} value={jsonData} />
-          </div>
-        )}
-      </div>
-    </LandingPageLayout>
+      <Panes>
+        <Pane
+          title="CSV"
+          meta={fileName}
+          onFileDrop={files.load}
+          actions={
+            <>
+              <PasteButton onPaste={setInput} />
+              <OpenFileButton accept={files.accept} onFile={files.load} disabled={files.loading} />
+            </>
+          }
+        >
+          <CodeEditor
+            label="CSV input"
+            value={input}
+            onChange={setInput}
+            placeholder="Paste CSV with a header row, or drop a .csv file"
+            autoFocus={!handoff}
+          />
+          {error && <ErrorNotice error={error} />}
+        </Pane>
+        <Pane
+          title="JSON"
+          actions={
+            <>
+              <CopyButton text={output} shortcut />
+              <DownloadButton content={output} filename="data.json" mimeType="application/json" />
+            </>
+          }
+        >
+          {output ? (
+            <CodeView code={output} language="json" label="JSON output" dimmed={runner.outcome.kind === "error"} />
+          ) : (
+            <EmptyState icon={FileJson} title="Drop a .csv file or paste into CSV">
+              The first row is used as the keys. The JSON shows up here as you type.
+            </EmptyState>
+          )}
+        </Pane>
+      </Panes>
+
+      <StatusBar
+        kind={status.kind}
+        label={status.label}
+        items={runner.outcome.kind === "ok" && result ? [plural(result.rows, "row"), plural(result.columns, "column")] : []}
+      />
+    </ToolLayout>
   );
 };
 

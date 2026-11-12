@@ -1,22 +1,23 @@
 import { useToast } from "@/hooks/use-toast";
 
-const toastClassName = "top-0 right-0 flex fixed md:max-w-[320px] md:top-4 md:right-4";
-
+/**
+ * Copies text to the clipboard. Success is shown inline by the caller
+ * (see CopyButton); only failures raise a toast.
+ */
 export const useCopy = () => {
   const { toast } = useToast();
-
-  return async (text: string) => {
-    if (!text) return;
+  return async (text: string): Promise<boolean> => {
+    if (!text) return false;
     try {
       await navigator.clipboard.writeText(text);
-      toast({ title: "Copied to clipboard!", className: toastClassName });
+      return true;
     } catch {
       toast({
-        title: "Failed to copy to clipboard",
-        description: "Please select and copy the text manually.",
+        title: "Could not copy to the clipboard",
+        description: "Select the text and copy it manually.",
         variant: "destructive",
-        className: toastClassName,
       });
+      return false;
     }
   };
 };

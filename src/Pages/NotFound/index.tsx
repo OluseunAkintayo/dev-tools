@@ -1,33 +1,37 @@
-import LandingPageLayout from '@/components/LandingPageLayout'
-import { Button } from '@/components/ui/button'
-import { MoveRight } from 'lucide-react'
-import React from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from "react-router-dom";
+import { ArrowRight, Search } from "lucide-react";
+import { useCommandMenu } from "@/components/command/CommandMenu";
+import { ToolHeader } from "@/components/layout/SiteHeader";
+import { SiteFooter } from "@/components/layout/SiteFooter";
+import { useDocumentTitle } from "@/hooks/use-document-title";
+import { Button } from "@/components/ui/button";
+import { modKey } from "@/lib/platform";
 
 export default function NotFound() {
-  React.useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+  const { open } = useCommandMenu();
+  useDocumentTitle("Page not found | NexTools");
 
   return (
-    <LandingPageLayout>
-      <div className="min-h-screen bg-gradient-to-br from-slate-400/20 to-gray-100 flex items-center justify-center px-4 sm:px-6 lg:px-8">
-        <div className="max-w-lg w-full space-y-8 text-center">
-          <div className="space-y-4">
-            <h1 className="text-9xl font-extrabold animate-bounce text-destructive">404</h1>
-            <h2 className="mt-6 text-3xl font-bold text-slate-900">Oops! Page not found</h2>
-            <p className="mt-2 text-lg text-gray-600">The page you're looking for doesn't exist or has been moved.</p>
-          </div>
-          <div className="mt-8">
-            <Button asChild className="inline-flex items-center h-auto px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-slate-700 hover:bg-slate-600 transition-colors duration-300">
+    <div className="flex min-h-[100dvh] flex-col">
+      <ToolHeader />
+      <main className="mx-auto grid w-full max-w-[1120px] flex-1 place-items-center px-4 py-24 sm:px-8">
+        <div className="max-w-[44ch] text-center">
+          <p className="font-mono text-[13px] font-medium text-brand">404</p>
+          <h1 className="mt-3 text-[32px] font-semibold leading-tight tracking-[-0.025em]">This page does not exist</h1>
+          <p className="mt-3 text-ink-3">The link may be old, or the tool may have moved. Search for it, or start from the home page.</p>
+          <div className="mt-8 flex flex-wrap justify-center gap-2.5">
+            <Button asChild>
               <Link to="/">
-                Go back home
-                <MoveRight className="ml-2 -mr-1 h-5 w-5" aria-hidden="true" />
+                Go to home page <ArrowRight />
               </Link>
+            </Button>
+            <Button variant="outline" onClick={open}>
+              <Search /> Search tools <kbd className="kbd ml-1">{modKey}K</kbd>
             </Button>
           </div>
         </div>
-      </div>
-    </LandingPageLayout>
-  )
+      </main>
+      <SiteFooter />
+    </div>
+  );
 }

@@ -1,132 +1,124 @@
 import React from "react";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Copy, Download, RefreshCcw, X } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import LandingPageLayout from "@/components/LandingPageLayout";
-import IconButton from "@/components/IconButton";
-import FileUploadButton from "@/components/FileUploadButton";
-import { useCopy } from "@/hooks/use-copy";
-import { downloadFile, hasExtension, readFileAsText } from "@/lib/download";
+import { ArrowLeftRight, FileJson } from "lucide-react";
 import X2JS from "x2js";
+import { ToolLayout } from "@/components/layout/ToolLayout";
+import { CodeEditor } from "@/components/workspace/CodeEditor";
+import { CodeView } from "@/components/workspace/CodeView";
+import { EmptyState, ErrorNotice } from "@/components/workspace/Feedback";
+import { CopyButton, DownloadButton, OpenFileButton, PasteButton } from "@/components/workspace/actions";
+import { ClearButton, RunButton } from "@/components/workspace/run";
+import { outputOf, statusFor } from "@/components/workspace/status";
+import { Pane, Panes, StatusBar, Toolbar, ToolbarGroup, ToolbarSpacer } from "@/components/workspace/Workspace";
+import { useFileLoader } from "@/hooks/use-file-loader";
+import { useShortcut } from "@/hooks/use-shortcut";
+import { useToolRunner } from "@/hooks/use-tool-runner";
+import { useHandoff } from "@/lib/handoff";
+import { byteLength, countLines, formatBytes, plural } from "@/lib/text";
+import { ToolInputError } from "@/lib/toolError";
+
+const convert = (text: string) => {
+  const doc = new DOMParser().parseFromString(text, "application/xml");
+  const parserError = doc.getElementsByTagName("parsererror")[0];
+  if (parserError) {
+    const detail = parserError.textContent ?? "";
+    const location = /line (?:number )?(\d+)(?:,? at column (\d+)| column (\d+))?/i.exec(detail);
+    const line = location ? Number(location[1]) : undefined;
+    const column = location ? Number(location[2] ?? location[3]) || undefined : undefined;
+    throw new ToolInputError({
+      message: line ? `Invalid XML near line ${line}${column ? `, column ${column}` : ""}. Check for unclosed or mismatched tags.` : "Invalid XML. Check for unclosed or mismatched tags.",
+      line,
+      column,
+    });
+  }
+  return JSON.stringify(new X2JS().dom2js(doc), null, 2);
+};
 
 const XmlToJson = () => {
-  React.useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+  const handoff = useHandoff();
+  const [input, setInput] = React.useState(handoff?.input ?? "");
+  const [fileName, setFileName] = React.useState<string | null>(null);
 
-  const copy = useCopy();
-  const [loading, setLoading] = React.useState<boolean>(false);
-  const [xmlData, setXmlData] = React.useState<string>("");
-  const [xmlFile, setXmlFile] = React.useState<File | null>(null);
-  const [jsonData, setJsonData] = React.useState<string>("");
-  const [error, setError] = React.useState<string | null>(null);
+  const runner = useToolRunner(input, convert, []);
+  useShortcut({ key: "Enter", mod: true }, runner.run);
 
-  const convert = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    try {
-      const xmlDocument = new DOMParser().parseFromString(xmlData, "application/xml");
-      if (xmlDocument.getElementsByTagName("parsererror").length > 0) {
-        setJsonData("");
-        setError("Invalid XML format. Please check your input.");
-        return;
-      }
-      setJsonData(JSON.stringify(new X2JS().dom2js(xmlDocument), null, 2));
-    } catch {
-      setJsonData("");
-      setError("Conversion failed. Please check your XML input.");
-    }
-  };
+  const files = useFileLoader({
+    extensions: [".xml"],
+    onLoad: (text, file) => {
+      setInput(text);
+      setFileName(file.name);
+    },
+  });
+
+  const output = outputOf(runner) ?? "";
+  const status = statusFor(runner, { ok: "Converted", error: "Invalid XML", runLabel: "Convert" });
+  const error = runner.visibleError;
+  const stats = React.useMemo(() => (output ? [plural(countLines(output), "line"), formatBytes(byteLength(output))] : []), [output]);
 
   const clear = () => {
-    setXmlData("");
-    setJsonData("");
-    setError(null);
-    setXmlFile(null);
-  };
-
-  const upload = async (file: File) => {
-    setJsonData("");
-    setError(null);
-    setXmlFile(null);
-    if (!hasExtension(file, ".xml")) {
-      setError("Invalid file type! Please upload a .xml file.");
-      return;
-    }
-    setLoading(true);
-    try {
-      setXmlData(await readFileAsText(file));
-      setXmlFile(file);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error reading file.");
-    } finally {
-      setLoading(false);
-    }
+    setInput("");
+    setFileName(null);
   };
 
   return (
-    <LandingPageLayout>
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-xl text-center">XML to JSON Converter</h1>
-        <div className="h-8" />
-        <div className="sm:max-w-[600px] mx-auto">
-          <form onSubmit={convert} className="space-y-4">
-            <Tabs defaultValue="upload" className="sm:max-w-[600px] mx-auto">
-              <TabsList className="w-full">
-                <TabsTrigger className="w-full" value="upload">Upload XML File</TabsTrigger>
-                <TabsTrigger className="w-full" value="paste">Paste XML</TabsTrigger>
-              </TabsList>
-              <TabsContent value="paste" className="pt-4">
-                <Textarea
-                  aria-label="XML data"
-                  value={xmlData}
-                  rows={12}
-                  onChange={(e) => setXmlData(e.target.value)}
-                  className="text-xs"
-                  placeholder="Paste your XML data here..."
-                />
-              </TabsContent>
-              <TabsContent value="upload" className="pt-4 space-y-2">
-                <Label>Upload XML File</Label>
-                <FileUploadButton
-                  accept=".xml,text/xml,application/xml"
-                  onFileSelect={upload}
-                  disabled={loading}
-                  className="w-full bg-slate-200 hover:bg-slate-200/80 text-slate-700"
-                >
-                  Upload file
-                </FileUploadButton>
-                {xmlFile && <span className="block text-xs text-slate-500">{xmlFile.name}</span>}
-              </TabsContent>
-            </Tabs>
-            <div className="h-4">
-              {error && <span className="text-xs text-destructive">{error}</span>}
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <Button disabled={loading || !xmlData.trim()} type="submit">
-                <RefreshCcw /> Convert
-              </Button>
-              <Button disabled={loading} type="button" onClick={clear} variant="destructive"><X /> Clear</Button>
-            </div>
-          </form>
-        </div>
+    <ToolLayout
+      toolId="xml-to-json"
+      next={[
+        { to: "json-to-interface", label: "Generate interface from this", handoff: output ? { input: output } : undefined },
+        { to: "json-to-csv", label: "Convert to CSV", handoff: output ? { input: output } : undefined },
+      ]}
+    >
+      <Toolbar>
+        <p className="pl-1 text-[13px] text-ink-3">Attributes become keys prefixed with an underscore.</p>
+        <ToolbarSpacer />
+        <ToolbarGroup>
+          <ClearButton onClick={clear} disabled={!input} />
+          <RunButton label="Convert" icon={ArrowLeftRight} onClick={runner.run} disabled={!input.trim()} />
+        </ToolbarGroup>
+      </Toolbar>
 
-        {jsonData && (
-          <div className="mt-12">
-            <div className="flex items-center justify-between gap-8 mb-4">
-              <h3 className="font-semibold">JSON Data</h3>
-              <div className="flex gap-2">
-                <IconButton label="Copy" className="border border-slate-400" variant="outline" onClick={() => copy(jsonData)}><Copy /></IconButton>
-                <IconButton label="Download file" onClick={() => downloadFile(jsonData, "json-data.json", "application/json")}><Download /></IconButton>
-              </div>
-            </div>
-            <Textarea className="border border-slate-400 p-4 text-sm" readOnly rows={12} value={jsonData} />
-          </div>
-        )}
-      </div>
-    </LandingPageLayout>
+      <Panes>
+        <Pane
+          title="XML"
+          meta={fileName}
+          onFileDrop={files.load}
+          actions={
+            <>
+              <PasteButton onPaste={setInput} />
+              <OpenFileButton accept={files.accept} onFile={files.load} disabled={files.loading} />
+            </>
+          }
+        >
+          <CodeEditor
+            label="XML input"
+            value={input}
+            onChange={setInput}
+            placeholder="Paste XML here, or drop a .xml file"
+            errorLine={error?.line}
+            autoFocus={!handoff}
+          />
+          {error && <ErrorNotice error={error} />}
+        </Pane>
+        <Pane
+          title="JSON"
+          actions={
+            <>
+              <CopyButton text={output} shortcut />
+              <DownloadButton content={output} filename="data.json" mimeType="application/json" />
+            </>
+          }
+        >
+          {output ? (
+            <CodeView code={output} language="json" label="JSON output" dimmed={runner.outcome.kind === "error"} />
+          ) : (
+            <EmptyState icon={FileJson} title="Drop a .xml file or paste into XML">
+              The JSON shows up here as you type.
+            </EmptyState>
+          )}
+        </Pane>
+      </Panes>
+
+      <StatusBar kind={status.kind} label={status.label} items={runner.outcome.kind === "ok" ? stats : []} />
+    </ToolLayout>
   );
 };
 
