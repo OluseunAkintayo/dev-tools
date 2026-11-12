@@ -86,7 +86,7 @@ export const tools: Tool[] = [
     id: "csv-to-json",
     title: "CSV to JSON",
     description: "Custom delimiters and nested keys.",
-    intro: "Paste or open a CSV file. Each row becomes a JSON object keyed by the header row.",
+    intro: "Paste or open a CSV file. Each row becomes a JSON object keyed by the header row, and dotted headers like address.city become nested objects.",
     category: "convert",
     icon: Sheet,
     link: "/csv-to-json",
