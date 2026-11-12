@@ -1,141 +1,110 @@
 import React from "react";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Copy, Download, RefreshCcw, X } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import LandingPageLayout from "@/components/LandingPageLayout";
-import IconButton from "@/components/IconButton";
-import FileUploadButton from "@/components/FileUploadButton";
-import { useCopy } from "@/hooks/use-copy";
-import { downloadFile, hasExtension, readFileAsText } from "@/lib/download";
-import { formatXml } from "@/lib/formatXml";
+import { ArrowLeftRight, FileCode2 } from "lucide-react";
 import X2JS from "x2js";
+import { ToolLayout } from "@/components/layout/ToolLayout";
+import { CodeEditor } from "@/components/workspace/CodeEditor";
+import { CodeView } from "@/components/workspace/CodeView";
+import { EmptyState, ErrorNotice } from "@/components/workspace/Feedback";
+import { CopyButton, DownloadButton, OpenFileButton, PasteButton } from "@/components/workspace/actions";
+import { ClearButton, RunButton } from "@/components/workspace/run";
+import { outputOf, statusFor } from "@/components/workspace/status";
+import { Pane, Panes, StatusBar, Toolbar, ToolbarGroup, ToolbarSpacer } from "@/components/workspace/Workspace";
+import { useFileLoader } from "@/hooks/use-file-loader";
+import { useShortcut } from "@/hooks/use-shortcut";
+import { useToolRunner } from "@/hooks/use-tool-runner";
+import { formatXml } from "@/lib/formatXml";
+import { useHandoff } from "@/lib/handoff";
+import { byteLength, countLines, formatBytes, plural } from "@/lib/text";
+import { parseJson } from "@/lib/toolError";
+
+const convert = (text: string) => {
+  const value = parseJson(text);
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new Error('JSON must be an object, for example {"root": {...}}.');
+  }
+  return formatXml(new X2JS().js2xml(value));
+};
 
 const JsonToXml = () => {
-  React.useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+  const handoff = useHandoff();
+  const [input, setInput] = React.useState(handoff?.input ?? "");
+  const [fileName, setFileName] = React.useState<string | null>(null);
 
-  const copy = useCopy();
-  const [loading, setLoading] = React.useState<boolean>(false);
-  const [jsonData, setJsonData] = React.useState<string>("");
-  const [jsonFile, setJsonFile] = React.useState<File | null>(null);
-  const [xmlData, setXmlData] = React.useState<string>("");
-  const [error, setError] = React.useState<string | null>(null);
+  const runner = useToolRunner(input, convert, []);
+  useShortcut({ key: "Enter", mod: true }, runner.run);
 
-  const convert = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    let jsonObj: unknown;
-    try {
-      jsonObj = JSON.parse(jsonData);
-    } catch {
-      setXmlData("");
-      setError("Invalid JSON format. Please check your input.");
-      return;
-    }
-    if (typeof jsonObj !== "object" || jsonObj === null || Array.isArray(jsonObj)) {
-      setXmlData("");
-      setError("JSON must be an object, for example {\"root\": {...}}.");
-      return;
-    }
-    try {
-      setXmlData(formatXml(new X2JS().js2xml(jsonObj)));
-    } catch {
-      setXmlData("");
-      setError("Conversion failed. Please check your JSON input.");
-    }
-  };
+  const files = useFileLoader({
+    extensions: [".json"],
+    onLoad: (text, file) => {
+      setInput(text);
+      setFileName(file.name);
+    },
+  });
+
+  const output = outputOf(runner) ?? "";
+  const status = statusFor(runner, { ok: "Converted", error: "Could not convert", runLabel: "Convert" });
+  const error = runner.visibleError;
+  const stats = React.useMemo(() => (output ? [plural(countLines(output), "line"), formatBytes(byteLength(output))] : []), [output]);
 
   const clear = () => {
-    setJsonData("");
-    setXmlData("");
-    setError(null);
-    setJsonFile(null);
-  };
-
-  const upload = async (file: File) => {
-    setXmlData("");
-    setError(null);
-    setJsonFile(null);
-    setJsonData("");
-    if (!hasExtension(file, ".json")) {
-      setError("Invalid file type! Please upload a .json file.");
-      return;
-    }
-    setLoading(true);
-    try {
-      setJsonData(await readFileAsText(file));
-      setJsonFile(file);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error reading file.");
-    } finally {
-      setLoading(false);
-    }
+    setInput("");
+    setFileName(null);
   };
 
   return (
-    <LandingPageLayout>
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-xl text-center">JSON to XML Converter</h1>
-        <div className="h-8" />
-        <div className="sm:max-w-[600px] mx-auto">
-          <form onSubmit={convert} className="space-y-4">
-            <Tabs defaultValue="upload" className="sm:max-w-[600px] mx-auto">
-              <TabsList className="w-full">
-                <TabsTrigger className="w-full" value="upload">Upload JSON File</TabsTrigger>
-                <TabsTrigger className="w-full" value="paste">Paste JSON</TabsTrigger>
-              </TabsList>
-              <TabsContent value="paste" className="pt-4">
-                <Textarea
-                  aria-label="JSON data"
-                  value={jsonData}
-                  rows={12}
-                  onChange={(e) => setJsonData(e.target.value)}
-                  className="text-xs"
-                  placeholder="Paste your JSON data here..."
-                />
-              </TabsContent>
-              <TabsContent value="upload" className="pt-4 space-y-2">
-                <Label>Upload JSON File</Label>
-                <FileUploadButton
-                  accept=".json,application/json"
-                  onFileSelect={upload}
-                  disabled={loading}
-                  className="w-full bg-slate-200 hover:bg-slate-200/80 text-slate-700"
-                >
-                  Upload file
-                </FileUploadButton>
-                {jsonFile && <span className="block text-xs text-slate-500">{jsonFile.name}</span>}
-              </TabsContent>
-            </Tabs>
-            <div className="h-4">
-              {error && <span className="text-xs text-destructive">{error}</span>}
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <Button disabled={loading || !jsonData.trim()} type="submit">
-                <RefreshCcw /> Convert
-              </Button>
-              <Button disabled={loading} type="button" onClick={clear} variant="destructive"><X /> Clear</Button>
-            </div>
-          </form>
-        </div>
+    <ToolLayout toolId="json-to-xml" next={[{ to: "xml-to-json", label: "Convert back to JSON", handoff: output ? { input: output } : undefined }]}>
+      <Toolbar>
+        <p className="pl-1 text-[13px] text-ink-3">Wrap your data in a single top-level key to name the root element.</p>
+        <ToolbarSpacer />
+        <ToolbarGroup>
+          <ClearButton onClick={clear} disabled={!input} />
+          <RunButton label="Convert" icon={ArrowLeftRight} onClick={runner.run} disabled={!input.trim()} />
+        </ToolbarGroup>
+      </Toolbar>
 
-        {xmlData && (
-          <div className="mt-12">
-            <div className="flex items-center justify-between gap-8 mb-4">
-              <h3 className="font-semibold">XML Data</h3>
-              <div className="flex gap-2">
-                <IconButton label="Copy" className="border border-slate-400" variant="outline" onClick={() => copy(xmlData)}><Copy /></IconButton>
-                <IconButton label="Download file" onClick={() => downloadFile(xmlData, "xml-data.xml", "application/xml")}><Download /></IconButton>
-              </div>
-            </div>
-            <Textarea className="border border-slate-400 p-4 text-sm" readOnly rows={12} value={xmlData} />
-          </div>
-        )}
-      </div>
-    </LandingPageLayout>
+      <Panes>
+        <Pane
+          title="JSON"
+          meta={fileName}
+          onFileDrop={files.load}
+          actions={
+            <>
+              <PasteButton onPaste={setInput} />
+              <OpenFileButton accept={files.accept} onFile={files.load} disabled={files.loading} />
+            </>
+          }
+        >
+          <CodeEditor
+            label="JSON input"
+            value={input}
+            onChange={setInput}
+            placeholder={'Paste a JSON object, e.g. {"order": {"id": 7}}'}
+            errorLine={error?.line}
+            autoFocus={!handoff}
+          />
+          {error && <ErrorNotice error={error} onFix={error.fix ? () => setInput(error.fix!.apply(input)) : undefined} />}
+        </Pane>
+        <Pane
+          title="XML"
+          actions={
+            <>
+              <CopyButton text={output} shortcut />
+              <DownloadButton content={output} filename="data.xml" mimeType="application/xml" />
+            </>
+          }
+        >
+          {output ? (
+            <CodeView code={output} language="xml" label="XML output" dimmed={runner.outcome.kind === "error"} />
+          ) : (
+            <EmptyState icon={FileCode2} title="Drop a .json file or paste into JSON">
+              The XML shows up here as you type.
+            </EmptyState>
+          )}
+        </Pane>
+      </Panes>
+
+      <StatusBar kind={status.kind} label={status.label} items={runner.outcome.kind === "ok" ? stats : []} />
+    </ToolLayout>
   );
 };
 

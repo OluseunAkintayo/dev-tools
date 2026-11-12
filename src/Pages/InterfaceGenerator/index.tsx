@@ -1,103 +1,118 @@
 import React from "react";
-import LandingPageLayout from "@/components/LandingPageLayout";
-import IconButton from "@/components/IconButton";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Copy, RotateCcw, X } from "lucide-react";
-import { useCopy } from "@/hooks/use-copy";
-import { generateInterface } from "@/lib/generateInterface";
+import { Braces } from "lucide-react";
+import { ToolLayout } from "@/components/layout/ToolLayout";
+import { CodeEditor } from "@/components/workspace/CodeEditor";
+import { CodeView } from "@/components/workspace/CodeView";
+import { EmptyState, ErrorNotice } from "@/components/workspace/Feedback";
+import { CopyButton, DownloadButton, OpenFileButton, PasteButton } from "@/components/workspace/actions";
+import { ClearButton, RunButton } from "@/components/workspace/run";
+import { outputOf, statusFor } from "@/components/workspace/status";
+import { Pane, Panes, StatusBar, Toolbar, ToolbarGroup, ToolbarLabel, ToolbarSpacer } from "@/components/workspace/Workspace";
+import { useFileLoader } from "@/hooks/use-file-loader";
+import { useShortcut } from "@/hooks/use-shortcut";
+import { useToolRunner } from "@/hooks/use-tool-runner";
+import { generateInterface, toTypeName } from "@/lib/generateInterface";
+import { useHandoff } from "@/lib/handoff";
+import { countLines, plural } from "@/lib/text";
+import { parseJson } from "@/lib/toolError";
+
+const DEFAULT_NAME = "Root";
 
 const InterfaceGenerator = () => {
-  React.useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+  const handoff = useHandoff();
+  const [input, setInput] = React.useState(handoff?.input ?? "");
+  const [fileName, setFileName] = React.useState<string | null>(null);
+  const [name, setName] = React.useState(DEFAULT_NAME);
 
-  const copy = useCopy();
-  const [input, setInput] = React.useState<string>("");
-  const [result, setResult] = React.useState<string>("");
-  const [interfaceName, setInterfaceName] = React.useState<string>("");
-  const [error, setError] = React.useState<string | null>(null);
+  const runner = useToolRunner(input, (text) => generateInterface(parseJson(text), name || DEFAULT_NAME), [name]);
+  useShortcut({ key: "Enter", mod: true }, runner.run);
 
-  const handleGenerate = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    if (!input.trim()) {
-      setError("Input cannot be empty");
-      return;
-    }
-    try {
-      setResult(generateInterface(JSON.parse(input), interfaceName));
-    } catch (err) {
-      setResult("");
-      setError(err instanceof Error ? err.message : "Unable to convert data at this time.");
-    }
-  };
+  const files = useFileLoader({
+    extensions: [".json"],
+    onLoad: (text, file) => {
+      setInput(text);
+      setFileName(file.name);
+    },
+  });
+
+  const output = outputOf(runner) ?? "";
+  const status = statusFor(runner, { ok: "Generated", error: "Invalid JSON", runLabel: "Generate" });
+  const error = runner.visibleError;
+  const typeName = toTypeName(name || DEFAULT_NAME) || DEFAULT_NAME;
 
   const clear = () => {
     setInput("");
-    setResult("");
-    setError(null);
-    setInterfaceName("");
+    setFileName(null);
   };
 
   return (
-    <LandingPageLayout>
-      <div className="container px-4 py-8">
-        <h1 className="text-center text-xl">Generate TypeScript interface from JSON</h1>
-        <div className="h-8" />
-        <div className="flex flex-col sm:flex-row w-full gap-12 sm:gap-4">
-          <form className="space-y-2 w-full" onSubmit={handleGenerate}>
-            <div className="space-y-2">
-              <div className="flex gap-1 items-center mt-[1.625rem]">
-                <Label htmlFor="json-input" className="font-semibold text-slate-700">Enter JSON data</Label>
-              </div>
-              <Textarea
-                id="json-input"
-                rows={12}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                className="text-sm border-slate-400 rounded-md resize-none"
-              />
-              <div className="h-8">
-                {error && <p className="text-sm text-destructive">{error}</p>}
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="interface-name" className="block text-sm font-medium text-slate-500">Interface name</Label>
-              <Input
-                id="interface-name"
-                value={interfaceName}
-                required
-                onChange={(e) => setInterfaceName(e.target.value)}
-                className="text-sm border-slate-400"
-              />
-            </div>
-            <div className="grid gap-2 grid-cols-2 pt-4 sm:flex">
-              <Button className="sm:w-[140px]" type="submit" disabled={!input.trim() || !interfaceName.trim()}>
-                <RotateCcw /> Generate
-              </Button>
-              <Button className="sm:w-[140px]" type="button" onClick={clear} variant="destructive"><X /> Clear</Button>
-            </div>
-          </form>
+    <ToolLayout toolId="json-to-interface">
+      <Toolbar>
+        <ToolbarGroup>
+          <ToolbarLabel htmlFor="interface-name">Interface name</ToolbarLabel>
+          <input
+            id="interface-name"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder={DEFAULT_NAME}
+            spellCheck={false}
+            className="h-8 w-44 rounded-lg border border-line-strong bg-surface px-2.5 font-mono text-[13px] text-ink outline-none placeholder:text-ink-3 focus:border-brand/60 focus:ring-2 focus:ring-brand/20"
+          />
+        </ToolbarGroup>
+        <ToolbarSpacer />
+        <ToolbarGroup>
+          <ClearButton onClick={clear} disabled={!input} />
+          <RunButton label="Generate" icon={Braces} onClick={runner.run} disabled={!input.trim()} />
+        </ToolbarGroup>
+      </Toolbar>
 
-          <div className="space-y-2 w-full">
-            <div className="flex gap-8 items-end justify-between">
-              <Label htmlFor="ts-output" className="block text-sm font-medium text-slate-700">TS Interface</Label>
-              <IconButton label="Copy text" className="border border-slate-400" variant="outline" disabled={!result} onClick={() => copy(result)}><Copy /></IconButton>
-            </div>
-            <Textarea
-              id="ts-output"
-              rows={12}
-              value={result}
-              readOnly
-              className="text-sm border-slate-400 rounded-md resize-none font-mono"
-            />
-          </div>
-        </div>
-      </div>
-    </LandingPageLayout>
+      <Panes>
+        <Pane
+          title="JSON"
+          meta={fileName}
+          onFileDrop={files.load}
+          actions={
+            <>
+              <PasteButton onPaste={setInput} />
+              <OpenFileButton accept={files.accept} onFile={files.load} disabled={files.loading} />
+            </>
+          }
+        >
+          <CodeEditor
+            label="JSON input"
+            value={input}
+            onChange={setInput}
+            placeholder="Paste a JSON sample, e.g. an API response"
+            errorLine={error?.line}
+            autoFocus={!handoff}
+          />
+          {error && <ErrorNotice error={error} onFix={error.fix ? () => setInput(error.fix!.apply(input)) : undefined} />}
+        </Pane>
+        <Pane
+          title="TypeScript"
+          actions={
+            <>
+              <CopyButton text={output} shortcut />
+              <DownloadButton content={output} filename={`${typeName}.ts`} mimeType="text/plain" />
+            </>
+          }
+        >
+          {output ? (
+            <CodeView code={output} language="ts" label="TypeScript output" dimmed={runner.outcome.kind === "error"} />
+          ) : (
+            <EmptyState icon={Braces} title="Paste a JSON sample into JSON">
+              Types are inferred from the values. Arrays of objects use the first item.
+            </EmptyState>
+          )}
+        </Pane>
+      </Panes>
+
+      <StatusBar
+        kind={status.kind}
+        label={status.label}
+        items={runner.outcome.kind === "ok" ? [typeName, plural(countLines(output), "line")] : []}
+      />
+    </ToolLayout>
   );
 };
 

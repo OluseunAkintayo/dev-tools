@@ -1,15 +1,22 @@
 import React from "react";
-import LandingPageLayout from "@/components/LandingPageLayout";
-import IconButton from "@/components/IconButton";
-import FileUploadButton from "@/components/FileUploadButton";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Textarea } from "@/components/ui/textarea";
-import { Download, RefreshCcw, X } from "lucide-react";
-import { flattenNestedObject } from "@/lib/flattenNestedObject";
+import { ArrowLeftRight, Sheet } from "lucide-react";
+import { ToolLayout } from "@/components/layout/ToolLayout";
+import { CodeEditor } from "@/components/workspace/CodeEditor";
+import { CodeView } from "@/components/workspace/CodeView";
+import { Segmented } from "@/components/workspace/controls";
+import { EmptyState, ErrorNotice } from "@/components/workspace/Feedback";
+import { CopyButton, DownloadButton, OpenFileButton, PasteButton } from "@/components/workspace/actions";
+import { ClearButton, RunButton } from "@/components/workspace/run";
+import { outputOf, statusFor } from "@/components/workspace/status";
+import { Pane, Panes, StatusBar, Toolbar, ToolbarGroup, ToolbarSpacer } from "@/components/workspace/Workspace";
+import { useFileLoader } from "@/hooks/use-file-loader";
+import { useShortcut } from "@/hooks/use-shortcut";
+import { useToolRunner } from "@/hooks/use-tool-runner";
 import { toCsv } from "@/lib/csv";
-import { downloadFile, hasExtension, readFileAsText } from "@/lib/download";
+import { flattenNestedObject } from "@/lib/flattenNestedObject";
+import { useHandoff } from "@/lib/handoff";
+import { plural } from "@/lib/text";
+import { parseJson } from "@/lib/toolError";
 
 interface CsvResult {
   headers: string[];
@@ -17,7 +24,9 @@ interface CsvResult {
   csv: string;
 }
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
+type View = "table" | "csv";
+
+const PREVIEW_ROWS = 100;
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -28,141 +37,152 @@ const toCell = (value: unknown): string => {
   return String(value);
 };
 
+const convert = (text: string): CsvResult => {
+  const parsed = parseJson(text);
+  const items = Array.isArray(parsed) ? parsed : [parsed];
+  if (items.length === 0 || !items.every(isPlainObject)) {
+    throw new Error("JSON must be an object or a non-empty array of objects.");
+  }
+  const flattened = items.map((item) => flattenNestedObject(item));
+  const headers = Array.from(new Set(flattened.flatMap((item) => Object.keys(item))));
+  const rows = flattened.map((item) => headers.map((header) => toCell(item[header])));
+  return { headers, rows, csv: toCsv(headers, rows) };
+};
+
+const DataTable = ({ result, dimmed }: { result: CsvResult; dimmed: boolean }) => (
+  <div className={`h-full overflow-auto transition-opacity duration-200 ${dimmed ? "opacity-45" : ""}`}>
+    <table className="w-max min-w-full border-separate border-spacing-0 text-left text-[13px]">
+      <thead>
+        <tr>
+          <th className="sticky left-0 top-0 z-20 border-b border-r border-line bg-gutter px-3 py-2 text-right font-mono text-[12px] font-normal text-ink-4">#</th>
+          {result.headers.map((header) => (
+            <th key={header} className="sticky top-0 z-10 whitespace-nowrap border-b border-line bg-gutter px-3 py-2 font-mono text-[12px] font-medium text-ink">
+              {header}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {result.rows.slice(0, PREVIEW_ROWS).map((row, rowIndex) => (
+          <tr key={rowIndex} className="hover:bg-sunken/50">
+            <td className="sticky left-0 border-r border-line bg-gutter px-3 py-2 text-right font-mono text-[12px] text-ink-4">{rowIndex + 1}</td>
+            {row.map((cell, cellIndex) => (
+              <td key={cellIndex} className="max-w-[320px] truncate whitespace-nowrap border-b border-line/70 px-3 py-2 text-ink-2" title={cell}>
+                {cell}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+    {result.rows.length > PREVIEW_ROWS && (
+      <p className="px-4 py-3 text-[12px] text-ink-3">
+        Showing the first {PREVIEW_ROWS} of {result.rows.length.toLocaleString()} rows. Copy or download to get all of them.
+      </p>
+    )}
+  </div>
+);
+
 const JsonToCsv = () => {
-  React.useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+  const handoff = useHandoff();
+  const [input, setInput] = React.useState(handoff?.input ?? "");
+  const [fileName, setFileName] = React.useState<string | null>(null);
+  const [view, setView] = React.useState<View>("table");
 
-  const [jsonData, setJsonData] = React.useState<string>("");
-  const [jsonFile, setJsonFile] = React.useState<File | null>(null);
-  const [result, setResult] = React.useState<CsvResult | null>(null);
-  const [error, setError] = React.useState<string | null>(null);
-  const [loading, setLoading] = React.useState<boolean>(false);
+  const runner = useToolRunner(input, convert, []);
+  useShortcut({ key: "Enter", mod: true }, runner.run);
 
-  const convert = () => {
-    setError(null);
-    if (!jsonData.trim()) {
-      setError("Please enter valid JSON data.");
-      return;
-    }
+  const files = useFileLoader({
+    extensions: [".json"],
+    maxBytes: 5 * 1024 * 1024,
+    onLoad: (text, file) => {
+      setInput(text);
+      setFileName(file.name);
+    },
+  });
 
-    try {
-      const parsedData: unknown = JSON.parse(jsonData);
-      const dataArray = Array.isArray(parsedData) ? parsedData : [parsedData];
-
-      if (dataArray.length === 0 || !dataArray.every(isPlainObject)) {
-        setResult(null);
-        setError("JSON must be an object or a non-empty array of objects.");
-        return;
-      }
-
-      const flattenedData = dataArray.map((item) => flattenNestedObject(item));
-      const headers = Array.from(new Set(flattenedData.flatMap((item) => Object.keys(item))));
-      const rows = flattenedData.map((item) => headers.map((header) => toCell(item[header])));
-      setResult({ headers, rows, csv: toCsv(headers, rows) });
-    } catch (err) {
-      setResult(null);
-      setError(err instanceof Error ? err.message : "Unable to convert data at this time.");
-    }
-  };
+  const result = outputOf(runner);
+  const csv = result?.csv ?? "";
+  const status = statusFor(runner, { ok: "Converted", error: "Could not convert", runLabel: "Convert" });
+  const error = runner.visibleError;
+  const dimmed = runner.outcome.kind === "error";
 
   const clear = () => {
-    setJsonData("");
-    setResult(null);
-    setJsonFile(null);
-    setError(null);
-  };
-
-  const handleFileUpload = async (file: File) => {
-    clear();
-    if (!hasExtension(file, ".json")) {
-      setError("Please upload a JSON file.");
-      return;
-    }
-    if (file.size > MAX_FILE_SIZE) {
-      setError("File size is too large. Please upload a file less than 5MB.");
-      return;
-    }
-    setLoading(true);
-    try {
-      setJsonData(await readFileAsText(file));
-      setJsonFile(file);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error reading file.");
-    } finally {
-      setLoading(false);
-    }
+    setInput("");
+    setFileName(null);
   };
 
   return (
-    <LandingPageLayout>
-      <div className="px-4 py-8 container">
-        <h1 className="text-center text-xl">JSON to CSV Converter</h1>
-        <div className="h-8" />
-        <div className="space-y-12">
-          <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); convert(); }}>
-            <div className="space-y-2">
-              <Label htmlFor="json-input" className="font-semibold text-slate-700">Enter JSON data</Label>
-              <Textarea
-                id="json-input"
-                className="border border-slate-400 resize-none text-sm"
-                placeholder="Paste JSON data here"
-                rows={12}
-                disabled={loading}
-                value={jsonData}
-                onChange={(e) => setJsonData(e.target.value)}
+    <ToolLayout toolId="json-to-csv" next={[{ to: "csv-to-json", label: "Convert back to JSON", handoff: csv ? { input: csv } : undefined }]}>
+      <Toolbar>
+        <p className="pl-1 text-[13px] text-ink-3">Nested objects become dotted columns, like address.city.</p>
+        <ToolbarSpacer />
+        <ToolbarGroup>
+          <ClearButton onClick={clear} disabled={!input} />
+          <RunButton label="Convert" icon={ArrowLeftRight} onClick={runner.run} disabled={!input.trim()} />
+        </ToolbarGroup>
+      </Toolbar>
+
+      <Panes>
+        <Pane
+          title="JSON"
+          meta={fileName}
+          onFileDrop={files.load}
+          actions={
+            <>
+              <PasteButton onPaste={setInput} />
+              <OpenFileButton accept={files.accept} onFile={files.load} disabled={files.loading} />
+            </>
+          }
+        >
+          <CodeEditor
+            label="JSON input"
+            value={input}
+            onChange={setInput}
+            placeholder="Paste an object or an array of objects, or drop a .json file"
+            errorLine={error?.line}
+            autoFocus={!handoff}
+          />
+          {error && <ErrorNotice error={error} onFix={error.fix ? () => setInput(error.fix!.apply(input)) : undefined} />}
+        </Pane>
+        <Pane
+          title="CSV"
+          actions={
+            <>
+              <Segmented
+                label="Output view"
+                value={view}
+                onChange={setView}
+                options={[
+                  { value: "table", label: "Table" },
+                  { value: "csv", label: "CSV" },
+                ]}
               />
-              <div className="h-6">
-                {jsonFile && <p className="text-xs">{jsonFile.name}</p>}
-                {error && <p className="text-destructive text-xs">{error}</p>}
-              </div>
-            </div>
-            <div className="grid grid-cols-3 sm:flex gap-2">
-              <FileUploadButton
-                accept=".json,application/json"
-                onFileSelect={handleFileUpload}
-                disabled={loading}
-                variant="outline"
-                className="sm:min-w-[120px]"
-              />
-              <Button disabled={loading || !jsonData.trim()} className="sm:w-[120px]" type="submit">
-                <RefreshCcw /> Convert
-              </Button>
-              <Button disabled={loading} onClick={clear} className="sm:w-[120px]" type="button" variant="destructive"><X /> Clear</Button>
-            </div>
-          </form>
-          {result && (
-            <div>
-              <div className="flex gap-8 justify-between">
-                <div>
-                  <h3 className="font-semibold">CSV data preview</h3>
-                  <span className="block mb-4 text-sm">(Showing first 10 rows)</span>
-                </div>
-                <IconButton label="Download file" onClick={() => downloadFile(result.csv, "csv-data.csv", "text/csv")}><Download /></IconButton>
-              </div>
-              <Table className="table-auto w-full border-collapse border border-gray-300">
-                <TableHeader>
-                  <TableRow>
-                    {result.headers.map((header, index) => (
-                      <TableHead key={index} className="px-4 py-2 border border-gray-300 bg-gray-100">{header}</TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {result.rows.slice(0, 10).map((row, rowIndex) => (
-                    <TableRow key={rowIndex}>
-                      {row.map((cell, cellIndex) => (
-                        <TableCell key={cellIndex} className="px-4 py-2 border border-gray-300">{cell}</TableCell>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+              <CopyButton text={csv} shortcut />
+              <DownloadButton content={csv} filename="data.csv" mimeType="text/csv" />
+            </>
+          }
+        >
+          {result ? (
+            view === "table" ? (
+              <DataTable result={result} dimmed={dimmed} />
+            ) : (
+              <CodeView code={csv} language="text" label="CSV output" dimmed={dimmed} />
+            )
+          ) : (
+            <EmptyState icon={Sheet} title="Drop a .json file or paste into JSON">
+              Columns are detected from your keys. The table shows up here as you type.
+            </EmptyState>
           )}
-        </div>
-      </div>
-    </LandingPageLayout>
+        </Pane>
+      </Panes>
+
+      <StatusBar
+        kind={status.kind}
+        label={status.label}
+        items={runner.outcome.kind === "ok" && result ? [plural(result.rows.length, "row"), plural(result.headers.length, "column")] : []}
+      />
+    </ToolLayout>
   );
 };
 
