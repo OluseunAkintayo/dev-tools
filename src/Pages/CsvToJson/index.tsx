@@ -12,7 +12,7 @@ import { Pane, Panes, StatusBar, Toolbar, ToolbarGroup, ToolbarLabel, ToolbarSpa
 import { useFileLoader } from "@/hooks/use-file-loader";
 import { useShortcut } from "@/hooks/use-shortcut";
 import { useToolRunner } from "@/hooks/use-tool-runner";
-import { csvToObjects, inferColumnTypes, type ColumnType } from "@/lib/csv";
+import { csvToObjects, inferColumnTypes, nestDottedKeys, type ColumnType } from "@/lib/csv";
 import { useHandoff } from "@/lib/handoff";
 import { plural } from "@/lib/text";
 
@@ -44,6 +44,7 @@ const CsvToJson = () => {
   const [choice, setChoice] = React.useState<DelimiterChoice>(() => initialChoice(handoff?.options?.delimiter));
   const [custom, setCustom] = React.useState("");
   const [detectTypes, setDetectTypes] = React.useState(true);
+  const [nestKeys, setNestKeys] = React.useState(true);
 
   const delimiter = choice === "custom" ? (custom === "\\t" ? "\t" : custom) : choice;
 
@@ -52,10 +53,12 @@ const CsvToJson = () => {
     (text) => {
       if (delimiter.length !== 1) throw new Error("The delimiter must be a single character. Use \\t for tab.");
       const strings = csvToObjects(text, delimiter);
-      const { rows, types } = detectTypes ? inferColumnTypes(strings) : { rows: strings, types: null };
-      return { json: JSON.stringify(rows, null, 2), rows: rows.length, columns: rows[0] ? Object.keys(rows[0]).length : 0, types };
+      const columns = strings[0] ? Object.keys(strings[0]).length : 0;
+      const typed = detectTypes ? inferColumnTypes(strings) : { rows: strings, types: null };
+      const { rows, nested } = nestKeys ? nestDottedKeys(typed.rows) : { rows: typed.rows, nested: 0 };
+      return { json: JSON.stringify(rows, null, 2), rows: rows.length, columns, types: typed.types, nested };
     },
-    [delimiter, detectTypes]
+    [delimiter, detectTypes, nestKeys]
   );
   useShortcut({ key: "Enter", mod: true }, runner.run);
 
@@ -103,6 +106,7 @@ const CsvToJson = () => {
           )}
         </ToolbarGroup>
         <Switch label="Detect types" checked={detectTypes} onChange={setDetectTypes} />
+        <Switch label="Nest dotted keys" checked={nestKeys} onChange={setNestKeys} />
         <ToolbarSpacer />
         <ToolbarGroup>
           <ClearButton onClick={clear} disabled={!input} />
@@ -144,7 +148,7 @@ const CsvToJson = () => {
             <CodeView code={output} language="json" label="JSON output" dimmed={runner.outcome.kind === "error"} />
           ) : (
             <EmptyState icon={FileJson} title="Drop a .csv file or paste into CSV">
-              The first row is used as the keys. Number and true/false columns are typed. The JSON shows up here as you type.
+              The first row is used as the keys. Number and true/false columns are typed, and headers like address.city become nested objects. The JSON shows up here as you type.
             </EmptyState>
           )}
         </Pane>
@@ -153,7 +157,7 @@ const CsvToJson = () => {
       <StatusBar
         kind={status.kind}
         label={status.label}
-        items={runner.outcome.kind === "ok" && result ? [plural(result.rows, "row"), plural(result.columns, "column"), typeSummary(result.types)] : []}
+        items={runner.outcome.kind === "ok" && result ? [plural(result.rows, "row"), plural(result.columns, "column"), typeSummary(result.types), result.nested > 0 && `${plural(result.nested, "column")} nested`] : []}
       />
     </ToolLayout>
   );

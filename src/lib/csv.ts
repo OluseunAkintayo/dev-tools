@@ -116,6 +116,48 @@ export const inferColumnTypes = (rows: Record<string, string>[]): { rows: Record
   };
 };
 
+/**
+ * Turn dotted headers ("address.city") into nested objects, the reverse of how JSON to CSV
+ * flattens them. A header stays flat when nesting would be ambiguous: empty segments
+ * ("a..b", ".a") or a clash with another column ("a" next to "a.b").
+ */
+export const nestDottedKeys = (rows: Record<string, unknown>[]): { rows: Record<string, unknown>[]; nested: number } => {
+  const headers = rows[0] ? Object.keys(rows[0]) : [];
+  const headerSet = new Set(headers);
+
+  const paths = new Map<string, string[] | null>();
+  for (const header of headers) {
+    const parts = header.split(".");
+    const valid = parts.length > 1 && parts.every((part) => part !== "");
+    const clashes = valid && parts.slice(0, -1).some((_, index) => headerSet.has(parts.slice(0, index + 1).join(".")));
+    paths.set(header, valid && !clashes ? parts : null);
+  }
+
+  const nested = [...paths.values()].filter(Boolean).length;
+  if (nested === 0) return { rows, nested };
+
+  const nestRow = (row: Record<string, unknown>) => {
+    const result: Record<string, unknown> = {};
+    for (const header of headers) {
+      const path = paths.get(header);
+      if (!path) {
+        result[header] = row[header];
+        continue;
+      }
+      let target = result;
+      for (const part of path.slice(0, -1)) {
+        const next = target[part];
+        if (typeof next !== "object" || next === null || Array.isArray(next)) target[part] = {};
+        target = target[part] as Record<string, unknown>;
+      }
+      target[path[path.length - 1]] = row[header];
+    }
+    return result;
+  };
+
+  return { rows: rows.map(nestRow), nested };
+};
+
 export const escapeCsvValue = (value: string, delimiter = ","): string => {
   if (value.includes(delimiter) || value.includes('"') || value.includes("\n") || value.includes("\r")) {
     return `"${value.replace(/"/g, '""')}"`;
