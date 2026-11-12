@@ -14,6 +14,7 @@ import Base64EncoderDecoder from "./Pages/Base64EncoderDecoder/index.tsx";
 import JwtTool from "./Pages/Jwt/index.tsx";
 import TimestampConverter from "./Pages/TimestampConverter/index.tsx";
 import UrlTools from "./Pages/UrlTools/index.tsx";
+import HashGenerator from "./Pages/HashGenerator/index.tsx";
 
 /** Shared shell: ⌘K menu, tooltips and scroll restoration for every route. */
 const Root = () => (
@@ -40,6 +41,7 @@ const router = createBrowserRouter([
       { path: "/jwt", element: <JwtTool /> },
       { path: "/timestamp-converter", element: <TimestampConverter /> },
       { path: "/url-encoder-decoder", element: <UrlTools /> },
+      { path: "/hash-generator", element: <HashGenerator /> },
       { path: "/shadcn-theme-generator", element: <ComingSoon /> },
       { path: "*", element: <NotFound /> },
     ],

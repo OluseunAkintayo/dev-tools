@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { ArrowLeftRight, Binary, Braces, Clock, FileCode2, FileJson, FileText, KeyRound, Link2, Palette, Sheet, WandSparkles } from "lucide-react";
+import { ArrowLeftRight, Binary, Braces, Clock, FileCode2, FileJson, FileText, Fingerprint, KeyRound, Link2, Palette, Sheet, WandSparkles } from "lucide-react";
 
 export type CategoryId = "format" | "convert" | "generate" | "encode" | "design";
 
@@ -24,6 +24,7 @@ export type ToolId =
   | "jwt"
   | "timestamp"
   | "url"
+  | "hash"
   | "csv-to-json"
   | "json-to-csv"
   | "xml-to-json"
@@ -121,6 +122,18 @@ export const tools: Tool[] = [
     keywords: ["timestamp", "unix", "epoch", "time", "date", "iso", "8601", "utc", "timezone", "seconds", "milliseconds"],
     size: "normal",
     pair: ["Unix", "Date"],
+  },
+  {
+    id: "hash",
+    title: "Hash Generator",
+    description: "MD5, SHA-1 and SHA-2 hashes and HMACs of text or files.",
+    intro: "Type text or drop a file to see its MD5, SHA-1, SHA-256, SHA-384 and SHA-512 hashes. Paste a checksum to verify a download.",
+    category: "generate",
+    icon: Fingerprint,
+    link: "/hash-generator",
+    status: "live",
+    keywords: ["hash", "md5", "sha", "sha1", "sha256", "sha512", "checksum", "hmac", "digest", "integrity", "verify"],
+    size: "normal",
   },
   {
     id: "csv-to-json",
