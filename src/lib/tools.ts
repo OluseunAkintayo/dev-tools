@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { ArrowLeftRight, Binary, Braces, FileCode2, FileJson, FileText, KeyRound, Palette, Sheet, WandSparkles } from "lucide-react";
+import { ArrowLeftRight, Binary, Braces, Clock, FileCode2, FileJson, FileText, KeyRound, Palette, Sheet, WandSparkles } from "lucide-react";
 
 export type CategoryId = "format" | "convert" | "generate" | "encode" | "design";
 
@@ -22,6 +22,7 @@ export type ToolId =
   | "json-to-interface"
   | "base64"
   | "jwt"
+  | "timestamp"
   | "csv-to-json"
   | "json-to-csv"
   | "xml-to-json"
@@ -94,6 +95,19 @@ export const tools: Tool[] = [
     status: "live",
     keywords: ["jwt", "token", "jws", "bearer", "decode", "encode", "sign", "verify", "signature", "claims", "oauth", "jwk"],
     size: "normal",
+  },
+  {
+    id: "timestamp",
+    title: "Timestamp Converter",
+    description: "Unix time to dates and back, in any time zone.",
+    intro: "Paste a Unix timestamp or a date. Every common format shows up at once, in the time zone you pick.",
+    category: "convert",
+    icon: Clock,
+    link: "/timestamp-converter",
+    status: "live",
+    keywords: ["timestamp", "unix", "epoch", "time", "date", "iso", "8601", "utc", "timezone", "seconds", "milliseconds"],
+    size: "normal",
+    pair: ["Unix", "Date"],
   },
   {
     id: "csv-to-json",
