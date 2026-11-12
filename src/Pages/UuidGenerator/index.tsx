@@ -10,6 +10,7 @@ import { CopyButton, DownloadButton } from "@/components/workspace/actions";
 import { Pane, Panes, StatusBar, Toolbar, ToolbarGroup, ToolbarLabel, ToolbarSpacer } from "@/components/workspace/Workspace";
 import { useShortcut } from "@/hooks/use-shortcut";
 import { useToolRunner } from "@/hooks/use-tool-runner";
+import { useHandoff } from "@/lib/handoff";
 import { plural } from "@/lib/text";
 import { createV7Generator, formatUuid, inspectUuid, uuidV4 } from "@/lib/uuid";
 
@@ -23,14 +24,16 @@ const VERSION_OPTIONS: { value: Version; label: string }[] = [
 const MAX_COUNT = 1000;
 
 const UuidGenerator = () => {
+  const handoff = useHandoff();
   const [version, setVersion] = React.useState<Version>("v7");
   const [countText, setCountText] = React.useState("5");
   const [uppercase, setUppercase] = React.useState(false);
   const [hyphens, setHyphens] = React.useState(true);
   const [braces, setBraces] = React.useState(false);
   const [uuids, setUuids] = React.useState<string[]>([]);
-  const [inspectInput, setInspectInput] = React.useState("");
-  const [inspectTouched, setInspectTouched] = React.useState(false);
+  // A UUID handed over (from Smart Paste) is inspected instead of the first generated one.
+  const [inspectInput, setInspectInput] = React.useState(handoff?.input.trim() ?? "");
+  const [inspectTouched, setInspectTouched] = React.useState(Boolean(handoff?.input.trim()));
   // One generator for the page, so v7 UUIDs stay in order across batches.
   const v7 = React.useMemo(() => createV7Generator(), []);
 

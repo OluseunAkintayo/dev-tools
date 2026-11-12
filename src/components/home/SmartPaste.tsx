@@ -21,8 +21,10 @@ type Mode = { kind: "empty" } | { kind: "search"; query: string } | { kind: "dat
 
 const resolveMode = (value: string): Mode => {
   if (!value.trim()) return { kind: "empty" };
-  if (looksLikeSearch(value) && searchTools(value).length > 0) return { kind: "search", query: value };
   const detection = detectFormat(value);
+  // A JWT, URL, UUID or timestamp is never a search query, however short.
+  if (detection?.strong) return { kind: "data", detection };
+  if (looksLikeSearch(value) && searchTools(value).length > 0) return { kind: "search", query: value };
   if (detection) return { kind: "data", detection };
   return looksLikeSearch(value) ? { kind: "search", query: value } : { kind: "text" };
 };
@@ -112,7 +114,7 @@ export const SmartPaste = () => {
           placeholder="Search tools or paste anything"
           aria-label="Search tools or paste data"
           aria-controls="smart-paste-options"
-          aria-activedescendant={options[active] ? `smart-${options[active].tool.id}` : undefined}
+          aria-activedescendant={options[active] ? `smart-option-${active}` : undefined}
           role="combobox"
           aria-expanded="true"
           aria-autocomplete="list"
@@ -153,8 +155,8 @@ export const SmartPaste = () => {
             const selected = index === active;
             return (
               <div
-                key={option.tool.id}
-                id={`smart-${option.tool.id}`}
+                key={`${option.tool.id}-${index}`}
+                id={`smart-option-${index}`}
                 role="option"
                 aria-selected={selected}
                 onMouseMove={() => !selected && setActive(index)}
