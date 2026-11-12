@@ -3,7 +3,7 @@ import { ArrowLeftRight, FileJson } from "lucide-react";
 import { ToolLayout } from "@/components/layout/ToolLayout";
 import { CodeEditor } from "@/components/workspace/CodeEditor";
 import { CodeView } from "@/components/workspace/CodeView";
-import { Segmented } from "@/components/workspace/controls";
+import { Segmented, Switch } from "@/components/workspace/controls";
 import { EmptyState, ErrorNotice } from "@/components/workspace/Feedback";
 import { CopyButton, DownloadButton, OpenFileButton, PasteButton } from "@/components/workspace/actions";
 import { ClearButton, RunButton } from "@/components/workspace/run";
@@ -12,7 +12,7 @@ import { Pane, Panes, StatusBar, Toolbar, ToolbarGroup, ToolbarLabel, ToolbarSpa
 import { useFileLoader } from "@/hooks/use-file-loader";
 import { useShortcut } from "@/hooks/use-shortcut";
 import { useToolRunner } from "@/hooks/use-tool-runner";
-import { csvToObjects } from "@/lib/csv";
+import { csvToObjects, inferColumnTypes, type ColumnType } from "@/lib/csv";
 import { useHandoff } from "@/lib/handoff";
 import { plural } from "@/lib/text";
 
@@ -29,12 +29,21 @@ const DELIMITER_OPTIONS: { value: DelimiterChoice; label: string }[] = [
 const initialChoice = (delimiter?: string): DelimiterChoice =>
   delimiter && DELIMITER_OPTIONS.some((option) => option.value === delimiter) ? (delimiter as DelimiterChoice) : ",";
 
+/** e.g. "2 number, 1 boolean"; null when types are off or every column is text. */
+const typeSummary = (types: Record<string, ColumnType> | null) => {
+  if (!types) return null;
+  const counts = Object.values(types).reduce<Record<string, number>>((acc, type) => ({ ...acc, [type]: (acc[type] ?? 0) + 1 }), {});
+  const parts = (["number", "boolean"] as const).filter((type) => counts[type]).map((type) => `${counts[type]} ${type}`);
+  return parts.length ? `Typed: ${parts.join(", ")}` : "All text";
+};
+
 const CsvToJson = () => {
   const handoff = useHandoff();
   const [input, setInput] = React.useState(handoff?.input ?? "");
   const [fileName, setFileName] = React.useState<string | null>(null);
   const [choice, setChoice] = React.useState<DelimiterChoice>(() => initialChoice(handoff?.options?.delimiter));
   const [custom, setCustom] = React.useState("");
+  const [detectTypes, setDetectTypes] = React.useState(true);
 
   const delimiter = choice === "custom" ? (custom === "\\t" ? "\t" : custom) : choice;
 
@@ -42,10 +51,11 @@ const CsvToJson = () => {
     input,
     (text) => {
       if (delimiter.length !== 1) throw new Error("The delimiter must be a single character. Use \\t for tab.");
-      const rows = csvToObjects(text, delimiter);
-      return { json: JSON.stringify(rows, null, 2), rows: rows.length, columns: rows[0] ? Object.keys(rows[0]).length : 0 };
+      const strings = csvToObjects(text, delimiter);
+      const { rows, types } = detectTypes ? inferColumnTypes(strings) : { rows: strings, types: null };
+      return { json: JSON.stringify(rows, null, 2), rows: rows.length, columns: rows[0] ? Object.keys(rows[0]).length : 0, types };
     },
-    [delimiter]
+    [delimiter, detectTypes]
   );
   useShortcut({ key: "Enter", mod: true }, runner.run);
 
@@ -92,6 +102,7 @@ const CsvToJson = () => {
             />
           )}
         </ToolbarGroup>
+        <Switch label="Detect types" checked={detectTypes} onChange={setDetectTypes} />
         <ToolbarSpacer />
         <ToolbarGroup>
           <ClearButton onClick={clear} disabled={!input} />
@@ -133,7 +144,7 @@ const CsvToJson = () => {
             <CodeView code={output} language="json" label="JSON output" dimmed={runner.outcome.kind === "error"} />
           ) : (
             <EmptyState icon={FileJson} title="Drop a .csv file or paste into CSV">
-              The first row is used as the keys. The JSON shows up here as you type.
+              The first row is used as the keys. Number and true/false columns are typed. The JSON shows up here as you type.
             </EmptyState>
           )}
         </Pane>
@@ -142,7 +153,7 @@ const CsvToJson = () => {
       <StatusBar
         kind={status.kind}
         label={status.label}
-        items={runner.outcome.kind === "ok" && result ? [plural(result.rows, "row"), plural(result.columns, "column")] : []}
+        items={runner.outcome.kind === "ok" && result ? [plural(result.rows, "row"), plural(result.columns, "column"), typeSummary(result.types)] : []}
       />
     </ToolLayout>
   );

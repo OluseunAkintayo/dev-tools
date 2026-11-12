@@ -73,6 +73,49 @@ export const csvToObjects = (text: string, delimiter = ","): Record<string, stri
   );
 };
 
+export type ColumnType = "number" | "boolean" | "string";
+
+/** Plain decimal numbers only. Leading zeros ("007", zip codes) and "+1" stay text. */
+const NUMBER = /^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$/;
+const BOOLEAN = /^(?:true|false)$/i;
+const NULL = /^null$/i;
+
+const isNumberCell = (value: string) => {
+  if (!NUMBER.test(value)) return false;
+  const number = Number(value);
+  // Keep long integer IDs as text so they are not rounded.
+  return Number.isFinite(number) && (!/^-?\d+$/.test(value) || Number.isSafeInteger(number));
+};
+
+/**
+ * Detect a type per column: a column becomes number or boolean only when every non-empty
+ * cell parses as that type. Empty cells and "null" in a typed column become null; columns
+ * with any other text are left as strings so each key keeps one consistent type.
+ */
+export const inferColumnTypes = (rows: Record<string, string>[]): { rows: Record<string, unknown>[]; types: Record<string, ColumnType> } => {
+  const headers = rows[0] ? Object.keys(rows[0]) : [];
+  const types: Record<string, ColumnType> = {};
+
+  for (const header of headers) {
+    const cells = rows.map((row) => row[header]).filter((value) => value !== "" && !NULL.test(value));
+    if (cells.length === 0) types[header] = "string";
+    else if (cells.every(isNumberCell)) types[header] = "number";
+    else if (cells.every((value) => BOOLEAN.test(value))) types[header] = "boolean";
+    else types[header] = "string";
+  }
+
+  const convert = (value: string, type: ColumnType): unknown => {
+    if (type === "string") return value;
+    if (value === "" || NULL.test(value)) return null;
+    return type === "number" ? Number(value) : value.toLowerCase() === "true";
+  };
+
+  return {
+    rows: rows.map((row) => Object.fromEntries(headers.map((header) => [header, convert(row[header], types[header])]))),
+    types,
+  };
+};
+
 export const escapeCsvValue = (value: string, delimiter = ","): string => {
   if (value.includes(delimiter) || value.includes('"') || value.includes("\n") || value.includes("\r")) {
     return `"${value.replace(/"/g, '""')}"`;
