@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { ArrowLeftRight, Binary, Braces, FileCode2, FileJson, FileText, Palette, Sheet, WandSparkles } from "lucide-react";
+import { ArrowLeftRight, Binary, Braces, FileCode2, FileJson, FileText, KeyRound, Palette, Sheet, WandSparkles } from "lucide-react";
 
 export type CategoryId = "format" | "convert" | "generate" | "encode" | "design";
 
@@ -21,6 +21,7 @@ export type ToolId =
   | "json-formatter"
   | "json-to-interface"
   | "base64"
+  | "jwt"
   | "csv-to-json"
   | "json-to-csv"
   | "xml-to-json"
@@ -81,6 +82,18 @@ export const tools: Tool[] = [
     status: "live",
     keywords: ["base64", "encode", "decode", "b64", "atob", "btoa"],
     size: "wide",
+  },
+  {
+    id: "jwt",
+    title: "JWT Encoder / Decoder",
+    description: "Decode and verify a JWT, or sign a new one from JSON claims.",
+    intro: "Decode a JWT to see its claims and verify the signature, or switch to Encode to sign a new token with a secret or private key.",
+    category: "encode",
+    icon: KeyRound,
+    link: "/jwt",
+    status: "live",
+    keywords: ["jwt", "token", "jws", "bearer", "decode", "encode", "sign", "verify", "signature", "claims", "oauth", "jwk"],
+    size: "normal",
   },
   {
     id: "csv-to-json",
