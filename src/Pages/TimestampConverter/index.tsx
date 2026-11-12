@@ -2,6 +2,7 @@ import React from "react";
 import { Clock } from "lucide-react";
 import { ToolLayout } from "@/components/layout/ToolLayout";
 import { Button } from "@/components/ui/button";
+import { Combobox } from "@/components/workspace/Combobox";
 import { Segmented } from "@/components/workspace/controls";
 import { EmptyState, ErrorNotice } from "@/components/workspace/Feedback";
 import { CopyButton, PasteButton } from "@/components/workspace/actions";
@@ -11,7 +12,7 @@ import { Pane, Panes, StatusBar, Toolbar, ToolbarGroup, ToolbarLabel, ToolbarSpa
 import { useNow } from "@/hooks/use-now";
 import { useToolRunner } from "@/hooks/use-tool-runner";
 import { useHandoff } from "@/lib/handoff";
-import { localTimeZone, parseTimestamp, timeFormats, timeZoneList, toDateTimeLocal, type TimestampUnit } from "@/lib/time";
+import { localTimeZone, parseTimestamp, timeFormats, timeZoneLabel, timeZoneOptions, toDateTimeLocal, type TimestampUnit } from "@/lib/time";
 import { FormatRow } from "./FormatRow";
 
 const UNIT_OPTIONS: { value: TimestampUnit; label: string }[] = [
@@ -22,9 +23,6 @@ const UNIT_OPTIONS: { value: TimestampUnit; label: string }[] = [
   { value: "ns", label: "ns" },
 ];
 
-const selectClass =
-  "h-8 max-w-[14rem] rounded-lg border border-line-strong bg-surface px-2 text-[13px] text-ink outline-none focus-visible:border-brand/60 focus-visible:ring-2 focus-visible:ring-brand/20";
-
 const fieldClass =
   "w-full rounded-lg border border-line-strong bg-surface px-3 font-mono text-ink outline-none placeholder:font-sans placeholder:text-ink-4 focus-visible:border-brand/60 focus-visible:ring-2 focus-visible:ring-brand/20";
 
@@ -33,7 +31,8 @@ const TimestampConverter = () => {
   const [input, setInput] = React.useState(handoff?.input ?? "");
   const [unit, setUnit] = React.useState<TimestampUnit>("auto");
   const [timeZone, setTimeZone] = React.useState(localTimeZone);
-  const zones = React.useMemo(timeZoneList, []);
+  // Offsets are taken once on load; they only change at DST transitions.
+  const zones = React.useMemo(() => timeZoneOptions(), []);
   const now = useNow();
 
   const runner = useToolRunner(input, (text) => parseTimestamp(text, unit, timeZone), [unit, timeZone]);
@@ -54,13 +53,7 @@ const TimestampConverter = () => {
         </ToolbarGroup>
         <ToolbarGroup>
           <ToolbarLabel htmlFor="ts-zone">Time zone</ToolbarLabel>
-          <select id="ts-zone" value={timeZone} onChange={(event) => setTimeZone(event.target.value)} className={selectClass}>
-            {zones.map((zone) => (
-              <option key={zone} value={zone}>
-                {zone === localTimeZone() && zone !== "UTC" ? `${zone} (local)` : zone}
-              </option>
-            ))}
-          </select>
+          <Combobox id="ts-zone" label="Time zone" value={timeZone} options={zones} onChange={setTimeZone} emptyText="No time zone matches" className="w-60" />
         </ToolbarGroup>
         <ToolbarSpacer />
         <ToolbarGroup>
@@ -109,7 +102,7 @@ const TimestampConverter = () => {
                   onChange={(event) => event.target.value && setInput(event.target.value)}
                   className={`${fieldClass} mt-1.5 h-10 text-[14px]`}
                 />
-                <p className="mt-1.5 text-[12px] text-ink-3">Read as {timeZone} time.</p>
+                <p className="mt-1.5 text-[12px] text-ink-3">Read as {timeZoneLabel(timeZone)} time.</p>
               </div>
             </div>
 
@@ -140,7 +133,7 @@ const TimestampConverter = () => {
         </Pane>
       </Panes>
 
-      <StatusBar kind={status.kind} label={status.label} items={runner.outcome.kind === "ok" && parsed ? [parsed.kind === "date" ? "Date" : parsed.kind === "now" ? "Now" : `Unix ${parsed.kind}`, timeZone] : []} />
+      <StatusBar kind={status.kind} label={status.label} items={runner.outcome.kind === "ok" && parsed ? [parsed.kind === "date" ? "Date" : parsed.kind === "now" ? "Now" : `Unix ${parsed.kind}`, timeZoneLabel(timeZone)] : []} />
     </ToolLayout>
   );
 };

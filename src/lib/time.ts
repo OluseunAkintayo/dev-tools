@@ -21,15 +21,83 @@ export const relativeTime = (seconds: number, now = Date.now() / 1000) => {
 
 /* ---------- Time zones ---------- */
 
-export const localTimeZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+/**
+ * Browsers list zones from ICU/CLDR, which keeps some pre-rename IDs (Asia/Calcutta,
+ * Europe/Kiev). Intl accepts the current IANA names too, so the picker uses those and
+ * keeps the old name as a search keyword.
+ */
+const RENAMED_ZONES: Record<string, string> = {
+  "Africa/Asmera": "Africa/Asmara",
+  "America/Buenos_Aires": "America/Argentina/Buenos_Aires",
+  "America/Catamarca": "America/Argentina/Catamarca",
+  "America/Coral_Harbour": "America/Atikokan",
+  "America/Cordoba": "America/Argentina/Cordoba",
+  "America/Godthab": "America/Nuuk",
+  "America/Indianapolis": "America/Indiana/Indianapolis",
+  "America/Jujuy": "America/Argentina/Jujuy",
+  "America/Louisville": "America/Kentucky/Louisville",
+  "America/Mendoza": "America/Argentina/Mendoza",
+  "Asia/Calcutta": "Asia/Kolkata",
+  "Asia/Katmandu": "Asia/Kathmandu",
+  "Asia/Rangoon": "Asia/Yangon",
+  "Asia/Saigon": "Asia/Ho_Chi_Minh",
+  "Atlantic/Faeroe": "Atlantic/Faroe",
+  "Europe/Kiev": "Europe/Kyiv",
+  "Pacific/Enderbury": "Pacific/Kanton",
+  "Pacific/Ponape": "Pacific/Pohnpei",
+  "Pacific/Truk": "Pacific/Chuuk",
+};
+const FORMER_NAMES = Object.fromEntries(Object.entries(RENAMED_ZONES).map(([old, current]) => [current, old]));
+
+/** The current IANA name for a zone ID that may be a legacy alias. */
+const currentZoneName = (timeZone: string) => RENAMED_ZONES[timeZone] ?? timeZone;
+
+export const localTimeZone = () => currentZoneName(Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC");
 
 /** Every IANA zone the browser knows, with UTC and the local zone first. */
 export const timeZoneList = (): string[] => {
   const local = localTimeZone();
   // Not in this project's TypeScript lib target (ES2022+), but in every current browser.
   const supportedValuesOf = (Intl as unknown as { supportedValuesOf?: (key: "timeZone") => string[] }).supportedValuesOf;
-  const all = typeof supportedValuesOf === "function" ? supportedValuesOf("timeZone") : [];
+  const all = typeof supportedValuesOf === "function" ? supportedValuesOf("timeZone").map(currentZoneName) : [];
   return Array.from(new Set(["UTC", local, ...all]));
+};
+
+/**
+ * IANA IDs use underscores because they cannot contain spaces ("America/New_York").
+ * The ID must be passed to Intl unchanged, so only the display swaps them for spaces.
+ */
+export const timeZoneLabel = (timeZone: string) => timeZone.replace(/_/g, " ");
+
+export interface TimeZoneOption {
+  value: string;
+  label: string;
+  /** Current offset, e.g. "UTC+05:30". */
+  hint: string;
+  /** Extra text to match when searching, e.g. "+0530 +5:30". */
+  keywords: string;
+}
+
+/** Zones for the picker, each with its offset at `now` so users can search by offset. */
+export const timeZoneOptions = (now = Date.now()): TimeZoneOption[] => {
+  const local = localTimeZone();
+  return timeZoneList().map((zone) => {
+    const offset = zoneOffsetMinutes(now, zone);
+    const hint = offset === 0 ? "UTC+00:00" : `UTC${formatOffset(offset)}`;
+    const hours = Math.floor(Math.abs(offset) / 60);
+    const sign = offset < 0 ? "-" : "+";
+    return {
+      value: zone,
+      label: zone === local && zone !== "UTC" ? `${timeZoneLabel(zone)} (local)` : timeZoneLabel(zone),
+      hint,
+      keywords: [
+        timeZoneLabel(FORMER_NAMES[zone] ?? ""),
+        formatOffset(offset, ""),
+        `${sign}${hours}${offset % 60 ? `:${String(Math.abs(offset) % 60).padStart(2, "0")}` : ""}`,
+        zone === local ? "local" : "",
+      ].join(" "),
+    };
+  });
 };
 
 interface ZonedFields {
@@ -170,7 +238,7 @@ export const parseTimestamp = (input: string, unit: TimestampUnit, timeZone: str
       ms = utcFromFields(year, month, day, hour, minute, second, millisecond) - offset * 60_000;
     } else {
       ms = zonedToUtc(year, month, day, hour, minute, second, millisecond, timeZone);
-      note = `No offset given, read as ${timeZone} time`;
+      note = `No offset given, read as ${timeZoneLabel(timeZone)} time`;
     }
     // Reject dates such as 31 February, which Date would roll into March.
     const check = zone ? new Date(utcFromFields(year, month, day)) : null;
@@ -228,8 +296,8 @@ export const timeFormats = (ms: number, timeZone: string, now = Date.now()): Tim
     { id: "unix-s", label: "Unix seconds", value: trimDecimal(ms / 1000) },
     { id: "unix-ms", label: "Unix milliseconds", value: String(Math.round(ms)) },
     { id: "iso-utc", label: "ISO 8601 (UTC)", value: new Date(ms).toISOString() },
-    { id: "iso-zone", label: `ISO 8601 (${timeZone})`, value: zonedIso },
-    { id: "readable", label: `Readable (${timeZone})`, value: readable },
+    { id: "iso-zone", label: `ISO 8601 (${timeZoneLabel(timeZone)})`, value: zonedIso },
+    { id: "readable", label: `Readable (${timeZoneLabel(timeZone)})`, value: readable },
     { id: "rfc", label: "RFC 7231 / HTTP date", value: new Date(ms).toUTCString() },
     { id: "relative", label: "Relative", value: relativeTime(ms / 1000, now / 1000) },
     { id: "calendar", label: "Calendar", value: `${f.weekday}, day ${dayOfYear(f.year, f.month, f.day)} of ${f.year}, ISO week ${weekYear}-W${pad(week)}` },
