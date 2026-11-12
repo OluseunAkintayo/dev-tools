@@ -92,7 +92,9 @@ export const JwtEncode = ({ modeControl, seed, onVerify, onSnapshot }: EncodePro
   const [key, setKey] = React.useState(seed?.key ?? "");
   const [encoding, setEncoding] = React.useState<SecretEncoding>(seed?.encoding ?? "utf8");
 
-  React.useEffect(() => onSnapshot({ payload, headerText: header, alg, key, encoding }), [payload, header, alg, key, encoding, onSnapshot]);
+  React.useEffect(() => {
+    onSnapshot({ payload, headerText: header, alg, key, encoding });
+  }, [payload, header, alg, key, encoding, onSnapshot]);
   const [generatedPublic, setGeneratedPublic] = React.useState<{ privateKey: string; publicKey: string } | null>(null);
   const [signing, setSigning] = React.useState<Signing>({ kind: "idle" });
   const copy = useCopy();

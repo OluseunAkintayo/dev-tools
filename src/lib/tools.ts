@@ -90,7 +90,7 @@ export const tools: Tool[] = [
     intro: "Decode a JWT to see its claims and verify the signature, or switch to Encode to sign a new token with a secret or private key.",
     category: "encode",
     icon: KeyRound,
-    link: "/jwt-decoder",
+    link: "/jwt",
     status: "live",
     keywords: ["jwt", "token", "jws", "bearer", "decode", "encode", "sign", "verify", "signature", "claims", "oauth", "jwk"],
     size: "normal",

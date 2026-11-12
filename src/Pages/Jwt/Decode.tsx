@@ -136,7 +136,9 @@ export const JwtDecode = ({ modeControl, seed, onEditPayload, onSnapshot }: Deco
   const [key, setKey] = React.useState(seed?.key ?? "");
   const [encoding, setEncoding] = React.useState<SecretEncoding>(seed?.encoding ?? "utf8");
 
-  React.useEffect(() => onSnapshot({ token: input, key, encoding }), [input, key, encoding, onSnapshot]);
+  React.useEffect(() => {
+    onSnapshot({ token: input, key, encoding });
+  }, [input, key, encoding, onSnapshot]);
   const [view, setView] = React.useState<View>("payload");
 
   const runner = useToolRunner(input, decodeJwt, []);

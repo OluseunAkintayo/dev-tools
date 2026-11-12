@@ -11,7 +11,7 @@ import ComingSoon from "./Pages/Coming Soon/index.tsx";
 import XmlToJson from "./Pages/XmlToJson/index.tsx";
 import JsonToXml from "./Pages/XmlToJson/JsonToXml.tsx";
 import Base64EncoderDecoder from "./Pages/Base64EncoderDecoder/index.tsx";
-import JwtDecoder from "./Pages/JwtDecoder/index.tsx";
+import JwtTool from "./Pages/Jwt/index.tsx";
 
 /** Shared shell: ⌘K menu, tooltips and scroll restoration for every route. */
 const Root = () => (
@@ -35,7 +35,7 @@ const router = createBrowserRouter([
       { path: "/xml-to-json", element: <XmlToJson /> },
       { path: "/json-to-xml", element: <JsonToXml /> },
       { path: "/base64-encoder-decoder", element: <Base64EncoderDecoder /> },
-      { path: "/jwt-decoder", element: <JwtDecoder /> },
+      { path: "/jwt", element: <JwtTool /> },
       { path: "/shadcn-theme-generator", element: <ComingSoon /> },
       { path: "*", element: <NotFound /> },
     ],
