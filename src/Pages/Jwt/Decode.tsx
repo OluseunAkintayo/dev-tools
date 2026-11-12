@@ -1,5 +1,5 @@
 import React from "react";
-import { KeyRound, PenLine, ShieldAlert, ShieldCheck, ShieldQuestion } from "lucide-react";
+import { KeyRound, PenLine } from "lucide-react";
 import { ToolLayout } from "@/components/layout/ToolLayout";
 import { Button } from "@/components/ui/button";
 import { CodeEditor } from "@/components/workspace/CodeEditor";
@@ -10,11 +10,14 @@ import { CopyButton, PasteButton } from "@/components/workspace/actions";
 import { ClearButton } from "@/components/workspace/run";
 import { outputOf, statusFor } from "@/components/workspace/status";
 import { Pane, Panes, StatusBar, Toolbar, ToolbarGroup, ToolbarSpacer } from "@/components/workspace/Workspace";
+import { useJwtVerification } from "@/hooks/use-jwt-verification";
 import { useToolRunner } from "@/hooks/use-tool-runner";
 import { useHandoff } from "@/lib/handoff";
-import { decodeJwt, isSupportedAlg, isSymmetric, relativeTime, timeState, verifyJwt, type DecodedJwt, type SecretEncoding, type VerifyResult } from "@/lib/jwt";
-import { cn } from "@/lib/utils";
+import { decodeJwt, isSupportedAlg, isSymmetric, numericClaim, relativeTime, timeState, type SecretEncoding } from "@/lib/jwt";
+import { prettyJson } from "@/lib/utils";
+import { Claims } from "./Claims";
 import type { EncodeSeed } from "./Encode";
+import { VerificationLine } from "./VerificationLine";
 import { ENCODING_OPTIONS, KEY_TEXTAREA_CLASS, SAMPLE_SECRET, SAMPLE_TOKEN } from "./shared";
 
 type View = "payload" | "header" | "claims";
@@ -26,92 +29,6 @@ const VIEW_OPTIONS: { value: View; label: string }[] = [
 ];
 
 
-
-const CLAIM_LABELS: Record<string, string> = {
-  iss: "Issuer",
-  sub: "Subject",
-  aud: "Audience",
-  exp: "Expires",
-  nbf: "Not before",
-  iat: "Issued at",
-  jti: "Token ID",
-  scope: "Scope",
-  azp: "Authorized party",
-};
-const TIME_CLAIMS = new Set(["exp", "nbf", "iat", "auth_time"]);
-
-const formatDate = (seconds: number) =>
-  new Date(seconds * 1000).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "long" });
-
-const Claims = ({ payload }: { payload: unknown }) => {
-  if (typeof payload !== "object" || payload === null || Array.isArray(payload)) {
-    return <p className="p-4 text-sm text-ink-3">The payload is not a JSON object, so it has no claims.</p>;
-  }
-  const entries = Object.entries(payload as Record<string, unknown>);
-  const known = entries.filter(([key]) => key in CLAIM_LABELS || TIME_CLAIMS.has(key));
-  const custom = entries.filter(([key]) => !(key in CLAIM_LABELS || TIME_CLAIMS.has(key)));
-
-  const row = ([key, value]: [string, unknown]) => {
-    const isTime = TIME_CLAIMS.has(key) && typeof value === "number";
-    return (
-      <div key={key} className="grid grid-cols-[minmax(7rem,auto)_1fr] gap-x-4 border-b border-line px-4 py-2.5 last:border-b-0">
-        <dt className="text-[13px] text-ink-3">
-          {CLAIM_LABELS[key] ?? (key === "auth_time" ? "Authenticated" : key)}
-          {CLAIM_LABELS[key] && <span className="ml-1.5 font-mono text-[11px] text-ink-4">{key}</span>}
-        </dt>
-        <dd className="min-w-0 break-words font-mono text-[13px] text-ink">
-          {isTime ? (
-            <>
-              {formatDate(value as number)}
-              <span className="ml-2 font-sans text-ink-3">{relativeTime(value as number)}</span>
-            </>
-          ) : typeof value === "string" ? (
-            value
-          ) : (
-            JSON.stringify(value)
-          )}
-        </dd>
-      </div>
-    );
-  };
-
-  return (
-    <div className="h-full overflow-auto">
-      {known.length > 0 && <dl>{known.map(row)}</dl>}
-      {custom.length > 0 && (
-        <>
-          <h3 className="border-y border-line bg-gutter px-4 py-1.5 text-[12px] font-medium text-ink-3">Custom claims</h3>
-          <dl>{custom.map(row)}</dl>
-        </>
-      )}
-      {entries.length === 0 && <p className="p-4 text-sm text-ink-3">The payload is empty.</p>}
-    </div>
-  );
-};
-
-type Verification = { kind: "idle" } | { kind: "checking" } | ({ kind: "done" } & VerifyResult);
-
-const useVerification = (token: DecodedJwt | null, key: string, encoding: SecretEncoding): Verification => {
-  const [state, setState] = React.useState<Verification>({ kind: "idle" });
-  const deferredKey = React.useDeferredValue(key);
-
-  React.useEffect(() => {
-    if (!token || !deferredKey.trim()) {
-      setState({ kind: "idle" });
-      return;
-    }
-    let cancelled = false;
-    setState({ kind: "checking" });
-    verifyJwt(token, deferredKey, encoding).then((result) => {
-      if (!cancelled) setState({ kind: "done", ...result });
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [token, deferredKey, encoding]);
-
-  return state;
-};
 
 export interface DecodeSeed {
   token: string;
@@ -144,16 +61,16 @@ export const JwtDecode = ({ modeControl, seed, onEditPayload, onSnapshot }: Deco
   const runner = useToolRunner(input, decodeJwt, []);
   const decoded = runner.outcome.kind === "ok" ? runner.outcome.value : null;
   const shown = outputOf(runner);
-  const verification = useVerification(decoded, key, encoding);
+  const verification = useJwtVerification(decoded, key, encoding);
 
   const symmetric = decoded ? isSymmetric(decoded.alg) : true;
   const canVerify = decoded ? decoded.alg !== "none" && isSupportedAlg(decoded.alg) : true;
   const time = decoded ? timeState(decoded.payload) : "none";
-  const exp = decoded && typeof (decoded.payload as Record<string, unknown> | null)?.exp === "number" ? ((decoded.payload as Record<string, number>).exp) : null;
-  const nbf = decoded && typeof (decoded.payload as Record<string, unknown> | null)?.nbf === "number" ? ((decoded.payload as Record<string, number>).nbf) : null;
+  const exp = decoded ? numericClaim(decoded.payload, "exp") : null;
+  const nbf = decoded ? numericClaim(decoded.payload, "nbf") : null;
 
-  const payloadJson = shown ? JSON.stringify(shown.payload, null, 2) : "";
-  const headerJson = shown ? JSON.stringify(shown.header, null, 2) : "";
+  const payloadJson = shown ? prettyJson(shown.payload) : "";
+  const headerJson = shown ? prettyJson(shown.header) : "";
   const viewText = view === "header" ? headerJson : payloadJson;
 
   const base = statusFor(runner, { ok: "Decoded", error: "Invalid token", runLabel: "Decode" });
@@ -306,39 +223,5 @@ export const JwtDecode = ({ modeControl, seed, onEditPayload, onSnapshot }: Deco
 
       <StatusBar kind={status.kind} label={status.label} items={decoded ? [decoded.alg || "No alg", typeof decoded.header.typ === "string" && decoded.header.typ, timeLabel] : []} />
     </ToolLayout>
-  );
-};
-
-const VerificationLine = ({ verification, hasToken, unverifiable }: { verification: Verification; hasToken: boolean; unverifiable: string | null }) => {
-  if (unverifiable) {
-    return (
-      <p role="status" aria-live="polite" className="flex items-start gap-2 border-t border-line px-4 py-2.5 text-[13px] leading-5 text-warn">
-        <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
-        {unverifiable}
-      </p>
-    );
-  }
-  const done = verification.kind === "done";
-  const Icon = done ? (verification.valid ? ShieldCheck : ShieldAlert) : ShieldQuestion;
-  const message = !hasToken
-    ? "Paste a token to verify its signature."
-    : verification.kind === "idle"
-      ? "Signature not checked. Add a key to verify it."
-      : verification.kind === "checking"
-        ? "Checking signature…"
-        : verification.message;
-
-  return (
-    <p
-      role="status"
-      aria-live="polite"
-      className={cn(
-        "flex items-start gap-2 border-t border-line px-4 py-2.5 text-[13px] leading-5",
-        done ? (verification.valid ? "text-brand" : "text-destructive") : "text-ink-3"
-      )}
-    >
-      <Icon className="mt-0.5 h-4 w-4 shrink-0" />
-      {message}
-    </p>
   );
 };

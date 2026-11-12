@@ -1,5 +1,5 @@
 import React from "react";
-import { KeyRound, ShieldAlert, ShieldCheck, Sparkles } from "lucide-react";
+import { KeyRound, ShieldCheck, Sparkles } from "lucide-react";
 import { ToolLayout } from "@/components/layout/ToolLayout";
 import { Button } from "@/components/ui/button";
 import { CodeEditor } from "@/components/workspace/CodeEditor";
@@ -10,23 +10,27 @@ import { CopyButton } from "@/components/workspace/actions";
 import { ClearButton } from "@/components/workspace/run";
 import { Pane, Panes, StatusBar, Toolbar, ToolbarGroup, ToolbarLabel, ToolbarSpacer } from "@/components/workspace/Workspace";
 import { useCopy } from "@/hooks/use-copy";
+import { useJwtSigning } from "@/hooks/use-jwt-signing";
 import { useToolRunner } from "@/hooks/use-tool-runner";
 import {
   generateKey,
+  headerTextWithoutAlg,
   isSymmetric,
+  nowSeconds,
+  numericClaim,
+  parseHeaderText,
   publicKeyFor,
   relativeTime,
-  signJwt,
   SIGNING_ALGORITHMS,
   weakSecretWarning,
   type SecretEncoding,
-  type SignResult,
   type SigningAlg,
 } from "@/lib/jwt";
 import { byteLength, formatBytes } from "@/lib/text";
-import { parseJson, toToolError } from "@/lib/toolError";
-import { cn } from "@/lib/utils";
+import { parseJson } from "@/lib/toolError";
+import { isPlainObject, prettyJson } from "@/lib/utils";
 import type { DecodeSeed } from "./Decode";
+import { KeyNotice } from "./KeyNotice";
 import { ENCODING_OPTIONS, KEY_TEXTAREA_CLASS, SAMPLE_SECRET } from "./shared";
 
 export interface EncodeSeed {
@@ -57,20 +61,6 @@ const EXPIRY_OPTIONS = [
 
 const SAMPLE_PAYLOAD = { sub: "1234567890", name: "John Doe", iat: 1516239022 };
 
-const pretty = (value: unknown) => JSON.stringify(value, null, 2);
-const nowSeconds = () => Math.floor(Date.now() / 1000);
-
-const isObject = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null && !Array.isArray(value);
-
-/** Header text without alg, which comes from the algorithm picker instead. */
-const headerText = (header: Record<string, unknown>) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { alg: _alg, ...rest } = header;
-  return pretty(Object.keys(rest).length ? rest : { typ: "JWT" });
-};
-
-type Signing = { kind: "idle" } | { kind: "signing" } | ({ kind: "done" } & SignResult);
-
 const selectClass =
   "h-8 rounded-lg border border-line-strong bg-surface px-2 font-mono text-[13px] text-ink outline-none focus-visible:border-brand/60 focus-visible:ring-2 focus-visible:ring-brand/20 disabled:opacity-45";
 
@@ -86,8 +76,8 @@ interface EncodeProps {
 export const JwtEncode = ({ modeControl, seed, onVerify, onSnapshot }: EncodeProps) => {
   const seededAlg = seed?.alg ?? SIGNING_ALGORITHMS.find((alg) => alg === seed?.header?.alg);
   const [alg, setAlg] = React.useState<SigningAlg>(seededAlg ?? "HS256");
-  const [payload, setPayload] = React.useState(() => seed?.payload ?? pretty({ sub: "1234567890", name: "John Doe", iat: nowSeconds() }));
-  const [header, setHeader] = React.useState(() => seed?.headerText ?? headerText(seed?.header ?? {}));
+  const [payload, setPayload] = React.useState(() => seed?.payload ?? prettyJson({ sub: "1234567890", name: "John Doe", iat: nowSeconds() }));
+  const [header, setHeader] = React.useState(() => seed?.headerText ?? headerTextWithoutAlg(seed?.header ?? {}));
   const [editing, setEditing] = React.useState<Editing>("payload");
   const [key, setKey] = React.useState(seed?.key ?? "");
   const [encoding, setEncoding] = React.useState<SecretEncoding>(seed?.encoding ?? "utf8");
@@ -96,53 +86,28 @@ export const JwtEncode = ({ modeControl, seed, onVerify, onSnapshot }: EncodePro
     onSnapshot({ payload, headerText: header, alg, key, encoding });
   }, [payload, header, alg, key, encoding, onSnapshot]);
   const [generatedPublic, setGeneratedPublic] = React.useState<{ privateKey: string; publicKey: string } | null>(null);
-  const [signing, setSigning] = React.useState<Signing>({ kind: "idle" });
   const copy = useCopy();
 
   const symmetric = isSymmetric(alg);
-  const deferredKey = React.useDeferredValue(key);
 
   const payloadRunner = useToolRunner(payload, parseJson, []);
-  const headerResult = React.useMemo(() => {
-    if (!header.trim()) return { ok: true as const, value: {} };
-    try {
-      const value = parseJson(header);
-      if (!isObject(value)) return { ok: false as const, message: "The header must be a JSON object." };
-      return { ok: true as const, value };
-    } catch (err) {
-      return { ok: false as const, message: toToolError(err).message };
-    }
-  }, [header]);
+  const headerResult = React.useMemo(() => parseHeaderText(header), [header]);
 
   const payloadValue = payloadRunner.outcome.kind === "ok" ? payloadRunner.outcome.value : undefined;
   const headerValue = headerResult.ok ? headerResult.value : undefined;
-
-  React.useEffect(() => {
-    if (payloadValue === undefined || headerValue === undefined || !deferredKey) {
-      setSigning({ kind: "idle" });
-      return;
-    }
-    let cancelled = false;
-    setSigning({ kind: "signing" });
-    signJwt(alg, headerValue, payloadValue, deferredKey, encoding).then((result) => {
-      if (!cancelled) setSigning({ kind: "done", ...result });
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [alg, headerValue, payloadValue, deferredKey, encoding]);
+  const signing = useJwtSigning(alg, headerValue, payloadValue, key, encoding);
 
   const token = signing.kind === "done" && signing.ok ? signing.token : "";
   const signError = signing.kind === "done" && !signing.ok ? signing.message : null;
   const weak = weakSecretWarning(alg, key, encoding);
   const inputError = editing === "payload" ? payloadRunner.visibleError : headerResult.ok ? null : { message: headerResult.message };
 
-  const exp = isObject(payloadValue) && typeof payloadValue.exp === "number" ? payloadValue.exp : null;
+  const exp = numericClaim(payloadValue, "exp");
 
   /** Edit the payload object, keeping it formatted. No-op while the JSON is invalid. */
   const updatePayload = (change: (value: Record<string, unknown>) => Record<string, unknown>) => {
-    if (!isObject(payloadValue)) return;
-    setPayload(pretty(change(payloadValue)));
+    if (!isPlainObject(payloadValue)) return;
+    setPayload(prettyJson(change(payloadValue)));
     setEditing("payload");
   };
 
@@ -174,8 +139,8 @@ export const JwtEncode = ({ modeControl, seed, onVerify, onSnapshot }: EncodePro
 
   const loadSample = () => {
     setAlg("HS256");
-    setPayload(pretty(SAMPLE_PAYLOAD));
-    setHeader(pretty({ typ: "JWT" }));
+    setPayload(prettyJson(SAMPLE_PAYLOAD));
+    setHeader(prettyJson({ typ: "JWT" }));
     setKey(SAMPLE_SECRET);
     setEncoding("utf8");
     setEditing("payload");
@@ -219,7 +184,7 @@ export const JwtEncode = ({ modeControl, seed, onVerify, onSnapshot }: EncodePro
           <select
             id="jwt-exp"
             value=""
-            disabled={!isObject(payloadValue)}
+            disabled={!isPlainObject(payloadValue)}
             onChange={(event) => event.target.value && setExpiry(Number(event.target.value))}
             className={selectClass}
           >
@@ -230,7 +195,7 @@ export const JwtEncode = ({ modeControl, seed, onVerify, onSnapshot }: EncodePro
               </option>
             ))}
           </select>
-          <Button type="button" variant="ghost" size="sm" disabled={!isObject(payloadValue)} onClick={() => updatePayload((value) => ({ ...value, iat: nowSeconds() }))}>
+          <Button type="button" variant="ghost" size="sm" disabled={!isPlainObject(payloadValue)} onClick={() => updatePayload((value) => ({ ...value, iat: nowSeconds() }))}>
             Set iat to now
           </Button>
         </ToolbarGroup>
@@ -330,14 +295,3 @@ export const JwtEncode = ({ modeControl, seed, onVerify, onSnapshot }: EncodePro
     </ToolLayout>
   );
 };
-
-const KeyNotice = ({ message, kind }: { message: string | null; kind: "error" | "warn" | null }) =>
-  message ? (
-    <p
-      role={kind === "error" ? "alert" : "status"}
-      className={cn("flex items-start gap-2 border-t border-line px-4 py-2.5 text-[13px] leading-5", kind === "error" ? "text-destructive" : "text-warn")}
-    >
-      <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
-      {message}
-    </p>
-  ) : null;
