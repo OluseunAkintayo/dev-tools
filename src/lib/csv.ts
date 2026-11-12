@@ -116,6 +116,14 @@ export const inferColumnTypes = (rows: Record<string, string>[]): { rows: Record
   };
 };
 
+/** e.g. "Typed: 2 number, 1 boolean"; null when type detection is off. */
+export const typeSummary = (types: Record<string, ColumnType> | null) => {
+  if (!types) return null;
+  const counts = Object.values(types).reduce<Record<string, number>>((acc, type) => ({ ...acc, [type]: (acc[type] ?? 0) + 1 }), {});
+  const parts = (["number", "boolean"] as const).filter((type) => counts[type]).map((type) => `${counts[type]} ${type}`);
+  return parts.length ? `Typed: ${parts.join(", ")}` : "All text";
+};
+
 /**
  * Turn dotted headers ("address.city") into nested objects, the reverse of how JSON to CSV
  * flattens them. A header stays flat when nesting would be ambiguous: empty segments
