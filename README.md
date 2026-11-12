@@ -8,6 +8,7 @@ Every tool works the same way: paste or drop a file on the left, and the result 
 
 ## Why NexTools
 
+- **Paste anything, get the right tool.** The box on the home page recognises what you paste (JSON, CSV, XML, YAML, a JWT, a URL, percent-encoded text, a Unix timestamp, a UUID or Base64) and opens the matching tool with your data already in it.
 - **Your data stays on your machine.** Inputs, files and keys are processed in the browser tab and never uploaded. Heavy work, such as hashing a large file or running a risky regex, happens in a Web Worker so the page stays responsive.
 - **Live results.** There's no Submit button. Output updates as you type, and large inputs switch to on-demand runs so typing never lags.
 - **Errors you can act on.** Messages name the line and column and highlight it, and common mistakes come with one-click fixes, such as removing trailing commas from JSON.
@@ -84,13 +85,12 @@ yarn dev          # http://localhost:5173
 - Shadcn theme generator, with HSL (Tailwind v3) and OKLCH (Tailwind v4) output
 - XML to CSV
 - A GitHub Actions workflow builder
-- Smart Paste detection for JWTs, URLs, timestamps and YAML
 - Offline support as an installable app
 - Inputs that survive a refresh, and shareable links
 
-## Built with
+<!-- ## Built with
 
-[React](https://react.dev) 18, [TypeScript](https://www.typescriptlang.org), [Vite](https://vitejs.dev), [Tailwind CSS](https://tailwindcss.com), [Radix UI](https://www.radix-ui.com) primitives in the [shadcn/ui](https://ui.shadcn.com) style, and [Lucide](https://lucide.dev) icons. The [yaml](https://eemeli.org/yaml/) and [x2js](https://github.com/abdmob/x2js) libraries handle conversions, and the browser's Web Crypto API handles hashing and JWTs.
+[React](https://react.dev) 18, [TypeScript](https://www.typescriptlang.org), [Vite](https://vitejs.dev), [Tailwind CSS](https://tailwindcss.com), [Radix UI](https://www.radix-ui.com) primitives in the [shadcn/ui](https://ui.shadcn.com) style, and [Lucide](https://lucide.dev) icons. The [yaml](https://eemeli.org/yaml/) and [x2js](https://github.com/abdmob/x2js) libraries handle conversions, and the browser's Web Crypto API handles hashing and JWTs. -->
 
 ---
 
