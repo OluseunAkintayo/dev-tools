@@ -85,14 +85,14 @@ export const tools: Tool[] = [
   },
   {
     id: "jwt",
-    title: "JWT Decoder",
-    description: "Decode a JWT, check its expiry and verify the signature.",
-    intro: "Paste a JWT to see its header, payload and claims. Add a secret or public key to verify the signature.",
+    title: "JWT Encoder / Decoder",
+    description: "Decode and verify a JWT, or sign a new one from JSON claims.",
+    intro: "Decode a JWT to see its claims and verify the signature, or switch to Encode to sign a new token with a secret or private key.",
     category: "encode",
     icon: KeyRound,
     link: "/jwt-decoder",
     status: "live",
-    keywords: ["jwt", "token", "jws", "bearer", "decode", "verify", "signature", "claims", "oauth", "jwk"],
+    keywords: ["jwt", "token", "jws", "bearer", "decode", "encode", "sign", "verify", "signature", "claims", "oauth", "jwk"],
     size: "normal",
   },
   {
