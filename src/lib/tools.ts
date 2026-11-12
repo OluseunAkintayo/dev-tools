@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
-import { ArrowLeftRight, BadgeCheck, Binary, Braces, Clock, FileCode2, FileJson, FileText, Fingerprint, GitCompareArrows, IdCard, KeyRound, Link2, Palette, Sheet, WandSparkles } from "lucide-react";
+import { ArrowLeftRight, BadgeCheck, Binary, Braces, Clock, FileCode2, FileJson, FileText, Fingerprint, FlaskConical, GitCompareArrows, IdCard, KeyRound, Link2, Palette, Regex, Sheet, WandSparkles } from "lucide-react";
 
-export type CategoryId = "format" | "convert" | "generate" | "encode" | "compare" | "design";
+export type CategoryId = "format" | "convert" | "generate" | "encode" | "compare" | "test" | "design";
 
 export interface Category {
   id: CategoryId;
@@ -15,6 +15,7 @@ export const categories: Category[] = [
   { id: "generate", label: "Generate", icon: Braces },
   { id: "encode", label: "Encode", icon: Binary },
   { id: "compare", label: "Compare", icon: GitCompareArrows },
+  { id: "test", label: "Test", icon: FlaskConical },
   { id: "design", label: "Design", icon: Palette },
 ];
 
@@ -23,6 +24,7 @@ export type ToolId =
   | "json-to-interface"
   | "json-to-zod"
   | "json-diff"
+  | "regex"
   | "base64"
   | "jwt"
   | "timestamp"
@@ -102,6 +104,18 @@ export const tools: Tool[] = [
     link: "/json-diff",
     status: "live",
     keywords: ["diff", "compare", "json", "difference", "changes", "delta", "versus"],
+    size: "normal",
+  },
+  {
+    id: "regex",
+    title: "Regex Tester",
+    description: "Test a JavaScript regular expression with live highlighting and groups.",
+    intro: "Write a pattern and some test text. Matches are highlighted as you type, with capture groups and a replace preview.",
+    category: "test",
+    icon: Regex,
+    link: "/regex-tester",
+    status: "live",
+    keywords: ["regex", "regexp", "regular expression", "pattern", "match", "replace", "capture", "groups", "test"],
     size: "normal",
   },
   {

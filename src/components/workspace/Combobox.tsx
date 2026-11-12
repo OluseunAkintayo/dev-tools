@@ -20,6 +20,8 @@ interface ComboboxProps {
   onChange: (value: string) => void;
   /** Shown when nothing matches the search. */
   emptyText?: string;
+  /** Shown in the field when no option is selected. */
+  placeholder?: string;
   className?: string;
 }
 
@@ -27,7 +29,7 @@ interface ComboboxProps {
  * A text field that filters a list as you type (ARIA 1.2 combobox with a listbox popup).
  * ↑/↓ move, Enter picks, Escape restores the current value. Every typed word must match.
  */
-export const Combobox = ({ id, label, value, options, onChange, emptyText = "No matches", className }: ComboboxProps) => {
+export const Combobox = ({ id, label, value, options, onChange, emptyText = "No matches", placeholder = "Search", className }: ComboboxProps) => {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
   const [active, setActive] = React.useState(0);
@@ -40,10 +42,17 @@ export const Combobox = ({ id, label, value, options, onChange, emptyText = "No 
   const filtered = React.useMemo(() => {
     const words = query.toLowerCase().split(/\s+/).filter(Boolean);
     if (!words.length) return options;
-    return options.filter((option) => {
-      const haystack = `${option.label} ${option.value} ${option.hint ?? ""} ${option.keywords ?? ""}`.toLowerCase();
-      return words.every((word) => haystack.includes(word));
-    });
+    // Rank: label starts with the query, then label contains every word, then any match
+    // (value, hint or keywords). The sort is stable, so ties keep their original order.
+    const phrase = words.join(" ");
+    const ranked: { option: ComboboxOption; rank: number }[] = [];
+    for (const option of options) {
+      const label = option.label.toLowerCase();
+      const haystack = `${label} ${option.value} ${option.hint ?? ""} ${option.keywords ?? ""}`.toLowerCase();
+      if (!words.every((word) => haystack.includes(word))) continue;
+      ranked.push({ option, rank: label.startsWith(phrase) ? 0 : words.every((word) => label.includes(word)) ? 1 : 2 });
+    }
+    return ranked.sort((a, b) => a.rank - b.rank).map((entry) => entry.option);
   }, [options, query]);
 
   // Keep the highlighted option in view while moving with the keyboard.
@@ -102,7 +111,7 @@ export const Combobox = ({ id, label, value, options, onChange, emptyText = "No 
         aria-autocomplete="list"
         aria-activedescendant={open && filtered[active] ? `${id}-option-${active}` : undefined}
         value={open ? query : selected?.label ?? value}
-        placeholder={open ? selected?.label ?? "Search" : undefined}
+        placeholder={open ? selected?.label ?? "Search" : placeholder}
         onFocus={(event) => {
           openList();
           event.currentTarget.select();
