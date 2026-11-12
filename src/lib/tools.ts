@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { ArrowLeftRight, Binary, Braces, Clock, FileCode2, FileJson, FileText, Fingerprint, KeyRound, Link2, Palette, Sheet, WandSparkles } from "lucide-react";
+import { ArrowLeftRight, Binary, Braces, Clock, FileCode2, FileJson, FileText, Fingerprint, IdCard, KeyRound, Link2, Palette, Sheet, WandSparkles } from "lucide-react";
 
 export type CategoryId = "format" | "convert" | "generate" | "encode" | "design";
 
@@ -25,6 +25,7 @@ export type ToolId =
   | "timestamp"
   | "url"
   | "hash"
+  | "uuid"
   | "csv-to-json"
   | "json-to-csv"
   | "xml-to-json"
@@ -133,6 +134,18 @@ export const tools: Tool[] = [
     link: "/hash-generator",
     status: "live",
     keywords: ["hash", "md5", "sha", "sha1", "sha256", "sha512", "checksum", "hmac", "digest", "integrity", "verify"],
+    size: "normal",
+  },
+  {
+    id: "uuid",
+    title: "UUID Generator",
+    description: "Random v4 or time-ordered v7 UUIDs, in bulk. Inspect any UUID.",
+    intro: "Generate up to 1,000 UUIDs at once, or paste one to see its version, variant and creation time.",
+    category: "generate",
+    icon: IdCard,
+    link: "/uuid-generator",
+    status: "live",
+    keywords: ["uuid", "guid", "v4", "v7", "random", "id", "identifier", "rfc 9562", "4122", "ulid"],
     size: "normal",
   },
   {
