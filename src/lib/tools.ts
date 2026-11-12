@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { ArrowLeftRight, Binary, Braces, Clock, FileCode2, FileJson, FileText, Fingerprint, IdCard, KeyRound, Link2, Palette, Sheet, WandSparkles } from "lucide-react";
+import { ArrowLeftRight, BadgeCheck, Binary, Braces, Clock, FileCode2, FileJson, FileText, Fingerprint, IdCard, KeyRound, Link2, Palette, Sheet, WandSparkles } from "lucide-react";
 
 export type CategoryId = "format" | "convert" | "generate" | "encode" | "design";
 
@@ -20,6 +20,7 @@ export const categories: Category[] = [
 export type ToolId =
   | "json-formatter"
   | "json-to-interface"
+  | "json-to-zod"
   | "base64"
   | "jwt"
   | "timestamp"
@@ -76,6 +77,18 @@ export const tools: Tool[] = [
     status: "live",
     keywords: ["typescript", "ts", "interface", "type", "json", "types"],
     size: "wide",
+  },
+  {
+    id: "json-to-zod",
+    title: "JSON to Zod",
+    description: "Turn a JSON sample into a Zod schema, for Zod 4 or 3.",
+    intro: "Paste a JSON sample. The Zod schema appears as you type, with optional keys and unions inferred from every array item.",
+    category: "generate",
+    icon: BadgeCheck,
+    link: "/json-to-zod",
+    status: "live",
+    keywords: ["zod", "schema", "validation", "typescript", "json", "infer", "runtime"],
+    size: "normal",
   },
   {
     id: "base64",

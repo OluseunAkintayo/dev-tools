@@ -1,9 +1,9 @@
+import { formatKey, toTypeName } from "@/lib/inferShape";
+import { isPlainObject } from "@/lib/utils";
+
+export { toTypeName };
+
 const INDENT = "  ";
-
-const isPlainObject = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
-
-const formatKey = (key: string) => (/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(key) ? key : JSON.stringify(key));
 
 const objectType = (obj: Record<string, unknown>, depth: number): string => {
   const entries = Object.entries(obj);
@@ -29,14 +29,6 @@ const getType = (value: unknown, depth: number): string => {
   if (isPlainObject(value)) return objectType(value, depth);
   return typeof value;
 };
-
-export const toTypeName = (name: string): string =>
-  name
-    .split(/[^A-Za-z0-9_$]+/)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join("")
-    .replace(/^[0-9]+/, "");
 
 export const generateInterface = (data: unknown, name: string): string => {
   const typeName = toTypeName(name);
