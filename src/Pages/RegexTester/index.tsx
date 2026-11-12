@@ -1,8 +1,8 @@
 import React from "react";
-import { Regex, TimerOff } from "lucide-react";
+import { Info, Regex, TimerOff } from "lucide-react";
 import { ToolLayout } from "@/components/layout/ToolLayout";
-import { Button } from "@/components/ui/button";
 import { CodeView } from "@/components/workspace/CodeView";
+import { Combobox } from "@/components/workspace/Combobox";
 import { HighlightEditor, type HighlightRange } from "@/components/workspace/HighlightEditor";
 import { Segmented } from "@/components/workspace/controls";
 import { EmptyState } from "@/components/workspace/Feedback";
@@ -11,6 +11,7 @@ import { ClearButton } from "@/components/workspace/run";
 import { Pane, Panes, StatusBar, Toolbar, ToolbarGroup, ToolbarSpacer } from "@/components/workspace/Workspace";
 import { useRegex } from "@/hooks/use-regex";
 import { MAX_MATCHES, normaliseFlags, REGEX_TIMEOUT_MS, type RegexFlag } from "@/lib/regex";
+import { REGEX_PRESETS } from "@/lib/regexPresets";
 import { plural } from "@/lib/text";
 import { FlagToggles } from "./FlagToggles";
 import { MatchList } from "./MatchList";
@@ -22,12 +23,7 @@ const VIEW_OPTIONS: { value: View; label: string }[] = [
   { value: "replace", label: "Replace" },
 ];
 
-const SAMPLE = {
-  pattern: "(?<user>[\\w.+-]+)@(?<domain>[\\w-]+(?:\\.[\\w-]+)+)",
-  flags: "gi",
-  text: "Contact ada.lovelace@example.com or support+billing@mail.example.co.uk.\nNot an address: ada@localhost",
-  replacement: "$<user> at $<domain>",
-};
+const PRESET_OPTIONS = REGEX_PRESETS.map((preset) => ({ value: preset.id, label: preset.label, hint: preset.group, keywords: preset.description }));
 
 const RegexTester = () => {
   const [pattern, setPattern] = React.useState("");
@@ -53,11 +49,16 @@ const RegexTester = () => {
     setFlags(normaliseFlags(next));
   };
 
-  const loadSample = () => {
-    setPattern(SAMPLE.pattern);
-    setFlags(SAMPLE.flags);
-    setText(SAMPLE.text);
-    setReplacement(SAMPLE.replacement);
+  // The preset in use, as long as its pattern and flags are unchanged.
+  const preset = REGEX_PRESETS.find((item) => item.pattern === pattern && normaliseFlags(item.flags) === flags);
+
+  const loadPreset = (id: string) => {
+    const chosen = REGEX_PRESETS.find((item) => item.id === id);
+    if (!chosen) return;
+    setPattern(chosen.pattern);
+    setFlags(normaliseFlags(chosen.flags));
+    setText(chosen.sample);
+    setReplacement(chosen.replacement ?? "");
   };
 
   const clear = () => {
@@ -114,9 +115,16 @@ const RegexTester = () => {
         <FlagToggles flags={flags} onToggle={toggleFlag} />
         <ToolbarSpacer />
         <ToolbarGroup>
-          <Button type="button" variant="ghost" size="sm" onClick={loadSample}>
-            Try a sample
-          </Button>
+          <Combobox
+            id="regex-preset"
+            label="Common patterns"
+            value={preset?.id ?? ""}
+            options={PRESET_OPTIONS}
+            onChange={loadPreset}
+            placeholder="Common patterns…"
+            emptyText="No pattern matches"
+            className="w-56"
+          />
           <ClearButton onClick={clear} disabled={!pattern && !text} />
         </ToolbarGroup>
       </Toolbar>
@@ -140,6 +148,15 @@ const RegexTester = () => {
               <p role="alert" className="flex shrink-0 items-start gap-2 border-b border-line bg-destructive/[0.04] px-4 py-2.5 text-[13px] text-destructive">
                 {state.kind === "timeout" && <TimerOff className="mt-0.5 h-4 w-4 shrink-0" />}
                 {problem}
+              </p>
+            )}
+            {preset && (
+              <p className="flex shrink-0 items-start gap-2 border-b border-line bg-gutter px-4 py-2.5 text-[12px] leading-5 text-ink-2">
+                <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink-3" />
+                <span>
+                  <span className="font-medium text-ink">{preset.label}.</span> {preset.description}
+                  {preset.flags.includes("m") && " Each line of the test text is checked on its own."}
+                </span>
               </p>
             )}
             {view === "replace" && (
@@ -171,7 +188,7 @@ const RegexTester = () => {
                 <MatchList matches={matches} active={active} onSelect={(index) => setActive((current) => (current === index ? null : index))} />
               ) : (
                 <EmptyState icon={Regex} title={pattern && text && result ? "No matches" : "Add a pattern and test text"}>
-                  {pattern && text && result ? "Check the flags, or try a sample to see how it works." : "Matches are highlighted in the text and listed here with their groups."}
+                  {pattern && text && result ? "Check the flags, or pick one of the common patterns to see how it works." : "Matches are highlighted in the text and listed here with their groups. Pick a common pattern to start."}
                 </EmptyState>
               )}
             </div>
