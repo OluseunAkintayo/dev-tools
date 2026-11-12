@@ -33,6 +33,7 @@
     --cat-encode: 178 70% 27%;
     --cat-design: 340 60% 45%;
     --cat-compare: 95 55% 29%;
+    --cat-test: 290 50% 42%;
 
     /* shadcn/ui aliases */
     --background: var(--paper);
@@ -84,6 +85,7 @@
     --cat-encode: 172 55% 58%;
     --cat-design: 340 75% 72%;
     --cat-compare: 90 50% 62%;
+    --cat-test: 290 65% 76%;
 
     --primary-foreground: 240 5% 8%;
     --destructive-foreground: 240 5% 8%;

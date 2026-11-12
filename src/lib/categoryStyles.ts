@@ -40,6 +40,11 @@ export const categoryStyles: Record<CategoryId, CategoryStyle> = {
     badge: "border-[hsl(var(--cat-compare)/0.25)] bg-[hsl(var(--cat-compare)/0.1)] text-[hsl(var(--cat-compare))]",
     icon: "bg-[hsl(var(--cat-compare)/0.1)] text-[hsl(var(--cat-compare))]",
   },
+  test: {
+    text: "text-[hsl(var(--cat-test))]",
+    badge: "border-[hsl(var(--cat-test)/0.25)] bg-[hsl(var(--cat-test)/0.1)] text-[hsl(var(--cat-test))]",
+    icon: "bg-[hsl(var(--cat-test)/0.1)] text-[hsl(var(--cat-test))]",
+  },
   design: {
     text: "text-[hsl(var(--cat-design))]",
     badge: "border-[hsl(var(--cat-design)/0.25)] bg-[hsl(var(--cat-design)/0.1)] text-[hsl(var(--cat-design))]",
