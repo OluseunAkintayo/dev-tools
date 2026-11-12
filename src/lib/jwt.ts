@@ -1,4 +1,5 @@
-import { ToolInputError } from "@/lib/toolError";
+import { parseJson, toToolError, ToolInputError } from "@/lib/toolError";
+import { isPlainObject, prettyJson } from "@/lib/utils";
 
 export interface DecodedJwt {
   header: Record<string, unknown>;
@@ -396,4 +397,35 @@ export const generateKey = async (alg: SigningAlg): Promise<{ privateKey: string
     privateKey: toPem(await crypto.subtle.exportKey("pkcs8", pair.privateKey), "PRIVATE KEY"),
     publicKey: toPem(await crypto.subtle.exportKey("spki", pair.publicKey), "PUBLIC KEY"),
   };
+};
+
+/* ---------- UI helpers ---------- */
+
+export const nowSeconds = () => Math.floor(Date.now() / 1000);
+
+/** A NumericDate claim (seconds) as a readable local date and time. */
+export const formatClaimDate = (seconds: number) => new Date(seconds * 1000).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "long" });
+
+/** A numeric claim such as exp or nbf, or null when absent. */
+export const numericClaim = (payload: unknown, claim: string): number | null =>
+  isPlainObject(payload) && typeof payload[claim] === "number" ? (payload[claim] as number) : null;
+
+/** Editable header text without alg, which the algorithm picker controls. */
+export const headerTextWithoutAlg = (header: Record<string, unknown>) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { alg: _alg, ...rest } = header;
+  return prettyJson(Object.keys(rest).length ? rest : { typ: "JWT" });
+};
+
+export type HeaderParse = { ok: true; value: Record<string, unknown> } | { ok: false; message: string };
+
+/** Parse header JSON typed in Encode mode. Empty text means an empty header. */
+export const parseHeaderText = (text: string): HeaderParse => {
+  if (!text.trim()) return { ok: true, value: {} };
+  try {
+    const value = parseJson(text);
+    return isPlainObject(value) ? { ok: true, value } : { ok: false, message: "The header must be a JSON object." };
+  } catch (err) {
+    return { ok: false, message: toToolError(err).message };
+  }
 };

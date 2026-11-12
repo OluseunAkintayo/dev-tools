@@ -1,6 +1,5 @@
 import React from "react";
 import { ArrowLeftRight, FileCode2 } from "lucide-react";
-import X2JS from "x2js";
 import { ToolLayout } from "@/components/layout/ToolLayout";
 import { CodeEditor } from "@/components/workspace/CodeEditor";
 import { CodeView } from "@/components/workspace/CodeView";
@@ -12,29 +11,17 @@ import { Pane, Panes, StatusBar, Toolbar, ToolbarGroup, ToolbarSpacer } from "@/
 import { useFileLoader } from "@/hooks/use-file-loader";
 import { useShortcut } from "@/hooks/use-shortcut";
 import { useToolRunner } from "@/hooks/use-tool-runner";
-import { formatXml } from "@/lib/formatXml";
 import { useHandoff } from "@/lib/handoff";
 import { byteLength, countLines, formatBytes, plural } from "@/lib/text";
-import { parseJson } from "@/lib/toolError";
+import { jsonToXml } from "@/lib/xml";
 
-const convert = (text: string) => {
-  const value = parseJson(text);
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    throw new Error('JSON must be an object, for example {"root": {...}}.');
-  }
-  // XML needs exactly one root element. Several top-level keys, or a single key
-  // holding an array, would produce several sibling roots, so wrap them.
-  const keys = Object.keys(value);
-  const hasSingleRoot = keys.length === 1 && !Array.isArray((value as Record<string, unknown>)[keys[0]]);
-  return formatXml(new X2JS().js2xml(hasSingleRoot ? value : { root: value }));
-};
 
 const JsonToXml = () => {
   const handoff = useHandoff();
   const [input, setInput] = React.useState(handoff?.input ?? "");
   const [fileName, setFileName] = React.useState<string | null>(null);
 
-  const runner = useToolRunner(input, convert, []);
+  const runner = useToolRunner(input, jsonToXml, []);
   useShortcut({ key: "Enter", mod: true }, runner.run);
 
   const files = useFileLoader({

@@ -1,6 +1,5 @@
 import React from "react";
 import { ArrowLeftRight, FileJson } from "lucide-react";
-import X2JS from "x2js";
 import { ToolLayout } from "@/components/layout/ToolLayout";
 import { CodeEditor } from "@/components/workspace/CodeEditor";
 import { CodeView } from "@/components/workspace/CodeView";
@@ -14,31 +13,14 @@ import { useShortcut } from "@/hooks/use-shortcut";
 import { useToolRunner } from "@/hooks/use-tool-runner";
 import { useHandoff } from "@/lib/handoff";
 import { byteLength, countLines, formatBytes, plural } from "@/lib/text";
-import { ToolInputError } from "@/lib/toolError";
-
-const convert = (text: string) => {
-  const doc = new DOMParser().parseFromString(text, "application/xml");
-  const parserError = doc.getElementsByTagName("parsererror")[0];
-  if (parserError) {
-    const detail = parserError.textContent ?? "";
-    const location = /line (?:number )?(\d+)(?:,? at column (\d+)| column (\d+))?/i.exec(detail);
-    const line = location ? Number(location[1]) : undefined;
-    const column = location ? Number(location[2] ?? location[3]) || undefined : undefined;
-    throw new ToolInputError({
-      message: line ? `Invalid XML near line ${line}${column ? `, column ${column}` : ""}. Check for unclosed or mismatched tags.` : "Invalid XML. Check for unclosed or mismatched tags.",
-      line,
-      column,
-    });
-  }
-  return JSON.stringify(new X2JS().dom2js(doc), null, 2);
-};
+import { xmlToJson } from "@/lib/xml";
 
 const XmlToJson = () => {
   const handoff = useHandoff();
   const [input, setInput] = React.useState(handoff?.input ?? "");
   const [fileName, setFileName] = React.useState<string | null>(null);
 
-  const runner = useToolRunner(input, convert, []);
+  const runner = useToolRunner(input, xmlToJson, []);
   useShortcut({ key: "Enter", mod: true }, runner.run);
 
   const files = useFileLoader({

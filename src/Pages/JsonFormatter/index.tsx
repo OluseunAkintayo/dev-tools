@@ -17,6 +17,7 @@ import { useShortcut } from "@/hooks/use-shortcut";
 import { useToolRunner } from "@/hooks/use-tool-runner";
 import { useHandoff } from "@/lib/handoff";
 import { queryJsonPath } from "@/lib/jsonPath";
+import { sortKeysDeep, stringifyJson } from "@/lib/json";
 import { byteLength, countLines, formatBytes, plural } from "@/lib/text";
 import { parseJson, toToolError } from "@/lib/toolError";
 
@@ -39,21 +40,6 @@ const VIEW_OPTIONS: { value: View; label: string }[] = [
 const DEFAULT_EXPAND = 2;
 const EXPAND_ALL = Number.POSITIVE_INFINITY;
 const COLLAPSE_ALL = 1;
-
-const sortKeysDeep = (value: unknown): unknown => {
-  if (Array.isArray(value)) return value.map(sortKeysDeep);
-  if (typeof value === "object" && value !== null) {
-    return Object.fromEntries(
-      Object.keys(value)
-        .sort()
-        .map((key) => [key, sortKeysDeep((value as Record<string, unknown>)[key])])
-    );
-  }
-  return value;
-};
-
-const stringify = (value: unknown, indent: Indent) =>
-  indent === "min" ? JSON.stringify(value) : JSON.stringify(value, null, indent === "tab" ? "\t" : Number(indent));
 
 type QueryOutcome = { kind: "none" } | { kind: "ok"; matches: unknown[] } | { kind: "error"; message: string };
 
@@ -99,7 +85,7 @@ const JsonFormatter = () => {
   }, [data, hasData, deferredQuery]);
 
   const shown = queryOutcome.kind === "ok" ? queryOutcome.matches : data;
-  const output = React.useMemo(() => (hasData ? stringify(shown, indent) : ""), [hasData, shown, indent]);
+  const output = React.useMemo(() => (hasData ? stringifyJson(shown, indent) : ""), [hasData, shown, indent]);
 
   const baseStatus = statusFor(runner, { ok: "Valid JSON", error: "Invalid JSON", runLabel: "Format" });
   const status = runner.outcome.kind === "ok" && queryOutcome.kind === "error" ? { kind: "error" as const, label: "Invalid query" } : baseStatus;

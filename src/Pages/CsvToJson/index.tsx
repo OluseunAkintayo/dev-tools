@@ -12,30 +12,10 @@ import { Pane, Panes, StatusBar, Toolbar, ToolbarGroup, ToolbarLabel, ToolbarSpa
 import { useFileLoader } from "@/hooks/use-file-loader";
 import { useShortcut } from "@/hooks/use-shortcut";
 import { useToolRunner } from "@/hooks/use-tool-runner";
-import { csvToObjects, inferColumnTypes, nestDottedKeys, type ColumnType } from "@/lib/csv";
+import { csvToObjects, inferColumnTypes, nestDottedKeys, typeSummary } from "@/lib/csv";
 import { useHandoff } from "@/lib/handoff";
 import { plural } from "@/lib/text";
-
-type DelimiterChoice = "," | ";" | "\t" | "|" | "custom";
-
-const DELIMITER_OPTIONS: { value: DelimiterChoice; label: string }[] = [
-  { value: ",", label: "Comma" },
-  { value: ";", label: "Semicolon" },
-  { value: "\t", label: "Tab" },
-  { value: "|", label: "Pipe" },
-  { value: "custom", label: "Other" },
-];
-
-const initialChoice = (delimiter?: string): DelimiterChoice =>
-  delimiter && DELIMITER_OPTIONS.some((option) => option.value === delimiter) ? (delimiter as DelimiterChoice) : ",";
-
-/** e.g. "2 number, 1 boolean"; null when types are off or every column is text. */
-const typeSummary = (types: Record<string, ColumnType> | null) => {
-  if (!types) return null;
-  const counts = Object.values(types).reduce<Record<string, number>>((acc, type) => ({ ...acc, [type]: (acc[type] ?? 0) + 1 }), {});
-  const parts = (["number", "boolean"] as const).filter((type) => counts[type]).map((type) => `${counts[type]} ${type}`);
-  return parts.length ? `Typed: ${parts.join(", ")}` : "All text";
-};
+import { DELIMITER_OPTIONS, initialChoice, type DelimiterChoice } from "./delimiter";
 
 const CsvToJson = () => {
   const handoff = useHandoff();
