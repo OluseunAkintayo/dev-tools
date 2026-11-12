@@ -20,12 +20,20 @@ export const ToolbarSpacer = () => <div className="hidden flex-1 sm:block" />;
 
 /* ---------- Panes ---------- */
 
-export const Panes = ({ children, roundedTop = false }: { children: React.ReactNode; roundedTop?: boolean }) => (
+interface PanesProps {
+  children: React.ReactNode;
+  roundedTop?: boolean;
+  /** Overrides, e.g. a shorter desktop height when something sits below the panes. */
+  className?: string;
+}
+
+export const Panes = ({ children, roundedTop = false, className }: PanesProps) => (
   <div
     className={cn(
       "grid overflow-hidden border border-line bg-surface md:h-[min(64vh,640px)] md:grid-cols-2",
       "[&>section]:h-[360px] md:[&>section]:h-auto [&>section+section]:border-t [&>section+section]:border-line md:[&>section+section]:border-l md:[&>section+section]:border-t-0",
-      roundedTop && "rounded-t-2xl"
+      roundedTop && "rounded-t-2xl",
+      className
     )}
   >
     {children}

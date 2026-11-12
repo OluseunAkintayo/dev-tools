@@ -35,6 +35,11 @@ export const categoryStyles: Record<CategoryId, CategoryStyle> = {
     badge: "border-[hsl(var(--cat-encode)/0.25)] bg-[hsl(var(--cat-encode)/0.1)] text-[hsl(var(--cat-encode))]",
     icon: "bg-[hsl(var(--cat-encode)/0.1)] text-[hsl(var(--cat-encode))]",
   },
+  compare: {
+    text: "text-[hsl(var(--cat-compare))]",
+    badge: "border-[hsl(var(--cat-compare)/0.25)] bg-[hsl(var(--cat-compare)/0.1)] text-[hsl(var(--cat-compare))]",
+    icon: "bg-[hsl(var(--cat-compare)/0.1)] text-[hsl(var(--cat-compare))]",
+  },
   design: {
     text: "text-[hsl(var(--cat-design))]",
     badge: "border-[hsl(var(--cat-design)/0.25)] bg-[hsl(var(--cat-design)/0.1)] text-[hsl(var(--cat-design))]",

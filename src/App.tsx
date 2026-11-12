@@ -7,6 +7,7 @@ import JsonToCsv from "./Pages/JsonToCsv/index.tsx";
 import CsvToJson from "./Pages/CsvToJson/index.tsx";
 import InterfaceGenerator from "./Pages/InterfaceGenerator/index.tsx";
 import JsonToZod from "./Pages/JsonToZod/index.tsx";
+import JsonDiff from "./Pages/JsonDiff/index.tsx";
 import JsonFormatter from "./Pages/JsonFormatter/index.tsx";
 import ComingSoon from "./Pages/Coming Soon/index.tsx";
 import XmlToJson from "./Pages/XmlToJson/index.tsx";
@@ -37,6 +38,7 @@ const router = createBrowserRouter([
       { path: "/csv-to-json", element: <CsvToJson /> },
       { path: "/json-to-interface", element: <InterfaceGenerator /> },
       { path: "/json-to-zod", element: <JsonToZod /> },
+      { path: "/json-diff", element: <JsonDiff /> },
       { path: "/json-formatter", element: <JsonFormatter /> },
       { path: "/xml-to-json", element: <XmlToJson /> },
       { path: "/json-to-xml", element: <JsonToXml /> },
