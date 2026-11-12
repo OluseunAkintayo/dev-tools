@@ -46,7 +46,7 @@ const InterfaceGenerator = () => {
   };
 
   return (
-    <ToolLayout toolId="json-to-interface">
+    <ToolLayout toolId="json-to-interface" next={[{ to: "json-to-zod", label: "Generate a Zod schema instead", handoff: input.trim() ? { input } : undefined }]}>
       <Toolbar>
         <ToolbarGroup>
           <ToolbarLabel htmlFor="interface-name">Interface name</ToolbarLabel>
