@@ -1,12 +1,20 @@
 import React from "react";
 
-export type CodeLanguage = "json" | "xml" | "ts" | "text";
+export type CodeLanguage = "json" | "xml" | "ts" | "yaml" | "text";
 
 /** Above this size, output renders as plain text to keep the page fast. */
 const HIGHLIGHT_LIMIT = 300_000;
 
 const JSON_TOKEN = /("(?:\\.|[^"\\])*")(\s*:)?|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|\b(true|false|null)\b|([{}[\],:])/g;
 const XML_TOKEN = /(<!--[\s\S]*?-->)|(<\/?[\w:.-]+)|([\w:.-]+)(=)("[^"]*"|'[^']*')|(\/?>)/g;
+/**
+ * Line-oriented YAML: comments (# after whitespace), "key:" at the start of a line or
+ * after "- ", quoted strings, anchors and aliases, document markers, and plain
+ * true/false/null/numbers that make up a whole value.
+ */
+const YAML_TOKEN =
+  /((?:^|[ \t])#.*$)|^([ \t]*(?:- +)*)("(?:\\.|[^"\\\n])*"|'(?:[^'\n]|'')*'|[^\s#'"{[\]},&*!|>%@`-][^\n#]*?|-[^\s\n#][^\n#]*?)([ \t]*:)(?=[ \t]|$)|("(?:\\.|[^"\\\n])*"|'(?:[^'\n]|'')*')|([&*][^\s,\]}]+)|(^(?:---|\.\.\.)(?=\s|$))|((?<=:[ \t]+|^[ \t]*-[ \t]+|[[,][ \t]*)(?:true|false|null|~|-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?)(?=[ \t]*(?:$|#|,|\]|})))/gm;
+
 const TS_TOKEN = /\b(export|interface|type|extends|readonly)\b|\b(string|number|boolean|null|undefined|unknown|any|Record|Array|object)\b|("(?:\\.|[^"\\])*")|([{}[\]<>;:|?,()])/g;
 
 type Piece = { text: string; className?: string };
@@ -56,6 +64,22 @@ const classifyTs = (m: RegExpExecArray): Piece[] => {
   return [{ text: m[0], className: "text-ink-3" }];
 };
 
+const classifyYaml = (m: RegExpExecArray): Piece[] => {
+  if (m[1] !== undefined) return [{ text: m[1], className: "text-ink-3 italic" }];
+  if (m[3] !== undefined) {
+    return [
+      ...(m[2] ? [{ text: m[2] }] : []),
+      { text: m[3], className: "text-ink" },
+      { text: m[4], className: "text-ink-3" },
+    ];
+  }
+  if (m[5] !== undefined) return [{ text: m[5], className: "text-brand" }];
+  if (m[6] !== undefined) return [{ text: m[6], className: "text-code-blue italic" }];
+  if (m[7] !== undefined) return [{ text: m[7], className: "text-ink-3" }];
+  if (/^(?:true|false|null|~)$/.test(m[8])) return [{ text: m[8], className: "text-code-blue" }];
+  return [{ text: m[8], className: "text-warn" }];
+};
+
 export const highlight = (code: string, language: CodeLanguage): React.ReactNode => {
   if (language === "text" || code.length > HIGHLIGHT_LIMIT) return code;
   const pieces =
@@ -63,7 +87,9 @@ export const highlight = (code: string, language: CodeLanguage): React.ReactNode
       ? tokenize(code, JSON_TOKEN, classifyJson)
       : language === "xml"
         ? tokenize(code, XML_TOKEN, classifyXml)
-        : tokenize(code, TS_TOKEN, classifyTs);
+        : language === "yaml"
+          ? tokenize(code, YAML_TOKEN, classifyYaml)
+          : tokenize(code, TS_TOKEN, classifyTs);
   return pieces.map((piece, index) =>
     piece.className ? (
       <span key={index} className={piece.className}>

@@ -44,6 +44,9 @@ const router = createBrowserRouter([
       { path: "/url-encoder-decoder", element: <UrlTools /> },
       { path: "/hash-generator", element: <HashGenerator /> },
       { path: "/uuid-generator", element: <UuidGenerator /> },
+      // Loaded on demand so the yaml library (~30 kB gzipped) stays out of the main bundle.
+      { path: "/yaml-to-json", lazy: () => import("./Pages/YamlJson/index.tsx").then((page) => ({ Component: page.default })) },
+      { path: "/json-to-yaml", lazy: () => import("./Pages/YamlJson/JsonToYaml.tsx").then((page) => ({ Component: page.default })) },
       { path: "/shadcn-theme-generator", element: <ComingSoon /> },
       { path: "*", element: <NotFound /> },
     ],
