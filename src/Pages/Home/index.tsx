@@ -10,9 +10,7 @@ import { Button } from "@/components/ui/button";
 import { modKey } from "@/lib/platform";
 import { categoryStyles } from "@/lib/categoryStyles";
 import { categories } from "@/lib/tools";
-
-/** Staggered entrance for the hero, played once on load. */
-const rise = (index: number): React.CSSProperties => ({ animationDelay: `${index * 60}ms` });
+import { rise } from "./rise";
 
 const facts = [
   {
