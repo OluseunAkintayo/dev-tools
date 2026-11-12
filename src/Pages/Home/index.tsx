@@ -64,13 +64,6 @@ const Home = () => {
               <p className="mt-5 max-w-[40ch] animate-rise text-lg leading-relaxed text-ink-2" style={rise(1)}>
                 Formatters, converters, generators and encoders in one fast, private workspace. New tools ship regularly.
               </p>
-              <div className="mt-8 flex animate-rise flex-wrap gap-2.5" style={rise(2)}>
-                <Button asChild>
-                  <a href="#tools">
-                    <LayoutGrid /> Explore tools
-                  </a>
-                </Button>
-              </div>
               <ul aria-label="Categories" className="mt-10 flex animate-rise flex-wrap gap-x-5 gap-y-2 text-[13px] text-ink-3" style={rise(3)}>
                 {categories.map((category) => (
                   <li key={category.id} className="inline-flex items-center gap-1.5">
@@ -79,6 +72,13 @@ const Home = () => {
                   </li>
                 ))}
               </ul>
+              <div className="mt-8 flex animate-rise flex-wrap gap-2.5" style={rise(2)}>
+                <Button asChild>
+                  <a href="#tools">
+                    <LayoutGrid /> Explore tools
+                  </a>
+                </Button>
+              </div>
             </div>
             <div className="animate-rise" style={rise(2)}>
               <SmartPaste />
