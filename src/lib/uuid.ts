@@ -123,7 +123,7 @@ export const inspectUuid = (input: string): UuidInfo => {
 
   const variantNibble = parseInt(hex[16], 16);
   const variant =
-    variantNibble < 8 ? "NCS (reserved, pre-1990)" : variantNibble < 12 ? "RFC 9562" : variantNibble < 14 ? "Microsoft (reserved, GUID)" : "Reserved for future use";
+    variantNibble < 8 ? "NCS (reserved, pre-1990)" : variantNibble < 12 ? "RFC 9562" : variantNibble < 14 ? "Microsoft (reserved)" : "Reserved for future use";
   const standard = variantNibble >= 8 && variantNibble < 12;
   const version = parseInt(hex[12], 16);
 

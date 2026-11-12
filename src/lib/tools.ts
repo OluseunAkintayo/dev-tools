@@ -145,7 +145,7 @@ export const tools: Tool[] = [
     icon: IdCard,
     link: "/uuid-generator",
     status: "live",
-    keywords: ["uuid", "guid", "v4", "v7", "random", "id", "identifier", "rfc 9562", "4122", "ulid"],
+    keywords: ["uuid", "v4", "v7", "random", "id", "identifier", "rfc 9562", "4122", "ulid"],
     size: "normal",
   },
   {

@@ -118,7 +118,7 @@ const UuidGenerator = () => {
                   setInspectTouched(true);
                   setInspectInput(event.target.value);
                 }}
-                placeholder="Paste any UUID or GUID to see its version and timestamp"
+                placeholder="Paste any UUID to see its version and timestamp"
                 spellCheck={false}
                 autoComplete="off"
                 aria-invalid={Boolean(inspectError)}
