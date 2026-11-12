@@ -58,11 +58,11 @@ Every tool works the same way: paste or drop a file on the left, and the result 
 
 ## Privacy
 
-What you paste, drop or type into a tool is processed in your browser and is not sent anywhere. The site itself uses [Vercel Web Analytics](https://vercel.com/docs/analytics) to count anonymous page views. That's the only data the site collects.
+What you paste, drop or type into a tool is processed in your browser and is not sent anywhere. The site itself uses [Vercel Web Analytics](https://vercel.com/docs/analytics) to count anonymous page views. That's the only data the site collects. The [privacy policy](https://nextools.vercel.app/privacy) has the details.
 
 ## Run it locally
 
-You'll need Node.js 20 or later and [Yarn 1](https://classic.yarnpkg.com/).
+You'll need Node.js 24 or later and [Yarn 1](https://classic.yarnpkg.com/).
 
 ```bash
 git clone https://github.com/OluseunAkintayo/dev-tools.git
@@ -78,39 +78,6 @@ yarn dev          # http://localhost:5173
 | `yarn preview` | Serve the production build locally |
 | `yarn lint` | Run ESLint |
 
-## Deploy
-
-The app is a static single-page app, so any static host works as long as unknown paths fall back to `index.html`.
-
-- **Vercel:** `vercel.json` already sets up the fallback.
-- **Netlify:** `netlify.toml` already sets up the fallback.
-- **Docker:** builds with Node 20 and serves with nginx on port 80.
-
-  ```bash
-  docker build -t nextools .
-  docker run -p 8080:80 nextools   # http://localhost:8080
-  ```
-
-## Project structure
-
-```
-src/
-  Pages/           one folder per tool; each page file exports a single component
-  components/
-    workspace/     shared tool UI: editor, panes, toolbar, status bar, copy rows
-    layout/        header, footer, tool page layout
-    home/          landing page: Smart Paste and the tool grid
-  hooks/           React hooks (tool runner, shortcuts, workers)
-  lib/             conversion and parsing logic, plus tools.ts, the tool registry
-```
-
-### Adding a tool
-
-1. Add an entry to `src/lib/tools.ts`, which gives it a card on the home page and an entry in the ⌘K menu.
-2. Add its route in `src/App.tsx`.
-3. Build the page in `src/Pages/<ToolName>/` from the `workspace` components, keeping the logic in `src/lib/`.
-
-Keep each page file to one component. Supporting components go in the page's folder, hooks in `src/hooks/`, and helpers in `src/lib/`.
 
 ## Roadmap
 
