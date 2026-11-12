@@ -1,5 +1,5 @@
 import React from "react";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Download, LayoutGrid, Moon, Search, ShieldCheck } from "lucide-react";
 import { SmartPaste } from "@/components/home/SmartPaste";
 import { ToolGrid } from "@/components/home/ToolGrid";
@@ -100,6 +100,11 @@ const Home = () => {
               <p className="mt-3.5 max-w-[48ch] text-ink-2">
                 Every tool runs in the browser.<br />
                 Paste API responses, exports or tokens without sending them to a server.
+              </p>
+              <p className="mt-5 text-sm">
+                <Link to="/privacy" className="font-medium text-ink underline decoration-line-strong underline-offset-[3px] hover:decoration-ink-3">
+                  Read the privacy policy
+                </Link>
               </p>
             </div>
             <ul>

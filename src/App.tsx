@@ -2,6 +2,7 @@ import { createBrowserRouter, Outlet, RouterProvider, ScrollRestoration } from "
 import { CommandMenuProvider } from "@/components/command/CommandMenu";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "./Pages/NotFound";
+import Privacy from "./Pages/Privacy/index.tsx";
 import Home from "./Pages/Home/index.tsx";
 import JsonToCsv from "./Pages/JsonToCsv/index.tsx";
 import CsvToJson from "./Pages/CsvToJson/index.tsx";
@@ -35,6 +36,7 @@ const router = createBrowserRouter([
     element: <Root />,
     children: [
       { path: "/", element: <Home /> },
+      { path: "/privacy", element: <Privacy /> },
       { path: "/json-to-csv", element: <JsonToCsv /> },
       { path: "/csv-to-json", element: <CsvToJson /> },
       { path: "/json-to-interface", element: <InterfaceGenerator /> },
