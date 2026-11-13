@@ -4,7 +4,7 @@ import { decodeJwt, relativeTime, timeState } from "@/lib/jwt";
 import { parseTimestamp } from "@/lib/time";
 import type { ToolId } from "@/lib/tools";
 
-export type DataFormat = "json" | "csv" | "xml" | "yaml" | "base64" | "jwt" | "url" | "percent" | "timestamp" | "uuid";
+export type DataFormat = "json" | "csv" | "xml" | "yaml" | "base64" | "jwt" | "url" | "percent" | "timestamp" | "uuid" | "encrypted";
 
 export interface Detection {
   format: DataFormat;
@@ -162,6 +162,11 @@ const detectUuid = (text: string): Detection | null => {
   };
 };
 
+/** Text made by this tool's AES encryption: its header starts "NX" and version 1, which is "TlgB" in Base64 and "4e5801" in hex. */
+const detectEncrypted = (text: string): Detection | null => {
+  if (!/^(?:TlgB[A-Za-z0-9+/_-]{30,}={0,2}|4e5801[0-9a-f]{50,})$/i.test(text.replace(/\s+/g, ""))) return null;
+  return { format: "encrypted", label: "Encrypted text", strong: true, suggestions: [{ id: "encrypt", hint: "decrypt with its passphrase or key", options: { mode: "decrypt" } }] };
+};
 const detectBase64 = (text: string): Detection | null => {
   if (text.length < 8 || /\s/.test(text.trim())) return null;
   const normalized = normalizeBase64(text);
@@ -194,6 +199,7 @@ export const detectFormat = (input: string): Detection | null => {
     detectPercentEncoded(text) ??
     detectYaml(text) ??
     detectCsv(text) ??
+    detectEncrypted(text) ??
     detectBase64(text)
   );
 };

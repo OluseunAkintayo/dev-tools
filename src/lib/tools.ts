@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { ArrowLeftRight, BadgeCheck, Binary, Braces, Clock, FileCode2, FileJson, FileText, Fingerprint, FlaskConical, GitCompareArrows, IdCard, KeyRound, Link2, Palette, Regex, Sheet, WandSparkles } from "lucide-react";
+import { ArrowLeftRight, BadgeCheck, Binary, Braces, Clock, FileCode2, FileJson, FileText, Fingerprint, FlaskConical, GitCompareArrows, IdCard, KeyRound, Link2, Lock, Palette, Regex, Sheet, WandSparkles } from "lucide-react";
 
 export type CategoryId = "format" | "convert" | "generate" | "encode" | "compare" | "test" | "design";
 
@@ -30,6 +30,7 @@ export type ToolId =
   | "timestamp"
   | "url"
   | "hash"
+  | "encrypt"
   | "uuid"
   | "csv-to-json"
   | "json-to-csv"
@@ -174,6 +175,19 @@ export const tools: Tool[] = [
     status: "live",
     keywords: ["hash", "md5", "sha", "sha1", "sha256", "sha512", "checksum", "hmac", "digest", "integrity", "verify"],
     size: "normal",
+  },
+  {
+    id: "encrypt",
+    title: "Encrypt / Decrypt",
+    description: "AES-GCM, AES-CBC and RSA-OAEP, with a passphrase or key.",
+    intro: "Encrypt text with a passphrase, a raw AES key or an RSA public key, and decrypt it again. It all happens in your browser, and nothing is stored.",
+    category: "encode",
+    icon: Lock,
+    link: "/encrypt-decrypt",
+    status: "live",
+    keywords: ["encrypt", "decrypt", "encryption", "decryption", "aes", "aes-gcm", "gcm", "cbc", "rsa", "oaep", "passphrase", "password", "pbkdf2", "cipher", "key", "secret", "crypto"],
+    size: "normal",
+    pair: ["Text", "Cipher"],
   },
   {
     id: "uuid",

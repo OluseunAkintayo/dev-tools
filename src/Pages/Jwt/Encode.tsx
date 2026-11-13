@@ -31,7 +31,7 @@ import { byteLength, formatBytes } from "@/lib/text";
 import { parseJson } from "@/lib/toolError";
 import { isPlainObject, prettyJson } from "@/lib/utils";
 import type { DecodeSeed } from "./Decode";
-import { KeyNotice } from "./KeyNotice";
+import { KeyNotice } from "../../components/workspace/KeyNotice";
 import { ENCODING_OPTIONS, KEY_TEXTAREA_CLASS, SAMPLE_SECRET } from "./shared";
 
 export interface EncodeSeed {

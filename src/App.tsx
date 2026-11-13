@@ -19,6 +19,7 @@ import Base64EncoderDecoder from "./Pages/Base64EncoderDecoder/index.tsx";
 import JwtTool from "./Pages/Jwt/index.tsx";
 import TimestampConverter from "./Pages/TimestampConverter/index.tsx";
 import UrlTools from "./Pages/UrlTools/index.tsx";
+import EncryptDecrypt from "./Pages/Crypto/index.tsx";
 import HashGenerator from "./Pages/HashGenerator/index.tsx";
 import UuidGenerator from "./Pages/UuidGenerator/index.tsx";
 
@@ -53,6 +54,7 @@ const router = createBrowserRouter([
       { path: "/timestamp-converter", element: <TimestampConverter /> },
       { path: "/url-encoder-decoder", element: <UrlTools /> },
       { path: "/hash-generator", element: <HashGenerator /> },
+      { path: "/encrypt-decrypt", element: <EncryptDecrypt /> },
       { path: "/uuid-generator", element: <UuidGenerator /> },
       // Lazy, so the yaml library stays out of the main bundle.
       { path: "/yaml-to-json", lazy: () => import("./Pages/YamlJson/index.tsx").then((page) => ({ Component: page.default })) },
