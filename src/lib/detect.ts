@@ -37,7 +37,7 @@ const detectJson = (text: string): Detection | null => {
   const label = isArray ? `JSON array, ${plural((value as unknown[]).length, "item")}` : `JSON object, ${plural(Object.keys(value as object).length, "key")}`;
 
   const suggestions: Detection["suggestions"] = [{ id: "json-formatter", hint: "pretty print and validate" }];
-  if (isObject || isObjectList) suggestions.push({ id: "json-to-interface", hint: "infer types" }, { id: "json-to-zod", hint: "validation schema" });
+  if (isObject || isObjectList) suggestions.push({ id: "json-to-code", hint: "infer types" }, { id: "json-to-zod", hint: "validation schema" });
   if (isObject || isObjectList) suggestions.push({ id: "json-to-csv", hint: isObjectList ? plural((value as unknown[]).length, "row") : "1 row" });
   suggestions.push({ id: "json-to-yaml" });
   if (isObject) suggestions.push({ id: "json-to-xml" });

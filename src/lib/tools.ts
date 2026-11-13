@@ -21,7 +21,7 @@ export const categories: Category[] = [
 
 export type ToolId =
   | "json-formatter"
-  | "json-to-interface"
+  | "json-to-code"
   | "json-to-zod"
   | "json-diff"
   | "regex"
@@ -71,15 +71,15 @@ export const tools: Tool[] = [
     size: "feature",
   },
   {
-    id: "json-to-interface",
-    title: "TS Interface Generator",
-    description: "Turn a JSON sample into TypeScript interfaces with inferred types.",
-    intro: "Paste a JSON sample. The TypeScript interface appears as you type.",
+    id: "json-to-code",
+    title: "JSON to Code",
+    description: "Generate TypeScript, C#, Java, Kotlin, Swift, Go, Rust, Dart or Python types from a JSON sample.",
+    intro: "Paste a JSON sample. Typed models appear as you type, with names fixed up for the language and the original JSON keys kept.",
     category: "generate",
     icon: Braces,
-    link: "/json-to-interface",
+    link: "/json-to-code",
     status: "live",
-    keywords: ["typescript", "ts", "interface", "type", "json", "types"],
+    keywords: ["typescript", "ts", "interface", "class", "csharp", "c#", "java", "kotlin", "swift", "go", "golang", "rust", "serde", "dart", "flutter", "python", "pydantic", "dto", "model", "struct", "record", "json", "types", "camelcase", "pascalcase", "snake_case"],
     size: "wide",
   },
   {

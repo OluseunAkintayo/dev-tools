@@ -61,7 +61,7 @@ const JsonToZod = () => {
   };
 
   return (
-    <ToolLayout toolId="json-to-zod" next={[{ to: "json-to-interface", label: "Generate a TS interface instead", handoff: input.trim() ? { input } : undefined }]}>
+    <ToolLayout toolId="json-to-zod" next={[{ to: "json-to-code", label: "Generate TypeScript, C#, Java and more", handoff: input.trim() ? { input } : undefined }]}>
       <Toolbar>
         <ToolbarGroup>
           <ToolbarLabel htmlFor="zod-name">Name</ToolbarLabel>

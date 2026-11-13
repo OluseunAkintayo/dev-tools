@@ -13,7 +13,7 @@ interface Option {
   handoff?: Handoff;
 }
 
-const POPULAR: ToolId[] = ["json-formatter", "csv-to-json", "json-to-interface", "base64"];
+const POPULAR: ToolId[] = ["json-formatter", "csv-to-json", "json-to-code", "base64"];
 const MAX_ROWS = 7;
 const LINE_HEIGHT = 24;
 

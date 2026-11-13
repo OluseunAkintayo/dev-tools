@@ -114,7 +114,7 @@ export const JwtDecode = ({ modeControl, seed, onEditPayload, onSnapshot }: Deco
       shareHasSecrets
       next={[
         { to: "json-formatter", label: "Open payload in JSON Formatter", handoff: payloadJson ? { input: payloadJson } : undefined },
-        { to: "json-to-interface", label: "Generate interface from payload", handoff: payloadJson ? { input: payloadJson } : undefined },
+        { to: "json-to-code", label: "Generate interface from payload", handoff: payloadJson ? { input: payloadJson } : undefined },
       ]}
     >
       <Toolbar>

@@ -1,4 +1,5 @@
 import React from "react";
+import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SegmentedProps<T extends string> {
@@ -85,3 +86,34 @@ export const Switch = ({ label, checked, onChange }: SwitchProps) => (
 export const Kbd = ({ children, className }: { children: React.ReactNode; className?: string }) => (
   <kbd className={cn("kbd", className)}>{children}</kbd>
 );
+
+interface SelectProps<T extends string> {
+  id: string;
+  label: string;
+  value: T;
+  options: { value: T; label: string }[];
+  onChange: (value: T) => void;
+  className?: string;
+}
+
+/** Native dropdown styled to match the toolbar. */
+export function Select<T extends string>({ id, label, value, options, onChange, className }: SelectProps<T>) {
+  return (
+    <span className={cn("relative inline-flex", className)}>
+      <select
+        id={id}
+        aria-label={label}
+        value={value}
+        onChange={(event) => onChange(event.target.value as T)}
+        className="h-8 w-full appearance-none rounded-lg border border-line-strong bg-surface pl-2.5 pr-8 text-[13px] text-ink outline-none focus-visible:border-brand/60 focus-visible:ring-2 focus-visible:ring-brand/20"
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+      <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-3" />
+    </span>
+  );
+}
