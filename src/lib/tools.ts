@@ -42,18 +42,14 @@ export type ToolId =
 export interface Tool {
   id: ToolId;
   title: string;
-  /** One-line summary used on cards and in the command menu. */
   description: string;
-  /** Sentence shown under the tool page heading. */
   intro: string;
   category: CategoryId;
   icon: LucideIcon;
   link: string;
   status: "live" | "soon";
   keywords: string[];
-  /** Landing grid footprint when the "All" filter is active. */
   size: "feature" | "wide" | "normal" | "banner";
-  /** Input/output format pair, shown on converter cards. */
   pair?: [string, string];
 }
 
@@ -293,7 +289,6 @@ export const getCategory = (id: CategoryId): Category => categories.find((item) 
 
 export const countByCategory = (id: CategoryId) => tools.filter((tool) => tool.category === id).length;
 
-/** Case-insensitive search over title, category and keywords. Title matches rank first. */
 export const searchTools = (query: string): Tool[] => {
   const q = query.trim().toLowerCase();
   if (!q) return tools;

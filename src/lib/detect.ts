@@ -9,12 +9,8 @@ export type DataFormat = "json" | "csv" | "xml" | "yaml" | "base64" | "jwt" | "u
 export interface Detection {
   format: DataFormat;
   label: string;
-  /** Tools to suggest for this data, best first. */
   suggestions: { id: ToolId; hint?: string; options?: Record<string, string> }[];
-  /**
-   * Unambiguous formats (a JWT, a URL, a UUID) win over tool search even when the
-   * pasted text is short enough to look like a search query.
-   */
+  /** Unambiguous formats (JWT, URL, UUID) win over tool search even when short enough to look like a query. */
   strong?: boolean;
 }
 
@@ -52,14 +48,9 @@ const detectXml = (text: string): Detection | null => {
   return { format: "xml", label: `XML, <${root}> root`, suggestions: [{ id: "xml-to-json" }] };
 };
 
-/** "key: value", "- item" or "- key: value" at the start of a line. */
 const YAML_LINE = /^\s*(?:-\s+)?(?:"[^"]*"|'[^']*'|[A-Za-z_$][\w$.-]*)\s*:(?:\s|$)|^\s*-\s+\S|^\s*-$/;
 
-/**
- * A heuristic, so the YAML library stays out of the home page bundle: at least two
- * content lines (or a leading ---), nearly all of them keys or list items, and at least
- * one "key:" line. Comments and blank lines are ignored; indented lines continue a value.
- */
+/** Heuristic, so the YAML library stays out of the home bundle: nearly every top-level line is a key or list item, with at least one "key:". */
 const detectYaml = (text: string): Detection | null => {
   const lines = text.split(/\r?\n/).filter((line) => line.trim() !== "" && !line.trim().startsWith("#"));
   const documentStart = lines[0]?.trim() === "---";
@@ -105,7 +96,6 @@ const detectCsv = (text: string): Detection | null => {
   return null;
 };
 
-/** A three-part token whose header and payload both decode to JSON. */
 const detectJwt = (text: string): Detection | null => {
   if (!/^(?:bearer\s+)?eyJ[\w-]*\.[\w-]+\.[\w-]*$/i.test(text)) return null;
   let token: ReturnType<typeof decodeJwt>;
@@ -121,7 +111,6 @@ const detectJwt = (text: string): Detection | null => {
   return { format: "jwt", label: `JWT, ${token.alg || "no alg"}`, strong: true, suggestions: [{ id: "jwt", hint, options: { mode: "decode" } }] };
 };
 
-/** A single http(s) URL. Percent escapes also suggest decoding it. */
 const detectUrl = (text: string): Detection | null => {
   if (!/^https?:\/\/[^\s/$.?#][^\s]*$/i.test(text)) return null;
   try {
@@ -134,7 +123,6 @@ const detectUrl = (text: string): Detection | null => {
   return { format: "url", label: "URL", strong: true, suggestions };
 };
 
-/** Text with %XX escapes that decodes to something different, e.g. "S%C3%A3o%20Paulo". */
 const detectPercentEncoded = (text: string): Detection | null => {
   const escapes = text.match(/%[0-9A-Fa-f]{2}/g)?.length ?? 0;
   if (escapes < 1 || /\s/.test(text)) return null;
@@ -146,7 +134,7 @@ const detectPercentEncoded = (text: string): Detection | null => {
   return { format: "percent", label: plural(escapes, "%-escape"), strong: true, suggestions: [{ id: "url", hint: "decode", options: { mode: "decode" } }] };
 };
 
-/** Unix seconds or milliseconds between 2001 and 2286, or an ISO 8601 date-time. */
+/** Unix seconds or ms (2001–2286), or an ISO 8601 date-time. */
 const detectTimestamp = (text: string): Detection | null => {
   const numeric = /^\d{10}$|^\d{13}$/.test(text);
   const iso = /^\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?)?$/i.test(text);
@@ -178,10 +166,9 @@ const detectBase64 = (text: string): Detection | null => {
   if (text.length < 8 || /\s/.test(text.trim())) return null;
   const normalized = normalizeBase64(text);
   if (!/^[A-Za-z0-9+/]+={0,2}$/.test(normalized) || !isValidBase64(normalized).isValid) return null;
-  // Require a mix of character classes so plain words are not mistaken for Base64.
+  // Require a mix of character classes so plain words are not read as Base64.
   if (!/[0-9+/=]/.test(normalized) && !/[a-z][A-Z]|[A-Z][a-z].*[A-Z]/.test(normalized)) return null;
-  // The suggestion is "decode to text", so the result must be readable: valid UTF-8 and
-  // almost all printable. Numbers, dates and IDs decode to binary noise and are skipped.
+  // Only suggest decoding when the result is readable text (valid UTF-8, mostly printable).
   let decoded: string;
   try {
     decoded = decodeFromBase64(normalized);
@@ -193,11 +180,7 @@ const detectBase64 = (text: string): Detection | null => {
   return { format: "base64", label: "Looks like Base64", suggestions: [{ id: "base64", hint: "decode to text", options: { mode: "decode" } }] };
 };
 
-/**
- * Best guess at what kind of data was pasted. Returns null for search-like text.
- * Order matters: specific single-value formats are checked before the looser
- * structured ones, and Base64 (the loosest) comes last.
- */
+/** Best guess at the pasted data, or null for search-like text. Specific formats are checked before looser ones; Base64 is last. */
 export const detectFormat = (input: string): Detection | null => {
   const text = input.trim();
   if (!text || text.length > MAX_DETECT_LENGTH) return null;
@@ -215,5 +198,4 @@ export const detectFormat = (input: string): Detection | null => {
   );
 };
 
-/** Short single-line text is treated as a search query rather than data. */
 export const looksLikeSearch = (input: string) => !input.includes("\n") && input.trim().length <= 48 && !/^[{[<]/.test(input.trim());

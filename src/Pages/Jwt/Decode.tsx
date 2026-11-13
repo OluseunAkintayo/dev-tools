@@ -38,13 +38,9 @@ export interface DecodeSeed {
 }
 
 interface DecodeProps {
-  /** The Decode / Encode switch, rendered at the start of the toolbar. */
   modeControl: React.ReactNode;
-  /** Values carried over from Encode mode. */
   seed?: DecodeSeed;
-  /** Send the current payload to Encode mode. */
   onEditPayload: (seed: EncodeSeed) => void;
-  /** Report the current inputs so they can be restored after a mode switch. */
   onSnapshot: (snapshot: DecodeSeed) => void;
 }
 

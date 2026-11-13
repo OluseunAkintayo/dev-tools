@@ -21,7 +21,7 @@ const readPreference = (): ThemePreference => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved === "light" || saved === "dark" || saved === "system") return saved;
   } catch {
-    // Storage can be unavailable (private mode, blocked cookies).
+    // Storage can be unavailable (private mode).
   }
   return "system";
 };
@@ -29,7 +29,6 @@ const readPreference = (): ThemePreference => {
 const resolve = (preference: ThemePreference): ResolvedTheme =>
   preference === "system" ? (systemQuery().matches ? "dark" : "light") : preference;
 
-/** Swap the class, cross-fading with the View Transitions API when available. */
 const applyTheme = (theme: ResolvedTheme, animate: boolean) => {
   const root = document.documentElement;
   if (root.classList.contains("dark") === (theme === "dark")) return;
@@ -64,7 +63,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       localStorage.setItem(STORAGE_KEY, next);
     } catch {
-      // Ignore storage failures; the choice still applies for this visit.
+      // Storage failed; the choice still applies for this visit.
     }
     const nextResolved = resolve(next);
     setResolved(nextResolved);

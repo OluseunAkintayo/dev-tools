@@ -11,7 +11,6 @@ interface FileLoaderOptions {
 
 const DEFAULT_MAX = 10 * 1024 * 1024;
 
-/** Reads a chosen or dropped file as text, after checking its extension and size. */
 export const useFileLoader = ({ extensions, maxBytes = DEFAULT_MAX, onLoad }: FileLoaderOptions) => {
   const { toast } = useToast();
   const [loading, setLoading] = React.useState(false);

@@ -43,7 +43,7 @@ const Home = () => {
   const location = useLocation();
   useDocumentTitle("NexTools: your utility tools, all in one place");
 
-  // Support deep links such as /#tools from other pages.
+  // Deep links such as /#tools from other pages.
   React.useEffect(() => {
     if (!location.hash) return;
     document.getElementById(location.hash.slice(1))?.scrollIntoView();

@@ -36,7 +36,6 @@ const parseBracket = (body: string, column: number): Selector[] => {
   if (trimmed.startsWith("?") || trimmed.startsWith("(")) fail("Filter and script expressions are not supported. Use names, indexes, slices and wildcards.");
   if (trimmed === "*") return [{ kind: "wildcard" }];
 
-  // Split on commas that are outside quotes.
   const parts: string[] = [];
   let current = "";
   let quote: string | null = null;
@@ -163,7 +162,6 @@ const descendants = (value: unknown, out: unknown[] = []): unknown[] => {
   return out;
 };
 
-/** Evaluate a JSONPath query. Always returns the list of matches (possibly empty). */
 export const queryJsonPath = (data: unknown, path: string): unknown[] => {
   let nodes: unknown[] = [data];
   for (const segment of parseJsonPath(path)) {

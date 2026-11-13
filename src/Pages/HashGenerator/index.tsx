@@ -41,7 +41,7 @@ const HashGenerator = () => {
   const [keyEncoding, setKeyEncoding] = usePersistentState<KeyEncoding>("hash", "keyEncoding", "text");
   const [expected, setExpected] = usePersistentState("hash", "expected", "");
 
-  // A stable key object, so hashing only re-runs when the key actually changes.
+  // Stable key object, so hashing re-runs only when the key changes.
   const keyResult = React.useMemo(() => {
     if (!hmac) return { bytes: undefined, error: null };
     try {

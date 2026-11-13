@@ -32,10 +32,10 @@ const UuidGenerator = () => {
   const [hyphens, setHyphens] = usePersistentState("uuid", "hyphens", true);
   const [braces, setBraces] = usePersistentState("uuid", "braces", false);
   const [uuids, setUuids] = usePersistentState<string[]>("uuid", "uuids", []);
-  // A UUID handed over (from Smart Paste) is inspected instead of the first generated one.
+  // A handed-over UUID (from Smart Paste) is inspected instead of the first generated one.
   const [inspectInput, setInspectInput] = usePersistentState("uuid", "inspectInput", handoff?.input.trim() ?? "");
   const [inspectTouched, setInspectTouched] = usePersistentState("uuid", "inspectTouched", Boolean(handoff?.input.trim()));
-  // One generator for the page, so v7 UUIDs stay in order across batches.
+  // One generator per page so v7 UUIDs stay ordered across batches.
   const v7 = React.useMemo(() => createV7Generator(), []);
 
   const count = Math.min(Math.max(Math.floor(Number(countText)) || 1, 1), MAX_COUNT);
@@ -56,7 +56,6 @@ const UuidGenerator = () => {
   }, [generate, version, count]);
   useShortcut({ key: "Enter", mod: true }, generate);
 
-  // Until the user types their own, inspect the first generated UUID.
   const inspected = inspectTouched ? inspectInput : uuids[0] ?? "";
   const runner = useToolRunner(inspected, inspectUuid, []);
   const info = runner.outcome.kind === "ok" ? runner.outcome.value : null;

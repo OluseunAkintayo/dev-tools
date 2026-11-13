@@ -11,20 +11,18 @@ export interface Change {
 }
 
 export interface DiffOptions {
-  /** Compare arrays as unordered collections (multisets) instead of sequences. */
   ignoreArrayOrder: boolean;
 }
 
-/** Arrays needing more edits than this are compared index by index instead of aligned. */
+/** Arrays needing more edits than this are compared by index. */
 const MAX_EDITS = 2000;
 
 const IDENTIFIER = /^[A-Za-z_$][\w$]*$/;
 
-/** Path segments in the bracket syntax lib/jsonPath.ts reads back. */
+/** Path segments in the bracket syntax lib/jsonPath.ts reads. */
 const childPath = (path: string, key: string | number) =>
   typeof key === "number" ? `${path}[${key}]` : IDENTIFIER.test(key) ? `${path}.${key}` : `${path}['${key.replace(/\\/g, "\\\\").replace(/'/g, "\\'")}']`;
 
-/** A key for deep equality: object keys are sorted, so key order never matters. */
 const canonical = (value: unknown): string => {
   if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
   if (isPlainObject(value)) {
@@ -36,11 +34,10 @@ const canonical = (value: unknown): string => {
   return JSON.stringify(value);
 };
 
-/** Pairs of equal items (left index, right index) in a longest common subsequence. */
 const align = (left: string[], right: string[]): [number, number][] => {
   const n = left.length;
   const m = right.length;
-  // Trim the shared prefix and suffix first; most real edits are local.
+  // Trim the shared prefix and suffix first; most edits are local.
   let start = 0;
   while (start < n && start < m && left[start] === right[start]) start++;
   let endL = n;
@@ -56,22 +53,18 @@ const align = (left: string[], right: string[]): [number, number][] => {
   if (middle) {
     for (const [i, j] of middle) pairs.push([start + i, start + j]);
   } else {
-    // Too many edits to align: fall back to matching by position.
+    // Too many edits to align: match by position.
     for (let i = start; i < Math.min(endL, endR); i++) if (left[i] === right[i]) pairs.push([i, i]);
   }
   for (let k = 0; k < n - endL; k++) pairs.push([endL + k, endR + k]);
   return pairs;
 };
 
-/**
- * Myers' O((N+M)·D) diff (1986): the longest common subsequence via the shortest edit
- * script. Cost grows with the number of edits D, not the array size, so long arrays with
- * few changes stay fast. Returns null when more than `maxEdits` edits are needed.
- */
+/** Myers' O((N+M)·D) diff: cost grows with the edit count, not the array size. Returns null above `maxEdits`. */
 const myers = (a: string[], b: string[], maxEdits: number): [number, number][] | null => {
   const n = a.length;
   const m = b.length;
-  // trace[d][k + d] is the furthest x reached on diagonal k (x - y) after d edits.
+  // trace[d][k + d] is the furthest x on diagonal k (x - y) after d edits.
   const trace: Int32Array[] = [];
   let found = -1;
   for (let d = 0; d <= Math.min(maxEdits, n + m) && found < 0; d++) {
@@ -80,8 +73,8 @@ const myers = (a: string[], b: string[], maxEdits: number): [number, number][] |
     for (let k = -d; k <= d; k += 2) {
       let x: number;
       if (d === 0) x = 0;
-      else if (k === -d || (k !== d && prev[k - 1 + d - 1] < prev[k + 1 + d - 1])) x = prev[k + 1 + d - 1]; // insertion
-      else x = prev[k - 1 + d - 1] + 1; // deletion
+      else if (k === -d || (k !== d && prev[k - 1 + d - 1] < prev[k + 1 + d - 1])) x = prev[k + 1 + d - 1];
+      else x = prev[k - 1 + d - 1] + 1;
       let y = x - k;
       while (x < n && y < m && a[x] === b[y]) {
         x++;
@@ -136,8 +129,7 @@ const diffArrays = (a: unknown[], b: unknown[], path: string, options: DiffOptio
   const pairs = align(keysA, keysB);
   let i = 0;
   let j = 0;
-  // Between matched items, pair the most similar leftovers so an edited item shows as a
-  // change; unpaired items are removals and additions.
+  // Between matched items, pair the most similar leftovers so an edit shows as a change.
   const flushGap = (untilI: number, untilJ: number) => {
     const offsetI = i;
     const offsetJ = j;
@@ -157,7 +149,6 @@ const diffArrays = (a: unknown[], b: unknown[], path: string, options: DiffOptio
   flushGap(a.length, b.length);
 };
 
-/** 0 (unrelated) to 1 (equal). Objects score by shared equal fields, so a record keeps its identity. */
 const similarity = (x: unknown, y: unknown): number => {
   if (isPlainObject(x) && isPlainObject(y)) {
     const keys = new Set([...Object.keys(x), ...Object.keys(y)]);
@@ -170,13 +161,10 @@ const similarity = (x: unknown, y: unknown): number => {
   return typeof x === typeof y && x !== null && y !== null ? 0.1 : 0;
 };
 
-/** Larger gaps are paired in order without scoring, to bound the work. */
+/** Larger gaps are paired in order, to bound the work. */
 const MAX_GAP_CELLS = 2500;
 
-/**
- * Order-preserving pairs (indexes into x and y) that maximise total similarity, found
- * with a weighted LCS. Indexes are offset by the caller.
- */
+/** Order-preserving pairs of maximum total similarity (weighted LCS). */
 const pairGap = (x: unknown[], y: unknown[]): [number, number][] => {
   if (x.length === 0 || y.length === 0) return [];
   if (x.length * y.length > MAX_GAP_CELLS) return Array.from({ length: Math.min(x.length, y.length) }, (_, k) => [k, k] as [number, number]);
@@ -215,20 +203,17 @@ const diffValues = (a: unknown, b: unknown, path: string, options: DiffOptions, 
   if (canonical(a) !== canonical(b)) out.push({ kind: "changed", path, before: a, after: b });
 };
 
-/** Every difference between two JSON values, in document order. Key order is ignored. */
 export const diffJson = (a: unknown, b: unknown, options: DiffOptions): Change[] => {
   const out: Change[] = [];
   diffValues(a, b, "$", options, out);
   return out;
 };
 
-/** Compact one-line JSON for the results list. */
 export const previewValue = (value: unknown, max = 120) => {
   const text = JSON.stringify(value) ?? "undefined";
   return text.length > max ? `${text.slice(0, max - 1)}…` : text;
 };
 
-/** A plain-text report, one change per line, for copying. */
 export const diffReport = (changes: Change[]) =>
   changes
     .map((change) =>

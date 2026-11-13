@@ -1,7 +1,6 @@
 import { ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-/** Signing error or weak-secret warning under the key field in Encode mode. */
 export const KeyNotice = ({ message, kind }: { message: string | null; kind: "error" | "warn" | null }) =>
   message ? (
     <p

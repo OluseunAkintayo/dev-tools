@@ -5,7 +5,7 @@ export const ENCODING_OPTIONS: { value: SecretEncoding; label: string }[] = [
   { value: "base64", label: "Base64" },
 ];
 
-/** The well-known jwt.io example, signed with HS256 and the secret "your-256-bit-secret". */
+/** The jwt.io example: HS256, secret "your-256-bit-secret". */
 export const SAMPLE_TOKEN =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
 export const SAMPLE_SECRET = "your-256-bit-secret";

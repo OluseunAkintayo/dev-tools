@@ -4,9 +4,8 @@ import { isPlainObject, prettyJson } from "@/lib/utils";
 export interface DecodedJwt {
   header: Record<string, unknown>;
   payload: unknown;
-  /** Base64URL signature as it appears in the token. */
   signature: string;
-  /** "header.payload", the bytes the signature covers. */
+  /** "header.payload": the bytes the signature covers. */
   signingInput: string;
   alg: string;
 }
@@ -38,7 +37,6 @@ const decodeSegment = (segment: string, name: "header" | "payload"): unknown => 
   }
 };
 
-/** Strip a "Bearer " prefix, quotes and whitespace so pasted headers work. */
 export const cleanToken = (input: string) =>
   input
     .trim()
@@ -62,11 +60,8 @@ export const decodeJwt = (input: string): DecodedJwt => {
   return { header: header as Record<string, unknown>, payload, signature: parts[2], signingInput: `${parts[0]}.${parts[1]}`, alg };
 };
 
-/* ---------- Claims ---------- */
-
 export type TimeState = "valid" | "expired" | "not-yet-valid" | "none";
 
-/** Kept as a re-export so the JWT pages can import every claim helper from one place. */
 export { relativeTime } from "@/lib/time";
 
 export const timeState = (payload: unknown, now = Date.now() / 1000): TimeState => {
@@ -76,8 +71,6 @@ export const timeState = (payload: unknown, now = Date.now() / 1000): TimeState 
   if (typeof exp === "number") return now >= exp ? "expired" : "valid";
   return "none";
 };
-
-/* ---------- Signature verification ---------- */
 
 type Family = "HS" | "RS" | "PS" | "ES" | "EdDSA";
 
@@ -153,7 +146,6 @@ const pemToDer = (pem: string): ArrayBuffer => {
 
 class KeyError extends Error {}
 
-/** Shared HMAC secret bytes. Text secrets are used exactly as typed. */
 const secretBytes = (keyText: string, encoding: SecretEncoding): Uint8Array => {
   if (encoding === "utf8") return new TextEncoder().encode(keyText);
   const text = keyText.trim();
@@ -161,7 +153,7 @@ const secretBytes = (keyText: string, encoding: SecretEncoding): Uint8Array => {
   return base64UrlToBytes(text.replace(/=+$/, ""));
 };
 
-/** Pick the JWK to use: by kid when the token names one, else the only key that fits. */
+/** The JWK named by kid, else the only key that fits. */
 const pickJwk = (value: unknown, header: Record<string, unknown>, spec: AlgSpec): JsonWebKey => {
   const keys = (typeof value === "object" && value !== null && Array.isArray((value as { keys?: unknown }).keys)
     ? (value as { keys: JsonWebKey[] }).keys
@@ -237,9 +229,6 @@ export const verifyJwt = async (token: DecodedJwt, keyText: string, encoding: Se
   }
 };
 
-/* ---------- Signing ---------- */
-
-/** Algorithms offered when creating a token, in display order. */
 export const SIGNING_ALGORITHMS = ["HS256", "HS384", "HS512", "RS256", "RS384", "RS512", "PS256", "PS384", "PS512", "ES256", "ES384", "ES512", "EdDSA"] as const;
 export type SigningAlg = (typeof SIGNING_ALGORITHMS)[number];
 
@@ -263,7 +252,7 @@ const importSigningKey = async (keyText: string, spec: AlgSpec, encoding: Secret
         const jwk = JSON.parse(text) as JsonWebKey;
         if (jwk.kty === "oct" && typeof jwk.k === "string") return crypto.subtle.importKey("raw", base64UrlToBytes(jwk.k), params, extractable, ["sign"]);
       } catch {
-        // Not a JWK: fall through and treat the text as the secret.
+        // Not a JWK: treat the text as the secret.
       }
     }
     return crypto.subtle.importKey("raw", secretBytes(keyText, encoding), params, extractable, ["sign"]);
@@ -296,7 +285,7 @@ const importSigningKey = async (keyText: string, spec: AlgSpec, encoding: Secret
 
 export type SignResult = { ok: true; token: string } | { ok: false; message: string };
 
-/** Sign a token. The header's alg is always set from `alg` so the two cannot disagree. */
+/** `alg` always overrides the header so the two cannot disagree. */
 export const signJwt = async (
   alg: SigningAlg,
   header: Record<string, unknown>,
@@ -305,7 +294,6 @@ export const signJwt = async (
   encoding: SecretEncoding = "utf8"
 ): Promise<SignResult> => {
   const spec = ALGORITHMS[alg];
-  // alg goes first, matching how most libraries serialise the header.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { alg: _ignored, ...rest } = header;
   const signingInput = `${encodeJson({ alg, ...rest })}.${encodeJson(payload)}`;
@@ -325,7 +313,7 @@ export const signJwt = async (
   }
 };
 
-/** RFC 7518 requires an HMAC key at least as long as the hash output. */
+/** RFC 7518: an HMAC key must be at least as long as the hash output. */
 export const weakSecretWarning = (alg: SigningAlg, keyText: string, encoding: SecretEncoding): string | null => {
   const spec = ALGORITHMS[alg];
   if (spec.family !== "HS" || !keyText) return null;
@@ -339,10 +327,7 @@ export const weakSecretWarning = (alg: SigningAlg, keyText: string, encoding: Se
   return length < needed ? `The secret is ${length} bytes. ${alg} needs at least ${needed} bytes to be secure.` : null;
 };
 
-/**
- * The public half of a private key, as a JWK string, so a token signed here can be
- * verified in Decode mode. For HMAC the secret itself is returned.
- */
+/** The public half as a JWK so a signed token can be verified in Decode; HMAC returns the secret. */
 export const publicKeyFor = async (alg: SigningAlg, keyText: string, encoding: SecretEncoding): Promise<string | null> => {
   const spec = ALGORITHMS[alg];
   if (spec.family === "HS") return keyText;
@@ -371,7 +356,6 @@ const toPem = (der: ArrayBuffer, label: "PRIVATE KEY" | "PUBLIC KEY") => {
   return `-----BEGIN ${label}-----\n${padded.replace(/(.{64})/g, "$1\n").replace(/\n$/, "")}\n-----END ${label}-----`;
 };
 
-/** A fresh key for testing: a random secret for HMAC, or a PEM key pair. */
 export const generateKey = async (alg: SigningAlg): Promise<{ privateKey: string; publicKey: string }> => {
   const spec = ALGORITHMS[alg];
   if (spec.family === "HS") {
@@ -385,18 +369,13 @@ export const generateKey = async (alg: SigningAlg): Promise<{ privateKey: string
   };
 };
 
-/* ---------- UI helpers ---------- */
-
 export const nowSeconds = () => Math.floor(Date.now() / 1000);
 
-/** A NumericDate claim (seconds) as a readable local date and time. */
 export const formatClaimDate = (seconds: number) => new Date(seconds * 1000).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "long" });
 
-/** A numeric claim such as exp or nbf, or null when absent. */
 export const numericClaim = (payload: unknown, claim: string): number | null =>
   isPlainObject(payload) && typeof payload[claim] === "number" ? (payload[claim] as number) : null;
 
-/** Editable header text without alg, which the algorithm picker controls. */
 export const headerTextWithoutAlg = (header: Record<string, unknown>) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { alg: _alg, ...rest } = header;
@@ -405,7 +384,6 @@ export const headerTextWithoutAlg = (header: Record<string, unknown>) => {
 
 export type HeaderParse = { ok: true; value: Record<string, unknown> } | { ok: false; message: string };
 
-/** Parse header JSON typed in Encode mode. Empty text means an empty header. */
 export const parseHeaderText = (text: string): HeaderParse => {
   if (!text.trim()) return { ok: true, value: {} };
   try {

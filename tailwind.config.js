@@ -25,7 +25,6 @@ export default {
         mono: ['"Geist Mono Variable"', "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
       colors: {
-        // Design tokens (see src/tw.css)
         paper: token("paper"),
         surface: token("surface"),
         sunken: token("sunken"),
@@ -45,7 +44,6 @@ export default {
         warn: token("warn"),
         "code-blue": token("code-blue"),
 
-        // shadcn/ui aliases, mapped onto the tokens above
         border: token("border"),
         input: token("input"),
         ring: token("ring"),

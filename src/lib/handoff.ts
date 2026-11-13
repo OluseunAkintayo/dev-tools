@@ -1,6 +1,5 @@
 import { useLocation } from "react-router-dom";
 
-/** Data carried from one tool (or the landing page) into another via router state. */
 export interface Handoff {
   input: string;
   options?: Record<string, string>;

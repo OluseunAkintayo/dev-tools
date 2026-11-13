@@ -7,7 +7,6 @@ interface FlagTogglesProps {
   onToggle: (flag: RegexFlag) => void;
 }
 
-/** One pressable letter per flag, with its name and meaning in a tooltip. */
 export const FlagToggles = ({ flags, onToggle }: FlagTogglesProps) => (
   <div role="group" aria-label="Flags" className="inline-flex gap-0.5 rounded-[9px] bg-sunken p-[3px]">
     {REGEX_FLAGS.map(({ flag, name, hint }) => {

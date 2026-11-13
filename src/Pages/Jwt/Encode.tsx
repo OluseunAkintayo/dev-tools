@@ -36,9 +36,7 @@ import { ENCODING_OPTIONS, KEY_TEXTAREA_CLASS, SAMPLE_SECRET } from "./shared";
 
 export interface EncodeSeed {
   payload: string;
-  /** Header from a decoded token; its alg picks the algorithm when supported. */
   header?: Record<string, unknown>;
-  /** Exact header text, when restoring after a mode switch. */
   headerText?: string;
   alg?: SigningAlg;
   key?: string;
@@ -68,9 +66,7 @@ const selectClass =
 interface EncodeProps {
   modeControl: React.ReactNode;
   seed?: EncodeSeed;
-  /** Open the signed token in Decode mode with a key that verifies it. */
   onVerify: (seed: DecodeSeed) => void;
-  /** Report the current inputs so they can be restored after a mode switch. */
   onSnapshot: (snapshot: EncodeSeed) => void;
 }
 
@@ -108,7 +104,6 @@ export const JwtEncode = ({ modeControl, seed, onVerify, onSnapshot }: EncodePro
 
   const exp = numericClaim(payloadValue, "exp");
 
-  /** Edit the payload object, keeping it formatted. No-op while the JSON is invalid. */
   const updatePayload = (change: (value: Record<string, unknown>) => Record<string, unknown>) => {
     if (!isPlainObject(payloadValue)) return;
     setPayload(prettyJson(change(payloadValue)));

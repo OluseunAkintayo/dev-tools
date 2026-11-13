@@ -1,19 +1,12 @@
 import type { CategoryId } from "@/lib/tools";
 
 interface CategoryStyle {
-  /** Coloured text (labels, icons). */
   text: string;
-  /** Pill badge: tinted fill, tinted border, coloured text. */
   badge: string;
-  /** Icon square: tinted fill, coloured glyph. */
   icon: string;
 }
 
-/**
- * Per-category colour classes, written out in full so Tailwind can see them.
- * They read the --cat-* variables from src/tw.css directly (arbitrary values),
- * so they don't depend on tailwind.config.js and each theme gets its own hue.
- */
+/** Full class names so Tailwind sees them. They read --cat-* from src/tw.css, so each theme gets its own hue. */
 export const categoryStyles: Record<CategoryId, CategoryStyle> = {
   format: {
     text: "text-[hsl(var(--cat-format))]",

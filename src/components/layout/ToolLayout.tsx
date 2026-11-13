@@ -10,7 +10,6 @@ import { getTool, type ToolId } from "@/lib/tools";
 export interface NextStep {
   to: ToolId;
   label: string;
-  /** Output to carry into the next tool, if any. */
   handoff?: Handoff;
 }
 

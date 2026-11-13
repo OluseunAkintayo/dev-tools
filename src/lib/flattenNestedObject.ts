@@ -5,7 +5,6 @@ export const flattenNestedObject = (obj: Record<string, any>, prefix = ""): Reco
     const newKey = prefix ? `${prefix}.${key}` : key;
 
     if (typeof value === "object" && value !== null && !Array.isArray(value)) {
-      // Recursively flatten nested objects
       Object.assign(acc, flattenNestedObject(value, newKey));
     } else {
       acc[newKey] = value;

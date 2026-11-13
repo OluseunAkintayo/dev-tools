@@ -10,11 +10,10 @@ import { cn } from "@/lib/utils";
 
 interface CopyButtonProps {
   text: string;
-  /** Bind ⌘⇧↵ (Ctrl+Shift+Enter) to copy. Enable on one button per page. */
+  /** Binds ⌘⇧↵; enable on one button per page. */
   shortcut?: boolean;
 }
 
-/** Copy with inline confirmation: the icon morphs to a check, softened with a brief blur. */
 export const CopyButton = ({ text, shortcut = false }: CopyButtonProps) => {
   const copy = useCopy();
   const [copied, setCopied] = React.useState(false);
@@ -102,7 +101,6 @@ export const OpenFileButton = ({ accept, onFile, disabled, label = "Open file", 
   );
 };
 
-/** Paste from the clipboard into the input. Hidden where the Clipboard API cannot read. */
 export const PasteButton = ({ onPaste }: { onPaste: (text: string) => void }) => {
   const supported = typeof navigator !== "undefined" && Boolean(navigator.clipboard?.readText);
   if (!supported) return null;
@@ -116,7 +114,7 @@ export const PasteButton = ({ onPaste }: { onPaste: (text: string) => void }) =>
           const text = await navigator.clipboard.readText();
           if (text) onPaste(text);
         } catch {
-          // Permission denied: the user can still paste with the keyboard.
+          // Permission denied: the user can still paste by keyboard.
         }
       }}
     >

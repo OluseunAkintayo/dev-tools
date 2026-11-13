@@ -3,7 +3,6 @@ import { verifyJwt, type DecodedJwt, type SecretEncoding, type VerifyResult } fr
 
 export type Verification = { kind: "idle" } | { kind: "checking" } | ({ kind: "done" } & VerifyResult);
 
-/** Verifies the token's signature whenever the token, key or secret encoding changes. */
 export const useJwtVerification = (token: DecodedJwt | null, key: string, encoding: SecretEncoding): Verification => {
   const [state, setState] = React.useState<Verification>({ kind: "idle" });
   const deferredKey = React.useDeferredValue(key);

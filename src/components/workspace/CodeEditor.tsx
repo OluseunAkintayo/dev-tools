@@ -7,9 +7,7 @@ interface CodeEditorProps {
   onChange: (value: string) => void;
   placeholder?: string;
   label: string;
-  /** 1-based line to mark as the error location. */
   errorLine?: number;
-  /** Soft-wrap long lines (hides line numbers, which would no longer align). */
   wrap?: boolean;
   autoFocus?: boolean;
   disabled?: boolean;
@@ -33,7 +31,7 @@ export const CodeEditor = React.forwardRef<HTMLTextAreaElement, CodeEditorProps>
     const lines = React.useMemo(() => countLines(value), [value]);
     const numbers = React.useMemo(() => Array.from({ length: lines }, (_, i) => i + 1).join("\n"), [lines]);
 
-    // Scroll sync writes straight to the DOM; no React state on every scroll frame.
+    // Written straight to the DOM to avoid React state on every scroll frame.
     const onScroll = (event: React.UIEvent<HTMLTextAreaElement>) => {
       const { scrollTop } = event.currentTarget;
       if (gutterRef.current) gutterRef.current.scrollTop = scrollTop;

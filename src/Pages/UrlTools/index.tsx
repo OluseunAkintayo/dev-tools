@@ -16,10 +16,7 @@ const MODE_OPTIONS: { value: Mode; label: string }[] = [
 
 const MODES = new Set<string>(["encode", "decode", "parse"]);
 
-/**
- * /url-encoder-decoder?mode=encode (default) | decode | parse. All three modes share
- * one input, so a URL can be decoded and then parsed without pasting it again.
- */
+/** /url-encoder-decoder?mode=encode|decode|parse. All modes share one input, so a URL can be decoded then parsed. */
 const UrlTools = () => {
   const handoff = useHandoff();
   const [params, setParams] = useSearchParams();

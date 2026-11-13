@@ -10,7 +10,6 @@ interface SegmentedProps<T extends string> {
   className?: string;
 }
 
-/** Radio group styled as a segmented control. Arrow keys move the selection. */
 export function Segmented<T extends string>({ label, value, options, onChange, className }: SegmentedProps<T>) {
   const refs = React.useRef<(HTMLButtonElement | null)[]>([]);
 

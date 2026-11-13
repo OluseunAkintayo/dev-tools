@@ -1,6 +1,6 @@
 import React from "react";
 
-/** The current time in ms, updated every `intervalMs`. Pauses while the tab is hidden. */
+/** Ticks every `intervalMs`; pauses while the tab is hidden. */
 export const useNow = (intervalMs = 1000) => {
   const [now, setNow] = React.useState(() => Date.now());
 

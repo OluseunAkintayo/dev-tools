@@ -2,8 +2,6 @@ import React from "react";
 import { Check, CircleAlert, FileUp, LoaderCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-/* ---------- Toolbar ---------- */
-
 export const Toolbar = ({ children }: { children: React.ReactNode }) => (
   <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-t-2xl border border-b-0 border-line bg-surface p-2.5">{children}</div>
 );
@@ -18,12 +16,9 @@ export const ToolbarGroup = ({ children }: { children: React.ReactNode }) => <di
 
 export const ToolbarSpacer = () => <div className="hidden flex-1 sm:block" />;
 
-/* ---------- Panes ---------- */
-
 interface PanesProps {
   children: React.ReactNode;
   roundedTop?: boolean;
-  /** Overrides, e.g. a shorter desktop height when something sits below the panes. */
   className?: string;
 }
 
@@ -46,7 +41,6 @@ interface PaneProps {
   meta?: React.ReactNode;
   actions?: React.ReactNode;
   children: React.ReactNode;
-  /** Accept a dropped file (e.g. a .json export). */
   onFileDrop?: (file: File) => void;
 }
 
@@ -101,8 +95,6 @@ export const Pane = ({ title, titleId, meta, actions, children, onFileDrop }: Pa
     </section>
   );
 };
-
-/* ---------- Status bar ---------- */
 
 export type StatusKind = "ok" | "error" | "idle" | "stale" | "working";
 
