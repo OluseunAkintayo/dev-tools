@@ -42,11 +42,11 @@ const FormatterSample = () => (
   </div>
 );
 
-const InterfaceSample = () => (
+const CodeSample = () => (
   <pre className="mt-4 overflow-hidden whitespace-pre-wrap rounded-[10px] bg-sunken px-3.5 py-3 font-mono text-[12.5px] leading-[1.65] text-ink-2">
-    <span className="font-medium text-brand">interface</span> Order {"{ "}id: <span className="text-warn">string</span>; total: <span className="text-warn">number</span>; paid:{" "}
-    <span className="text-warn">boolean</span>
-    {" }"}
+    <span className="text-ink-3">{'{ "order id": 7 }'}</span>
+    {"\n"}
+    <span className="font-medium text-brand">public record</span> Order([JsonPropertyName(<span className="text-brand">"order id"</span>)] <span className="text-warn">int</span> OrderId);
   </pre>
 );
 
@@ -58,7 +58,7 @@ const Base64Sample = () => (
 
 const samples: Partial<Record<Tool["id"], React.FC>> = {
   "json-formatter": FormatterSample,
-  "json-to-interface": InterfaceSample,
+  "json-to-code": CodeSample,
   base64: Base64Sample,
 };
 

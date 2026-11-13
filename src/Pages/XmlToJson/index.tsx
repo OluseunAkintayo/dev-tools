@@ -46,7 +46,7 @@ const XmlToJson = () => {
     <ToolLayout
       toolId="xml-to-json"
       next={[
-        { to: "json-to-interface", label: "Generate interface from this", handoff: output ? { input: output } : undefined },
+        { to: "json-to-code", label: "Generate code from this", handoff: output ? { input: output } : undefined },
         { to: "json-to-csv", label: "Convert to CSV", handoff: output ? { input: output } : undefined },
       ]}
     >

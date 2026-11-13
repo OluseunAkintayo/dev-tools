@@ -10,7 +10,8 @@ export type StringFormat = "email" | "url" | "uuid" | "datetime" | "date";
 
 export type Shape =
   | { kind: "string"; format?: StringFormat }
-  | { kind: "number" }
+  /** `integer` is false for decimals; `wide` marks whole numbers too big for 32 bits. */
+  | { kind: "number"; integer: boolean; wide: boolean }
   | { kind: "boolean" }
   | { kind: "null" }
   | { kind: "unknown" } // items of an empty array
@@ -66,6 +67,10 @@ export const merge = (a: Shape, b: Shape): Shape => {
   switch (a.kind) {
     case "string":
       return a.format && a.format === (b as typeof a).format ? a : { kind: "string" };
+    case "number": {
+      const other = b as typeof a;
+      return { kind: "number", integer: a.integer && other.integer, wide: a.wide || other.wide };
+    }
     case "array":
       return { kind: "array", item: merge(a.item, (b as typeof a).item) };
     case "object":
@@ -81,7 +86,11 @@ export const inferShape = (value: unknown): Shape => {
     const format = stringFormat(value);
     return format ? { kind: "string", format } : { kind: "string" };
   }
-  if (typeof value === "number") return { kind: "number" };
+  if (typeof value === "number") {
+    // JSON cannot tell 1 from 1.0, and a whole number beyond 64 bits is stored as a decimal.
+    const integer = Number.isInteger(value) && Math.abs(value) < 2 ** 63;
+    return { kind: "number", integer, wide: integer && Math.abs(value) > 2_147_483_647 };
+  }
   if (typeof value === "boolean") return { kind: "boolean" };
   if (Array.isArray(value)) return { kind: "array", item: value.map(inferShape).reduce<Shape>(merge, { kind: "unknown" }) };
   if (isPlainObject(value)) return { kind: "object", fields: Object.entries(value).map(([key, item]) => ({ key, shape: inferShape(item), optional: false })) };
@@ -91,11 +100,14 @@ export const inferShape = (value: unknown): Shape => {
 /** Quote keys that are not valid identifiers. */
 export const formatKey = (key: string) => (/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(key) ? key : JSON.stringify(key));
 
-/** "user profile" → "UserProfile". Leading digits are dropped. */
+/**
+ * "user profile" → "UserProfile", "order_item" → "OrderItem". Only the first letter of each
+ * part changes, so "MyAPI" stays as typed. Leading digits are dropped.
+ */
 export const toTypeName = (name: string): string =>
   name
-    .split(/[^A-Za-z0-9_$]+/)
+    .split(/[^\p{L}\p{N}]+/u)
     .filter(Boolean)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join("")
-    .replace(/^[0-9]+/, "");
+    .replace(/^\p{N}+/u, "");

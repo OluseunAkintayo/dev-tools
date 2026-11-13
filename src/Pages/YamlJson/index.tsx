@@ -58,7 +58,7 @@ const YamlToJson = () => {
       toolId="yaml-to-json"
       next={[
         { to: "json-formatter", label: "Open in JSON Formatter", handoff: output ? { input: output } : undefined },
-        { to: "json-to-interface", label: "Generate interface from this", handoff: output ? { input: output } : undefined },
+        { to: "json-to-code", label: "Generate code from this", handoff: output ? { input: output } : undefined },
         { to: "json-to-yaml", label: "Convert back to YAML", handoff: output ? { input: output } : undefined },
       ]}
     >

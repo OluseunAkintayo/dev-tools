@@ -108,7 +108,7 @@ const JsonFormatter = () => {
     <ToolLayout
       toolId="json-formatter"
       next={[
-        { to: "json-to-interface", label: "Generate interface from this", handoff: output ? { input: output } : undefined },
+        { to: "json-to-code", label: "Generate code from this", handoff: output ? { input: output } : undefined },
         { to: "json-to-csv", label: "Convert to CSV", handoff: output ? { input: output } : undefined },
         { to: "json-to-xml", label: "Convert to XML", handoff: output ? { input: output } : undefined },
       ]}

@@ -65,7 +65,7 @@ const CsvToJson = () => {
     <ToolLayout
       toolId="csv-to-json"
       next={[
-        { to: "json-to-interface", label: "Generate interface from this", handoff: output ? { input: output } : undefined },
+        { to: "json-to-code", label: "Generate code from this", handoff: output ? { input: output } : undefined },
         { to: "json-formatter", label: "Open in JSON Formatter", handoff: output ? { input: output } : undefined },
       ]}
     >

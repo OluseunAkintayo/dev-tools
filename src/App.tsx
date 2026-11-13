@@ -6,7 +6,8 @@ import Privacy from "./Pages/Privacy/index.tsx";
 import Home from "./Pages/Home/index.tsx";
 import JsonToCsv from "./Pages/JsonToCsv/index.tsx";
 import CsvToJson from "./Pages/CsvToJson/index.tsx";
-import InterfaceGenerator from "./Pages/InterfaceGenerator/index.tsx";
+import JsonToCode from "./Pages/JsonToCode/index.tsx";
+import { Redirect } from "./components/layout/Redirect.tsx";
 import JsonToZod from "./Pages/JsonToZod/index.tsx";
 import JsonDiff from "./Pages/JsonDiff/index.tsx";
 import RegexTester from "./Pages/RegexTester/index.tsx";
@@ -39,7 +40,9 @@ const router = createBrowserRouter([
       { path: "/privacy", element: <Privacy /> },
       { path: "/json-to-csv", element: <JsonToCsv /> },
       { path: "/csv-to-json", element: <CsvToJson /> },
-      { path: "/json-to-interface", element: <InterfaceGenerator /> },
+      { path: "/json-to-code", element: <JsonToCode /> },
+      // The tool used to be the TypeScript-only "TS Interface Generator".
+      { path: "/json-to-interface", element: <Redirect to="/json-to-code" /> },
       { path: "/json-to-zod", element: <JsonToZod /> },
       { path: "/json-diff", element: <JsonDiff /> },
       { path: "/regex-tester", element: <RegexTester /> },
