@@ -3,7 +3,7 @@ import { ToolHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { useDocumentTitle } from "@/hooks/use-document-title";
 
-const UPDATED = "12 November 2026";
+const UPDATED = "13 November 2026";
 
 /** What Vercel Web Analytics records with each page view, per Vercel's documentation. */
 const ANALYTICS_FIELDS: [string, string][] = [
@@ -73,7 +73,11 @@ const Privacy = () => {
             </p>
             <ul>
               <li>Files are read by your browser. Large files are processed in a background thread of the same page, not on a server.</li>
-              <li>Your inputs live only in the open tab, and closing the tab clears them.</li>
+              <li>
+                So that a reload doesn’t lose your work, each tool keeps its inputs in this tab’s session storage. They stay on your device, are separate for each
+                tab, and are deleted when you close the tab. Keys and secrets, such as JWT signing keys and HMAC keys, are never saved, so you enter them again after a
+                reload.
+              </li>
               <li>
                 When you send a result to another tool, it moves within the same tab and is not transmitted anywhere. Your browser keeps it in that tab’s history so
                 Back and Reload still show it, until you close the tab.
@@ -83,6 +87,16 @@ const Privacy = () => {
                 first. The <strong className="font-medium text-ink">Copy</strong> button writes to your clipboard only when you press it.
               </li>
             </ul>
+            <h3 className="mt-8 text-[16px] font-semibold text-ink">Share links</h3>
+            <p>
+              The <strong className="font-medium text-ink">Share</strong> button copies a link that reopens the tool with your current input. The input is compressed
+              into the link itself, after the <code className="font-mono text-[13px]">#</code> sign. Browsers never send that part of a link to a server, so the data
+              still doesn’t reach NexTools, Vercel or our analytics, and we remove it from the address bar as soon as the link is opened.
+            </p>
+            <ul>
+              <li>Keys and secrets are never put in a share link.</li>
+              <li>Anyone you give the link to can see everything it contains, and so can any app that stores it, such as a chat history. Only share data you would paste there anyway.</li>
+            </ul>
             <p>
               Because nothing leaves your device, you can use the tools with API responses, exports and tokens. Treat production secrets with your usual care: anyone
               with access to your screen or device can still see them.
@@ -91,7 +105,8 @@ const Privacy = () => {
             <h2 id="device">What is stored on your device</h2>
             <p>
               NexTools stores one setting in your browser’s local storage: <code className="rounded bg-sunken px-1.5 py-0.5 font-mono text-[13px] text-ink">nextools-theme</code>, which
-              remembers whether you chose the light, dark or system theme. It never leaves your device. NexTools sets no cookies.
+              remembers whether you chose the light, dark or system theme. Tool inputs are kept in session storage only, as described above, and are deleted when you
+              close the tab. None of this leaves your device. NexTools sets no cookies.
             </p>
             <p>
               So that NexTools works offline, your browser also keeps a copy of the app’s own files (its code, styles, fonts and icons) using a service worker. This copy
@@ -131,8 +146,9 @@ const Privacy = () => {
               </table>
             </div>
             <p>
-              Page addresses on NexTools contain only the tool’s name and, for some tools, a mode such as <code className="font-mono text-[13px]">?mode=encode</code>. Your
-              inputs are never part of the address, so they can’t reach the analytics.
+              Page addresses on NexTools contain only the tool’s name and, for some tools, a mode such as <code className="font-mono text-[13px]">?mode=encode</code>. A share
+              link carries its data after the <code className="font-mono text-[13px]">#</code>, which browsers don’t send to servers; NexTools also removes it from every
+              analytics event and from the address bar. Your inputs can’t reach the analytics.
             </p>
 
             <h2 id="hosting">Hosting</h2>
@@ -156,14 +172,14 @@ const Privacy = () => {
             <h2 id="choices">Your choices</h2>
             <ul>
               <li>Content blockers and privacy settings that block analytics work here, and every tool keeps working.</li>
-              <li>Clearing this site’s data in your browser removes the saved theme and the offline copy of the app.</li>
+              <li>Clearing this site’s data in your browser removes the saved theme, any saved inputs and the offline copy of the app. Closing a tab removes that tab’s inputs.</li>
               <li>Because we hold no personal data from the tools, there is nothing of yours for us to export or delete.</li>
             </ul>
 
             <h2 id="changes">Changes to this policy</h2>
             <p>
-              If we change what NexTools collects or stores, for example by adding a feature that keeps your inputs after a reload, we will update this page and the
-              date at the top before the change goes live.
+              If we change what NexTools collects or stores, for example by adding accounts or syncing between devices, we will update this page and the date at the top
+              before the change goes live.
             </p>
 
             <h2 id="contact">Contact</h2>

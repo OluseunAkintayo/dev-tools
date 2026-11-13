@@ -8,6 +8,7 @@ import { Segmented, Switch } from "@/components/workspace/controls";
 import { EmptyState } from "@/components/workspace/Feedback";
 import { CopyButton, DownloadButton } from "@/components/workspace/actions";
 import { Pane, Panes, StatusBar, Toolbar, ToolbarGroup, ToolbarLabel, ToolbarSpacer } from "@/components/workspace/Workspace";
+import { usePersistentState } from "@/hooks/use-persistent-state";
 import { useShortcut } from "@/hooks/use-shortcut";
 import { useToolRunner } from "@/hooks/use-tool-runner";
 import { useHandoff } from "@/lib/handoff";
@@ -25,15 +26,15 @@ const MAX_COUNT = 1000;
 
 const UuidGenerator = () => {
   const handoff = useHandoff();
-  const [version, setVersion] = React.useState<Version>("v7");
-  const [countText, setCountText] = React.useState("5");
-  const [uppercase, setUppercase] = React.useState(false);
-  const [hyphens, setHyphens] = React.useState(true);
-  const [braces, setBraces] = React.useState(false);
-  const [uuids, setUuids] = React.useState<string[]>([]);
+  const [version, setVersion] = usePersistentState<Version>("uuid", "version", "v7");
+  const [countText, setCountText] = usePersistentState("uuid", "countText", "5");
+  const [uppercase, setUppercase] = usePersistentState("uuid", "uppercase", false);
+  const [hyphens, setHyphens] = usePersistentState("uuid", "hyphens", true);
+  const [braces, setBraces] = usePersistentState("uuid", "braces", false);
+  const [uuids, setUuids] = usePersistentState<string[]>("uuid", "uuids", []);
   // A UUID handed over (from Smart Paste) is inspected instead of the first generated one.
-  const [inspectInput, setInspectInput] = React.useState(handoff?.input.trim() ?? "");
-  const [inspectTouched, setInspectTouched] = React.useState(Boolean(handoff?.input.trim()));
+  const [inspectInput, setInspectInput] = usePersistentState("uuid", "inspectInput", handoff?.input.trim() ?? "");
+  const [inspectTouched, setInspectTouched] = usePersistentState("uuid", "inspectTouched", Boolean(handoff?.input.trim()));
   // One generator for the page, so v7 UUIDs stay in order across batches.
   const v7 = React.useMemo(() => createV7Generator(), []);
 
@@ -42,9 +43,17 @@ const UuidGenerator = () => {
   const generate = React.useCallback(() => {
     const next = Array.from({ length: count }, version === "v4" ? uuidV4 : v7);
     setUuids(next);
-  }, [count, version, v7]);
+  }, [count, version, v7, setUuids]);
 
-  React.useEffect(generate, [generate]);
+  // Generate on first visit and whenever the version or count changes, but keep a list
+  // restored after a reload or opened from a share link. Keyed, so running twice is safe.
+  const generatedFor = React.useRef(uuids.length > 0 ? `${version}:${count}` : null);
+  React.useEffect(() => {
+    const key = `${version}:${count}`;
+    if (generatedFor.current === key) return;
+    generatedFor.current = key;
+    generate();
+  }, [generate, version, count]);
   useShortcut({ key: "Enter", mod: true }, generate);
 
   // Until the user types their own, inspect the first generated UUID.

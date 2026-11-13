@@ -1,4 +1,3 @@
-import React from "react";
 import { BadgeCheck } from "lucide-react";
 import { ToolLayout } from "@/components/layout/ToolLayout";
 import { CodeEditor } from "@/components/workspace/CodeEditor";
@@ -9,6 +8,7 @@ import { CopyButton, DownloadButton, OpenFileButton, PasteButton } from "@/compo
 import { ClearButton, RunButton } from "@/components/workspace/run";
 import { outputOf, statusFor } from "@/components/workspace/status";
 import { Pane, Panes, StatusBar, Toolbar, ToolbarGroup, ToolbarLabel, ToolbarSpacer } from "@/components/workspace/Workspace";
+import { usePersistentState } from "@/hooks/use-persistent-state";
 import { useFileLoader } from "@/hooks/use-file-loader";
 import { useShortcut } from "@/hooks/use-shortcut";
 import { useToolRunner } from "@/hooks/use-tool-runner";
@@ -27,13 +27,13 @@ const VERSION_OPTIONS: { value: ZodVersion; label: string }[] = [
 
 const JsonToZod = () => {
   const handoff = useHandoff();
-  const [input, setInput] = React.useState(handoff?.input ?? "");
-  const [fileName, setFileName] = React.useState<string | null>(null);
-  const [name, setName] = React.useState(DEFAULT_NAME);
-  const [version, setVersion] = React.useState<ZodVersion>("4");
-  const [strict, setStrict] = React.useState(false);
-  const [formats, setFormats] = React.useState(true);
-  const [inferType, setInferType] = React.useState(true);
+  const [input, setInput] = usePersistentState("json-to-zod", "input", handoff?.input ?? "");
+  const [fileName, setFileName] = usePersistentState<string | null>("json-to-zod", "fileName", null);
+  const [name, setName] = usePersistentState("json-to-zod", "name", DEFAULT_NAME);
+  const [version, setVersion] = usePersistentState<ZodVersion>("json-to-zod", "version", "4");
+  const [strict, setStrict] = usePersistentState("json-to-zod", "strict", false);
+  const [formats, setFormats] = usePersistentState("json-to-zod", "formats", true);
+  const [inferType, setInferType] = usePersistentState("json-to-zod", "inferType", true);
 
   const runner = useToolRunner(
     input,

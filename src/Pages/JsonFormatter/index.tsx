@@ -12,6 +12,7 @@ import { CopyButton, DownloadButton, OpenFileButton, PasteButton } from "@/compo
 import { ClearButton, RunButton } from "@/components/workspace/run";
 import { outputOf, statusFor } from "@/components/workspace/status";
 import { Pane, Panes, StatusBar, Toolbar, ToolbarGroup, ToolbarLabel, ToolbarSpacer } from "@/components/workspace/Workspace";
+import { usePersistentState } from "@/hooks/use-persistent-state";
 import { useFileLoader } from "@/hooks/use-file-loader";
 import { useShortcut } from "@/hooks/use-shortcut";
 import { useToolRunner } from "@/hooks/use-tool-runner";
@@ -45,12 +46,12 @@ type QueryOutcome = { kind: "none" } | { kind: "ok"; matches: unknown[] } | { ki
 
 const JsonFormatter = () => {
   const handoff = useHandoff();
-  const [input, setInput] = React.useState(handoff?.input ?? "");
-  const [fileName, setFileName] = React.useState<string | null>(null);
-  const [indent, setIndent] = React.useState<Indent>("2");
-  const [sortKeys, setSortKeys] = React.useState(false);
-  const [view, setView] = React.useState<View>("code");
-  const [query, setQuery] = React.useState("");
+  const [input, setInput] = usePersistentState("json-formatter", "input", handoff?.input ?? "");
+  const [fileName, setFileName] = usePersistentState<string | null>("json-formatter", "fileName", null);
+  const [indent, setIndent] = usePersistentState<Indent>("json-formatter", "indent", "2");
+  const [sortKeys, setSortKeys] = usePersistentState("json-formatter", "sortKeys", false);
+  const [view, setView] = usePersistentState<View>("json-formatter", "view", "code");
+  const [query, setQuery] = usePersistentState("json-formatter", "query", "");
   const [tree, setTree] = React.useState({ depth: DEFAULT_EXPAND, version: 0 });
   const deferredQuery = React.useDeferredValue(query.trim());
 

@@ -1,6 +1,6 @@
-import React from "react";
 import { useSearchParams } from "react-router-dom";
 import { Segmented } from "@/components/workspace/controls";
+import { usePersistentState } from "@/hooks/use-persistent-state";
 import { useHandoff } from "@/lib/handoff";
 import type { UrlEncoding } from "@/lib/url";
 import { UrlCodec } from "./Codec";
@@ -26,8 +26,8 @@ const UrlTools = () => {
   const requested = params.get("mode") ?? handoff?.options?.mode ?? "";
   const mode = (MODES.has(requested) ? requested : "encode") as Mode;
 
-  const [input, setInput] = React.useState(handoff?.input ?? "");
-  const [encoding, setEncoding] = React.useState<UrlEncoding>("component");
+  const [input, setInput] = usePersistentState("url", "input", handoff?.input ?? "");
+  const [encoding, setEncoding] = usePersistentState<UrlEncoding>("url", "encoding", "component");
 
   const goTo = (next: Mode) =>
     setParams((current) => {
