@@ -2,7 +2,7 @@ import type { CodeLanguage } from "@/lib/highlight";
 import type { Model } from "./model";
 import type { NamingRules, NamingStyle } from "./naming";
 
-export type LanguageId = "typescript" | "csharp" | "java" | "kotlin" | "go" | "python";
+export type LanguageId = "typescript" | "csharp" | "java" | "kotlin" | "swift" | "go" | "rust" | "dart" | "python";
 
 export interface CodeOptions {
   language: LanguageId;

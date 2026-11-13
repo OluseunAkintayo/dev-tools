@@ -37,7 +37,7 @@ Every tool works the same way: paste or drop a file on the left, and the result 
 ### Generate
 | Tool | What it does |
 |---|---|
-| [JSON to Code](https://nextools.vercel.app/json-to-code) | Turns a JSON sample into typed models in TypeScript, C#, Java, Kotlin, Go or Python, with your choice of field naming. |
+| [JSON to Code](https://nextools.vercel.app/json-to-code) | Turns a JSON sample into typed models in TypeScript, C#, Java, Kotlin, Swift, Go, Rust, Dart or Python, with your choice of field naming. |
 | [JSON to Zod](https://nextools.vercel.app/json-to-zod) | Generates a Zod 4 or Zod 3 schema. Keys missing from some array items become optional, varying types become unions, and emails, URLs, UUIDs and dates are detected. |
 | [Hash Generator](https://nextools.vercel.app/hash-generator) | Computes MD5, SHA-1, SHA-256, SHA-384 and SHA-512 for text or files up to 1 GB, plus HMAC. Paste a checksum to verify a download. |
 | [UUID Generator](https://nextools.vercel.app/uuid-generator) | Generates up to 1,000 v4 or time-ordered v7 UUIDs. The inspector shows any UUID's version and creation time. |

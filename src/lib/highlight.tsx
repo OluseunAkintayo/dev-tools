@@ -1,6 +1,6 @@
 import React from "react";
 
-export type CodeLanguage = "json" | "xml" | "ts" | "yaml" | "csharp" | "java" | "kotlin" | "go" | "python" | "text";
+export type CodeLanguage = "json" | "xml" | "ts" | "yaml" | "csharp" | "java" | "kotlin" | "swift" | "go" | "rust" | "dart" | "python" | "text";
 
 /** Above this size, output renders as plain text to keep the page fast. */
 const HIGHLIGHT_LIMIT = 300_000;
@@ -79,7 +79,7 @@ const neverMatches = "(?!)";
 const cStyleComment = String.raw`\/\/[^\n]*|\/\*[\s\S]*?\*\/`;
 const stringLiteral = String.raw`"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|` + "`[^`]*`";
 
-const syntaxByLanguage: Record<"csharp" | "java" | "kotlin" | "go" | "python", CodeSyntax> = {
+const syntaxByLanguage: Record<"csharp" | "java" | "kotlin" | "swift" | "go" | "rust" | "dart" | "python", CodeSyntax> = {
   csharp: {
     comment: cStyleComment,
     annotation: String.raw`(?<=\[(?:property: ?)?)[A-Z]\w*(?=[(\]])`,
@@ -97,6 +97,24 @@ const syntaxByLanguage: Record<"csharp" | "java" | "kotlin" | "go" | "python", C
     annotation: String.raw`@\w+`,
     keywords: ["import", "package", "data", "class", "val", "var", "fun", "null", "true", "false", "object", "interface", "return", "this", "override"],
     types: ["String", "Int", "Long", "Double", "Float", "Boolean", "Any", "List", "Map", "JsonElement"],
+  },
+  swift: {
+    comment: cStyleComment,
+    annotation: neverMatches,
+    keywords: ["struct", "class", "enum", "let", "var", "func", "init", "case", "switch", "self", "return", "try", "throws", "if", "else", "nil", "true", "false", "private", "public"],
+    types: ["String", "Int", "Int64", "Double", "Float", "Bool", "Codable", "CodingKey", "JSONValue", "Decoder", "Encoder"],
+  },
+  rust: {
+    comment: cStyleComment,
+    annotation: String.raw`#!?\[[^\]\n]*\]`,
+    keywords: ["use", "pub", "struct", "enum", "impl", "fn", "let", "mut", "self", "Self", "type", "mod", "crate", "true", "false", "None", "Some"],
+    types: ["String", "i32", "i64", "f64", "bool", "Vec", "Option", "HashMap", "Value", "Box", "Serialize", "Deserialize"],
+  },
+  dart: {
+    comment: cStyleComment,
+    annotation: neverMatches,
+    keywords: ["class", "final", "const", "factory", "required", "this", "return", "null", "true", "false", "as", "if", "new"],
+    types: ["String", "int", "double", "bool", "num", "dynamic", "List", "Map", "Object", "void"],
   },
   go: {
     comment: cStyleComment,

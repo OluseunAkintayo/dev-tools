@@ -27,6 +27,8 @@ export interface NamingRules {
   upperFirst: boolean;
   /** A member may not share its enclosing type's name (C#, error CS0542). */
   avoidTypeName: boolean;
+  /** Identifiers may only use ASCII letters and digits (Dart). Accents are dropped: "über" → "uber". */
+  asciiOnly?: boolean;
   /** Type names that would shadow something the generated code uses. */
   reservedTypes: ReadonlySet<string>;
 }
@@ -54,6 +56,9 @@ export const joinWords = (words: string[], style: CaseStyle): string => {
 
 export const CASE_LABELS: Record<CaseStyle, string> = { camel: "camelCase", pascal: "PascalCase", snake: "snake_case" };
 
+/** Plain ASCII for a language that has no Unicode identifiers: accents are dropped and other characters become separators. */
+export const foldAscii = (text: string): string => text.normalize("NFD").replace(/\p{M}/gu, "").replace(/[^ -~]/g, " ");
+
 /** The name for a field. See NamingRules for the pieces. */
 export const fieldName = (key: string, naming: NamingStyle, rules: NamingRules): string => {
   const style = naming === "auto" ? rules.autoStyle : naming;
@@ -61,7 +66,7 @@ export const fieldName = (key: string, naming: NamingStyle, rules: NamingRules):
   if (style === "keep" && rules.isValid.test(key)) {
     name = key;
   } else {
-    const words = splitWords(key);
+    const words = splitWords(rules.asciiOnly ? foldAscii(key) : key);
     name = joinWords(words.length ? words : ["field"], style === "keep" ? rules.cleanStyle : style);
   }
   if (rules.upperFirst) name = name.charAt(0).toUpperCase() + name.slice(1);

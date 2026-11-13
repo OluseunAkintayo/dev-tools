@@ -1,21 +1,24 @@
 import { ToolInputError } from "@/lib/toolError";
 import { csharp } from "./csharp";
+import { dart } from "./dart";
 import { go } from "./go";
 import { java } from "./java";
 import { kotlin } from "./kotlin";
 import { buildModel } from "./model";
 import { rootTypeName } from "./naming";
 import { python } from "./python";
+import { rust } from "./rust";
+import { swift } from "./swift";
 import { typescript } from "./typescript";
 import type { CodeOptions, GeneratedCode, LanguageId, LanguageSpec } from "./types";
 
 export type { CodeOptions, GeneratedCode, LanguageId, LanguageSpec } from "./types";
 export { CASE_LABELS, type NamingStyle } from "./naming";
 
-export const LANGUAGES: Record<LanguageId, LanguageSpec> = { typescript, csharp, java, kotlin, go, python };
+export const LANGUAGES: Record<LanguageId, LanguageSpec> = { typescript, csharp, java, kotlin, swift, go, rust, dart, python };
 
 /** In the order the language picker shows them. */
-export const LANGUAGE_IDS: LanguageId[] = ["typescript", "csharp", "java", "kotlin", "go", "python"];
+export const LANGUAGE_IDS: LanguageId[] = ["typescript", "csharp", "java", "kotlin", "swift", "go", "rust", "dart", "python"];
 
 /** Types for a JSON sample, in the chosen language, with names fixed up to be valid there. */
 export const generateCode = (data: unknown, options: CodeOptions): GeneratedCode => {

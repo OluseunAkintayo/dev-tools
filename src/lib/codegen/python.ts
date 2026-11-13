@@ -1,5 +1,5 @@
-import type { FieldDecl, Model, TypeDecl, TypeRef } from "./model";
-import { splitWords, uniqueName, type NamingRules } from "./naming";
+import { apartFromTypes, type FieldDecl, type Model, type TypeDecl, type TypeRef } from "./model";
+import { splitWords, type NamingRules } from "./naming";
 import type { EmitResult, LanguageSpec } from "./types";
 
 const KEYWORDS = new Set(
@@ -74,24 +74,9 @@ const declare = (decl: TypeDecl) => {
   return `class ${decl.name}(BaseModel):\n${config}${lines.join("\n")}`;
 };
 
-/** A field called like a model would hide that model from the annotations after it, so it gets a trailing underscore. */
-const apart = (types: TypeDecl[]): TypeDecl[] => {
-  const typeNames = new Set(types.map((decl) => decl.name));
-  return types.map((decl) => {
-    const taken = new Set(decl.fields.map((field) => field.name));
-    const fields = decl.fields.map((field) => {
-      if (!typeNames.has(field.name)) return field;
-      const name = uniqueName(`${field.name}_`, taken);
-      taken.add(name);
-      return { ...field, name };
-    });
-    return { ...decl, fields };
-  });
-};
-
 const emit = (model: Model): EmitResult => {
   // Python needs a class defined before another refers to it, so contained types come first.
-  const body = apart([...model.types].reverse()).map(declare).join("\n\n\n");
+  const body = apartFromTypes([...model.types].reverse()).map(declare).join("\n\n\n");
   const typing = ["Any", "Optional", "Union"].filter((name) => new RegExp(`\\b${name}\\b`).test(body));
   const pydantic = ["BaseModel", /ConfigDict\(/.test(body) && "ConfigDict", /\bField\(/.test(body) && "Field"].filter(Boolean);
   const imports = [typing.length && `from typing import ${typing.join(", ")}\n`, `from pydantic import ${pydantic.join(", ")}`].filter(Boolean).join("\n");

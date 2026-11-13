@@ -1,6 +1,6 @@
 import { inferShape, type Shape } from "@/lib/inferShape";
 import { ToolInputError } from "@/lib/toolError";
-import { fieldName, rootTypeName, typeNameFromKey, uniqueName, type NamingRules, type NamingStyle } from "./naming";
+import { fieldName, foldAscii, rootTypeName, typeNameFromKey, uniqueName, type NamingRules, type NamingStyle } from "./naming";
 
 /**
  * A language-neutral description of the types in a JSON sample. Each language turns it
@@ -55,16 +55,18 @@ export interface BuildOptions {
 type ObjectShape = Extract<Shape, { kind: "object" }>;
 
 export const buildModel = (data: unknown, options: BuildOptions): Model => {
-  const rootName = rootTypeName(options.rootName);
-  if (!rootName) throw new ToolInputError({ message: "The type name must contain at least one letter." });
   const { rules } = options;
+  const asciiType = (name: string) => (rules.asciiOnly ? foldAscii(name).replace(/\s+/g, "") : name);
+  const rootName = asciiType(rootTypeName(options.rootName));
+  if (!rootName) throw new ToolInputError({ message: "The type name must contain at least one letter." });
 
   const types: TypeDecl[] = [];
   const used = new Set<string>();
 
   const claimTypeName = (wanted: string) => {
     // A type called String or List would shadow the one the generated code relies on.
-    const base = rules.reservedTypes.has(wanted) ? `${wanted}Model` : wanted;
+    const plain = asciiType(wanted) || "Model";
+    const base = rules.reservedTypes.has(plain) ? `${plain}Model` : plain;
     const name = uniqueName(base, used);
     used.add(name);
     return name;
@@ -143,4 +145,22 @@ export const referencedDecls = (ref: TypeRef): TypeDecl[] => {
     default:
       return [];
   }
+};
+
+/**
+ * Renames fields that share a name with any of the types, for languages where the field
+ * would hide the type from the code after it. The suffix keeps the JSON key readable.
+ */
+export const apartFromTypes = (types: TypeDecl[], suffix = "_"): TypeDecl[] => {
+  const typeNames = new Set(types.map((decl) => decl.name));
+  return types.map((decl) => {
+    const taken = new Set(decl.fields.map((field) => field.name));
+    const fields = decl.fields.map((field) => {
+      if (!typeNames.has(field.name)) return field;
+      const name = uniqueName(`${field.name}${suffix}`, taken);
+      taken.add(name);
+      return { ...field, name };
+    });
+    return { ...decl, fields };
+  });
 };
