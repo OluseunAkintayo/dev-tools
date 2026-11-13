@@ -80,6 +80,16 @@ yarn dev          # http://localhost:5173
 | `yarn preview` | Serve the production build locally |
 | `yarn lint` | Run ESLint |
 
+### Testing offline mode
+
+The dev server runs without the service worker, so offline mode only works on a production build:
+
+```bash
+yarn build && yarn preview   # http://localhost:4173
+```
+
+Open the page once so the app is saved for offline use. Then, in your browser's developer tools, set Network to **Offline** (or stop the preview server) and reload. Every tool should still load and work. To try the update prompt, run `yarn build` again while the page is open.
+
 
 ## Roadmap
 
