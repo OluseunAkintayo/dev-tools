@@ -55,3 +55,13 @@ export const decodeCiphertext = (text: string, format: TextFormat, startsWith?: 
 };
 
 export const randomBytes = (length: number): Uint8Array => crypto.getRandomValues(new Uint8Array(length));
+
+/** Like bytesFrom, with the field's name in the error. */
+export const readField = (label: string, text: string, format: TextFormat): Uint8Array => {
+  try {
+    return bytesFrom(text, format);
+  } catch (err) {
+    if (err instanceof ToolInputError) throw new ToolInputError({ message: `${label}: ${err.detail.message}` });
+    throw err;
+  }
+};

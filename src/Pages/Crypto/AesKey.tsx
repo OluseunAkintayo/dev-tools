@@ -12,6 +12,8 @@ interface AesKeyProps {
   keys: KeyState;
   update: KeyUpdate;
   bits: KeyBits;
+  /** Raw layout has no header to say how a key was made, so only raw keys apply. */
+  rawOnly?: boolean;
   notice: { message: string; kind: "warn" } | null;
 }
 
@@ -20,7 +22,7 @@ const iterationOptions = (current: number) => {
   return values.map((value) => ({ value: String(value), label: `${value.toLocaleString()} iterations` }));
 };
 
-export const AesKey = ({ mode, keys, update, bits, notice }: AesKeyProps) => {
+export const AesKey = ({ mode, keys, update, bits, rawOnly = false, notice }: AesKeyProps) => {
   const [shown, setShown] = React.useState(false);
   const passphrase = keys.source === "passphrase";
 
@@ -30,7 +32,7 @@ export const AesKey = ({ mode, keys, update, bits, notice }: AesKeyProps) => {
         <label htmlFor="crypto-key" className="text-[13px] font-medium text-ink">
           Key
         </label>
-        <Segmented label="Key source" value={keys.source} options={SOURCE_OPTIONS} onChange={(source) => update({ source })} />
+        {rawOnly ? <span className="text-[12px] text-ink-3">raw key</span> : <Segmented label="Key source" value={keys.source} options={SOURCE_OPTIONS} onChange={(source) => update({ source })} />}
         <div className="ml-auto flex items-center gap-1.5">
           {passphrase && mode === "encrypt" && <Pick id="crypto-iterations" label="Cost" value={String(keys.iterations)} options={iterationOptions(keys.iterations)} onChange={(value) => update({ iterations: Number(value) })} />}
           {!passphrase && <Segmented label="Key encoding" value={keys.rawEncoding} options={RAW_ENCODING_OPTIONS} onChange={(rawEncoding) => update({ rawEncoding })} />}

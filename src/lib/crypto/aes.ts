@@ -87,19 +87,74 @@ export const decryptAes = async (bytes: Uint8Array, key: AesKey): Promise<{ text
     cryptoKey = await importRaw(raw, header.cipher);
   }
   const params = header.cipher === "gcm" ? { name: "AES-GCM", iv, additionalData: headerBytes } : { name: "AES-CBC", iv };
+  return { text: await decryptToText(params, cryptoKey, data, header.cipher, header.kdf ? "passphrase" : "key"), label };
+};
+
+const decryptToText = async (params: AesGcmParams | AesCbcParams, key: CryptoKey, data: Uint8Array, cipher: Cipher, secret: string): Promise<string> => {
   let plain: ArrayBuffer;
   try {
-    plain = await crypto.subtle.decrypt(params, cryptoKey, data);
+    plain = await crypto.subtle.decrypt(params, key, data);
   } catch {
     return fail(
-      header.cipher === "gcm"
-        ? `Could not decrypt. The ${header.kdf ? "passphrase" : "key"} is wrong, or the text was changed after it was encrypted.`
-        : `Could not decrypt. The ${header.kdf ? "passphrase" : "key"} is probably wrong, or the text was changed after it was encrypted.`
+      cipher === "gcm"
+        ? `Could not decrypt. The ${secret}, IV or tag is wrong, or the data was changed after it was encrypted.`
+        : `Could not decrypt. The ${secret} or IV is probably wrong, or the data was changed after it was encrypted.`
     );
   }
   try {
-    return { text: new TextDecoder("utf-8", { fatal: true }).decode(plain), label };
+    return new TextDecoder("utf-8", { fatal: true }).decode(plain);
   } catch {
     return fail("It decrypted, but the result is not valid text. The key is probably wrong.");
   }
+};
+
+const GCM_TAG_LENGTHS = [4, 8, 12, 13, 14, 15, 16];
+const GCM_TAG_BYTES = 16;
+
+const checkIv = (cipher: Cipher, iv: Uint8Array) => {
+  if (cipher === "cbc" && iv.length !== 16) fail(`AES-CBC needs a 16-byte IV, but this one is ${iv.length} bytes.`);
+  if (cipher === "gcm" && iv.length === 0) fail("The IV is empty.");
+};
+
+export interface AesRawResult {
+  iv: Uint8Array;
+  data: Uint8Array;
+  /** GCM only: the authentication tag, split off the end of the ciphertext. */
+  tag: Uint8Array | null;
+  label: string;
+}
+
+/** Encrypts with a raw key and returns the IV, ciphertext and tag separately. A random IV is made unless one is given. */
+export const encryptAesRaw = async (plaintext: string, cipher: Cipher, bits: KeyBits, keyText: string, encoding: RawKeyEncoding, iv: Uint8Array | null): Promise<AesRawResult> => {
+  const raw = parseRawKey(keyText, encoding);
+  requireKeyLength(raw, bits / 8);
+  const vector = iv ?? randomBytes(IV_LENGTH[cipher]);
+  checkIv(cipher, vector);
+  const key = await importRaw(raw, cipher);
+  const params = cipher === "gcm" ? { name: "AES-GCM", iv: vector } : { name: "AES-CBC", iv: vector };
+  const encrypted = new Uint8Array(await crypto.subtle.encrypt(params, key, new TextEncoder().encode(plaintext)));
+  const label = describeCipher(cipher, raw.length);
+  if (cipher === "cbc") return { iv: vector, data: encrypted, tag: null, label };
+  return { iv: vector, data: encrypted.slice(0, -GCM_TAG_BYTES), tag: encrypted.slice(-GCM_TAG_BYTES), label };
+};
+
+/** Decrypts separate parts. The key size comes from the key. A missing GCM tag is read from the end of the ciphertext. */
+export const decryptAesRaw = async (cipher: Cipher, data: Uint8Array, iv: Uint8Array, tag: Uint8Array | null, keyText: string, encoding: RawKeyEncoding): Promise<{ text: string; label: string }> => {
+  const raw = parseRawKey(keyText, encoding);
+  if (raw.length !== 16 && raw.length !== 24 && raw.length !== 32) {
+    return fail(`The key is ${raw.length} bytes, but AES keys are 16, 24 or 32 bytes (32, 48 or 64 hex characters).`);
+  }
+  checkIv(cipher, iv);
+  const key = await importRaw(raw, cipher);
+  const label = describeCipher(cipher, raw.length);
+  if (cipher === "cbc") {
+    return { text: await decryptToText({ name: "AES-CBC", iv }, key, data, cipher, "key"), label };
+  }
+  if (tag && !GCM_TAG_LENGTHS.includes(tag.length)) return fail(`The tag is ${tag.length} bytes. AES-GCM tags are 16 bytes (or, rarely, 4, 8 or 12 to 15).`);
+  const tagBytes = tag ? tag.length : GCM_TAG_BYTES;
+  const input = new Uint8Array(data.length + (tag ? tag.length : 0));
+  input.set(data, 0);
+  if (tag) input.set(tag, data.length);
+  if (input.length < tagBytes) return fail("The ciphertext is too short to contain the tag. Paste the tag separately if it was kept apart.");
+  return { text: await decryptToText({ name: "AES-GCM", iv, tagLength: tagBytes * 8 }, key, input, cipher, "key"), label };
 };

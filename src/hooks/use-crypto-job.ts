@@ -5,6 +5,8 @@ export interface JobResult {
   output: string;
   label: string;
   size: number;
+  /** Extra values to copy, such as the IV and tag of raw output. */
+  parts?: { label: string; value: string }[];
 }
 
 export type Job = { kind: "idle" } | { kind: "working" } | ({ kind: "done" } & JobResult) | { kind: "error"; error: ToolError };

@@ -6,10 +6,16 @@ import { RSA_HASHES, RSA_SIZES } from "@/lib/crypto/rsa";
 export type Mode = "encrypt" | "decrypt";
 export type Algorithm = "aes-gcm" | "aes-cbc" | "rsa-oaep";
 export type KeySource = "passphrase" | "raw";
+export type Layout = "packaged" | "raw";
 
 export const MODE_OPTIONS: { value: Mode; label: string }[] = [
   { value: "encrypt", label: "Encrypt" },
   { value: "decrypt", label: "Decrypt" },
+];
+
+export const LAYOUT_OPTIONS: { value: Layout; label: string }[] = [
+  { value: "packaged", label: "Packaged" },
+  { value: "raw", label: "Raw (IV, tag)" },
 ];
 
 export const ENCRYPT_ALGORITHMS: { value: Algorithm; label: string }[] = [
