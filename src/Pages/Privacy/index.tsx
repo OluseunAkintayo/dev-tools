@@ -93,6 +93,10 @@ const Privacy = () => {
               NexTools stores one setting in your browser’s local storage: <code className="rounded bg-sunken px-1.5 py-0.5 font-mono text-[13px] text-ink">nextools-theme</code>, which
               remembers whether you chose the light, dark or system theme. It never leaves your device. NexTools sets no cookies.
             </p>
+            <p>
+              So that NexTools works offline, your browser also keeps a copy of the app’s own files (its code, styles, fonts and icons) using a service worker. This copy
+              contains no inputs or personal data, and it is replaced when a new version of NexTools is released.
+            </p>
 
             <h2 id="analytics">Analytics</h2>
             <p>
@@ -152,7 +156,7 @@ const Privacy = () => {
             <h2 id="choices">Your choices</h2>
             <ul>
               <li>Content blockers and privacy settings that block analytics work here, and every tool keeps working.</li>
-              <li>Clearing this site’s data in your browser removes the saved theme.</li>
+              <li>Clearing this site’s data in your browser removes the saved theme and the offline copy of the app.</li>
               <li>Because we hold no personal data from the tools, there is nothing of yours for us to export or delete.</li>
             </ul>
 

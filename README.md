@@ -14,6 +14,7 @@ Every tool works the same way: paste or drop a file on the left, and the result 
 - **Errors you can act on.** Messages name the line and column and highlight it, and common mistakes come with one-click fixes, such as removing trailing commas from JSON.
 - **Tools that hand off to each other.** Format JSON, then send it to the TypeScript or Zod generator. Decode a JWT, then open its payload in the formatter. Parse a URL, then open its query as JSON.
 - **Keyboard first.** <kbd>⌘</kbd> <kbd>K</kbd> (or <kbd>Ctrl</kbd> <kbd>K</kbd>) opens any tool. <kbd>⌘</kbd> <kbd>↵</kbd> runs, and <kbd>⌘</kbd> <kbd>⇧</kbd> <kbd>↵</kbd> copies the result.
+- **Works offline.** After your first visit, every tool works without a connection. You can also install NexTools as an app from your browser's address bar or Share menu.
 - **Light and dark themes.** NexTools follows your system setting, or you can pick one.
 
 ## Tools
@@ -79,13 +80,22 @@ yarn dev          # http://localhost:5173
 | `yarn preview` | Serve the production build locally |
 | `yarn lint` | Run ESLint |
 
+### Testing offline mode
+
+The dev server runs without the service worker, so offline mode only works on a production build:
+
+```bash
+yarn build && yarn preview   # http://localhost:4173
+```
+
+Open the page once so the app is saved for offline use. Then, in your browser's developer tools, set Network to **Offline** (or stop the preview server) and reload. Every tool should still load and work. To try the update prompt, run `yarn build` again while the page is open.
+
 
 ## Roadmap
 
 - Shadcn theme generator, with HSL (Tailwind v3) and OKLCH (Tailwind v4) output
 - XML to CSV
 - A GitHub Actions workflow builder
-- Offline support as an installable app
 - Inputs that survive a refresh, and shareable links
 
 <!-- ## Built with
