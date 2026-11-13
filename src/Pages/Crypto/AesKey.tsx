@@ -11,7 +11,6 @@ interface AesKeyProps {
   mode: Mode;
   keys: KeyState;
   update: KeyUpdate;
-  /** Raw keys are generated at this size. */
   bits: KeyBits;
   notice: { message: string; kind: "warn" } | null;
 }
@@ -21,7 +20,6 @@ const iterationOptions = (current: number) => {
   return values.map((value) => ({ value: String(value), label: `${value.toLocaleString()} iterations` }));
 };
 
-/** The key area under the input for AES: a passphrase to derive a key from, or a raw key. */
 export const AesKey = ({ mode, keys, update, bits, notice }: AesKeyProps) => {
   const [shown, setShown] = React.useState(false);
   const passphrase = keys.source === "passphrase";

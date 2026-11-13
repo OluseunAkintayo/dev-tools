@@ -28,7 +28,6 @@ const derToPem = (der: ArrayBuffer, label: "PUBLIC KEY" | "PRIVATE KEY") => {
   return `-----BEGIN ${label}-----\n${base64.match(/.{1,64}/g)!.join("\n")}\n-----END ${label}-----`;
 };
 
-/** Reads the key text as a JWK (when it is JSON) or as PEM, and says what kind of key it is. */
 const readKey = (text: string): { format: "jwk"; jwk: JsonWebKey; kind: KeyKind } | { format: "spki" | "pkcs8"; der: Uint8Array; kind: KeyKind } => {
   const trimmed = text.trim();
   if (!trimmed) return fail("Paste a key.");
@@ -62,12 +61,10 @@ const importKey = async (text: string, hash: RsaHash, want: KeyKind): Promise<Cr
         : await crypto.subtle.importKey("pkcs8", key.der, params, false, ["decrypt"]);
     }
     if (key.format === "jwk") {
-      // A private JWK holds the public key too.
       const { kty, n, e } = key.jwk;
       return await crypto.subtle.importKey("jwk", { kty, n, e }, params, false, ["encrypt"]);
     }
     if (key.kind === "private") {
-      // The public half of a private PKCS#8 key.
       const extractable = await crypto.subtle.importKey("pkcs8", key.der, params, true, ["decrypt"]);
       const { kty, n, e } = await crypto.subtle.exportKey("jwk", extractable);
       return await crypto.subtle.importKey("jwk", { kty, n, e }, params, false, ["encrypt"]);
@@ -79,7 +76,6 @@ const importKey = async (text: string, hash: RsaHash, want: KeyKind): Promise<Cr
   }
 };
 
-/** The most text, in bytes, that RSA-OAEP can encrypt with a key of this size. */
 export const maxRsaBytes = (bits: number, hash: RsaHash) => bits / 8 - 2 * HASH_BYTES[hash] - 2;
 
 export const encryptRsa = async (plaintext: string, publicKey: string, hash: RsaHash): Promise<{ bytes: Uint8Array; label: string }> => {

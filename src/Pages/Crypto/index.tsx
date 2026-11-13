@@ -36,13 +36,9 @@ import {
   type Mode,
 } from "./shared";
 
-/** Short passphrases can be guessed quickly, so say so before they are used. */
 const SHORT_PASSPHRASE = 12;
 
-/**
- * /encrypt-decrypt?mode=encrypt (default) or ?mode=decrypt. Nothing here is written to
- * storage or the URL: passphrases, keys and text stay in memory in this tab.
- */
+/** /encrypt-decrypt?mode=encrypt|decrypt. Keys and text stay in memory, never in storage or the URL. */
 const EncryptDecrypt = () => {
   const handoff = useHandoff();
   const [params, setParams] = useSearchParams();
@@ -65,12 +61,11 @@ const EncryptDecrypt = () => {
   const input = encrypting ? plain : encrypted;
   const setInput = encrypting ? setPlain : setEncrypted;
   const algorithms = encrypting ? ENCRYPT_ALGORITHMS : DECRYPT_ALGORITHMS;
-  // Decrypt mode only offers "AES (detected)", whichever AES mode was picked while encrypting.
+  // Decrypt only offers "AES (detected)".
   const algorithmValue: Algorithm = !encrypting && !rsa ? "aes-gcm" : algorithm;
   const keyPresent = rsa ? Boolean(encrypting ? keys.publicKey.trim() : keys.privateKey.trim()) : keys.source === "passphrase" ? Boolean(keys.passphrase) : Boolean(keys.rawKey.trim());
   const canRun = Boolean(input.trim()) && keyPresent && job.kind !== "working";
 
-  // An old result no longer matches once anything it came from changes.
   React.useEffect(() => {
     reset();
   }, [mode, algorithm, bits, format, hash, keys, plain, encrypted, reset]);
@@ -106,11 +101,10 @@ const EncryptDecrypt = () => {
         updated.set("mode", next);
         return updated;
       },
-      // Keep router state so a handoff from another tool is not lost on the first switch.
+      // Keep router state so a handoff survives the switch.
       { state: handoff ?? undefined }
     );
 
-  /** Opens what was just encrypted in Decrypt mode, to check it round-trips. */
   const decryptThis = () => {
     if (job.kind !== "done") return;
     setEncrypted(job.output);

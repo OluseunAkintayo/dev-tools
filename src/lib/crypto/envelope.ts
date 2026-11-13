@@ -1,20 +1,12 @@
 import { ToolInputError } from "@/lib/toolError";
 
 /**
- * The layout of text encrypted with a passphrase or key (AES). Everything needed to decrypt
- * it, other than the key itself, is in the first bytes, so a ciphertext can be decrypted on its own.
- *
- *   0-1  "NX"
- *   2    version (1)
- *   3    cipher: 1 = AES-GCM, 2 = AES-CBC
- *   4    key length in bytes: 16, 24 or 32
- *   5    key source: 0 = a raw key, 1 = PBKDF2-SHA-256 from a passphrase
- *   6-9  PBKDF2 iterations, big-endian   (passphrase only)
- *   10   salt length n                   (passphrase only)
- *   11.. salt, n bytes                   (passphrase only)
- *   then the IV (12 bytes for GCM, 16 for CBC), then the ciphertext (GCM includes its 16-byte tag)
- *
- * For GCM the header is also authenticated, so changing it makes decryption fail.
+ * Layout of AES output, so it can be decrypted from the text and key alone:
+ *   0-1  "NX"   2  version (1)   3  cipher (1 GCM, 2 CBC)   4  key bytes (16/24/32)
+ *   5    key source (0 raw key, 1 PBKDF2-SHA-256 passphrase)
+ *   passphrase only: 6-9 iterations (big-endian), 10 salt length n, 11.. salt
+ *   then the IV (12 bytes GCM, 16 CBC) and the ciphertext (GCM includes its tag)
+ * GCM also authenticates the header.
  */
 export const MAGIC = [0x4e, 0x58];
 const VERSION = 1;
@@ -22,19 +14,16 @@ const VERSION = 1;
 export type Cipher = "gcm" | "cbc";
 export const IV_LENGTH: Record<Cipher, number> = { gcm: 12, cbc: 16 };
 export const SALT_LENGTH = 16;
-/** Guards against a pasted header that asks for billions of iterations. */
 export const MAX_ITERATIONS = 10_000_000;
 
 export interface EnvelopeHeader {
   cipher: Cipher;
   keyBytes: 16 | 24 | 32;
-  /** Present when the key came from a passphrase. */
   kdf: { iterations: number; salt: Uint8Array } | null;
 }
 
 export interface Envelope {
   header: EnvelopeHeader;
-  /** The header exactly as read, for GCM to authenticate. */
   headerBytes: Uint8Array;
   iv: Uint8Array;
   data: Uint8Array;
@@ -76,7 +65,6 @@ export const unpackEnvelope = (bytes: Uint8Array): Envelope => {
     return fail("The encrypted text has an unknown key type, so it may be damaged.");
   }
   const ivEnd = offset + IV_LENGTH[cipher];
-  // At least the GCM tag, or one CBC block.
   if (bytes.length < ivEnd + 16) return fail("The encrypted text is cut short, so some of it may be missing.");
   return { header: { cipher, keyBytes, kdf }, headerBytes: bytes.slice(0, offset), iv: bytes.slice(offset, ivEnd), data: bytes.slice(ivEnd) };
 };

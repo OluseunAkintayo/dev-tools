@@ -5,7 +5,6 @@ import { IV_LENGTH, MAX_ITERATIONS, packHeader, SALT_LENGTH, unpackEnvelope, typ
 export type KeyBits = 128 | 192 | 256;
 export type RawKeyEncoding = "hex" | "base64";
 
-/** Where the AES key comes from. */
 export type AesKey = { kind: "passphrase"; passphrase: string; iterations: number } | { kind: "raw"; text: string; encoding: RawKeyEncoding };
 
 export const ITERATION_OPTIONS = [100_000, 310_000, 600_000, 1_000_000];
@@ -17,7 +16,6 @@ const fail = (message: string): never => {
 
 const NAMES: Record<Cipher, "AES-GCM" | "AES-CBC"> = { gcm: "AES-GCM", cbc: "AES-CBC" };
 
-/** "AES-256-GCM" */
 export const describeCipher = (cipher: Cipher, keyBytes: number) => `AES-${keyBytes * 8}-${cipher.toUpperCase()}`;
 
 export const parseRawKey = (text: string, encoding: RawKeyEncoding): Uint8Array => {

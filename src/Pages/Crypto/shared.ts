@@ -18,7 +18,6 @@ export const ENCRYPT_ALGORITHMS: { value: Algorithm; label: string }[] = [
   { value: "rsa-oaep", label: "RSA-OAEP" },
 ];
 
-/** AES settings are read from the encrypted text, so decrypting only needs to know AES or RSA. */
 export const DECRYPT_ALGORITHMS: { value: Algorithm; label: string }[] = [
   { value: "aes-gcm", label: "AES (detected)" },
   { value: "rsa-oaep", label: "RSA-OAEP" },
@@ -39,7 +38,6 @@ export const RAW_ENCODING_OPTIONS: { value: RawKeyEncoding; label: string }[] = 
   { value: "base64", label: "Base64" },
 ];
 
-/** The key material for every algorithm, kept apart so switching algorithm or mode does not lose any. */
 export interface KeyState {
   source: KeySource;
   passphrase: string;
@@ -63,9 +61,6 @@ export const INITIAL_KEYS: KeyState = {
 };
 
 export type KeyUpdate = (patch: Partial<KeyState>) => void;
-
-export const SELECT_CLASS =
-  "h-8 rounded-lg border border-line-strong bg-surface px-2 text-[13px] text-ink outline-none focus-visible:border-brand/60 focus-visible:ring-2 focus-visible:ring-brand/20 disabled:opacity-45";
 
 export const KEY_FIELD_CLASS =
   "block w-full border-t border-line bg-transparent px-4 py-2.5 font-mono text-[13px] leading-6 text-ink-2 caret-brand outline-none placeholder:font-sans placeholder:text-[13px] placeholder:text-ink-3 focus-visible:bg-sunken/40 disabled:opacity-60";

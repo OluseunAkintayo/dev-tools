@@ -14,7 +14,6 @@ interface RsaKeyProps {
   hash: RsaHash;
 }
 
-/** The key area under the input for RSA: the public key to encrypt, or the private key to decrypt. */
 export const RsaKey = ({ mode, keys, update, hash }: RsaKeyProps) => {
   const copy = useCopy();
   const [generating, setGenerating] = React.useState(false);

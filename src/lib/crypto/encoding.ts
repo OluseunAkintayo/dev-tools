@@ -10,7 +10,7 @@ const fail = (message: string): never => {
 
 export const bytesToBase64 = (bytes: Uint8Array): string => {
   let binary = "";
-  // Chunked so a large input does not overflow the argument limit.
+  // Chunked to stay under the argument limit.
   for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
   return btoa(binary);
 };
@@ -23,7 +23,6 @@ export const encodeBytes = (bytes: Uint8Array, format: TextFormat): string => {
   return format === "base64url" ? base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "") : base64;
 };
 
-/** Standard or URL-safe Base64, with or without padding. */
 export const bytesFromBase64 = (text: string): Uint8Array => {
   const compact = text.replace(/\s+/g, "").replace(/-/g, "+").replace(/_/g, "/");
   const unpadded = compact.replace(/=+$/, "");
@@ -42,15 +41,14 @@ export const bytesFromHex = (text: string): Uint8Array => {
 
 export const bytesFrom = (text: string, format: TextFormat): Uint8Array => (format === "hex" ? bytesFromHex(text) : bytesFromBase64(text));
 
-/** The bytes in text that is Base64, Base64url or hex. `format` decides when it could be either. */
 export const decodeCiphertext = (text: string, format: TextFormat, startsWith?: number[]): Uint8Array => {
-  // Hex digits are valid Base64 too, so a known start tells them apart.
+  // Hex is also valid Base64; the known start tells them apart.
   if (startsWith && format !== "hex" && /^(?:0x)?[0-9a-fA-F\s]+$/.test(text)) {
     try {
       const asHex = bytesFromHex(text);
       if (startsWith.every((byte, index) => asHex[index] === byte)) return asHex;
     } catch {
-      // Not hex after all.
+      // Not hex; read as Base64.
     }
   }
   return bytesFrom(text, format);

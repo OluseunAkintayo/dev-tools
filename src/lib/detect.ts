@@ -162,7 +162,7 @@ const detectUuid = (text: string): Detection | null => {
   };
 };
 
-/** Text made by this tool's AES encryption: its header starts "NX" and version 1, which is "TlgB" in Base64 and "4e5801" in hex. */
+/** Output of the Encrypt tool: its "NX" v1 header is "TlgB" in Base64 and "4e5801" in hex. */
 const detectEncrypted = (text: string): Detection | null => {
   if (!/^(?:TlgB[A-Za-z0-9+/_-]{30,}={0,2}|4e5801[0-9a-f]{50,})$/i.test(text.replace(/\s+/g, ""))) return null;
   return { format: "encrypted", label: "Encrypted text", strong: true, suggestions: [{ id: "encrypt", hint: "decrypt with its passphrase or key", options: { mode: "decrypt" } }] };

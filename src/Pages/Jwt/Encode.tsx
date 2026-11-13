@@ -2,6 +2,7 @@ import React from "react";
 import { KeyRound, ShieldCheck, Sparkles } from "lucide-react";
 import { ToolLayout } from "@/components/layout/ToolLayout";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CodeEditor } from "@/components/workspace/CodeEditor";
 import { CodeView } from "@/components/workspace/CodeView";
 import { Segmented } from "@/components/workspace/controls";
@@ -59,9 +60,6 @@ const EXPIRY_OPTIONS = [
 ];
 
 const SAMPLE_PAYLOAD = { sub: "1234567890", name: "John Doe", iat: 1516239022 };
-
-const selectClass =
-  "h-8 rounded-lg border border-line-strong bg-surface px-2 font-mono text-[13px] text-ink outline-none focus-visible:border-brand/60 focus-visible:ring-2 focus-visible:ring-brand/20 disabled:opacity-45";
 
 interface EncodeProps {
   modeControl: React.ReactNode;
@@ -168,32 +166,32 @@ export const JwtEncode = ({ modeControl, seed, onVerify, onSnapshot }: EncodePro
         {modeControl}
         <ToolbarGroup>
           <ToolbarLabel htmlFor="jwt-alg">Algorithm</ToolbarLabel>
-          <select id="jwt-alg" value={alg} onChange={(event) => setAlg(event.target.value as SigningAlg)} className={selectClass}>
-            {SIGNING_ALGORITHMS.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
+          <Select value={alg} onValueChange={(value) => setAlg(value as SigningAlg)}>
+            <SelectTrigger id="jwt-alg" className="font-mono">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {SIGNING_ALGORITHMS.map((option) => (
+                <SelectItem key={option} value={option} className="font-mono">
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </ToolbarGroup>
         <ToolbarGroup>
-          <label className="sr-only" htmlFor="jwt-exp">
-            Set expiry
-          </label>
-          <select
-            id="jwt-exp"
-            value=""
-            disabled={!isPlainObject(payloadValue)}
-            onChange={(event) => event.target.value && setExpiry(Number(event.target.value))}
-            className={selectClass}
-          >
-            <option value="">Set expiry…</option>
-            {EXPIRY_OPTIONS.map((option) => (
-              <option key={option.seconds} value={option.seconds}>
-                Expires in {option.label}
-              </option>
-            ))}
-          </select>
+          <Select value="" disabled={!isPlainObject(payloadValue)} onValueChange={(value) => setExpiry(Number(value))}>
+            <SelectTrigger id="jwt-exp" aria-label="Set expiry">
+              <SelectValue placeholder="Set expiry…" />
+            </SelectTrigger>
+            <SelectContent>
+              {EXPIRY_OPTIONS.map((option) => (
+                <SelectItem key={option.seconds} value={String(option.seconds)}>
+                  Expires in {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button type="button" variant="ghost" size="sm" disabled={!isPlainObject(payloadValue)} onClick={() => updatePayload((value) => ({ ...value, iat: nowSeconds() }))}>
             Set iat to now
           </Button>
