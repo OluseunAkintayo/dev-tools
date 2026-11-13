@@ -1,4 +1,3 @@
-import React from "react";
 import { Braces } from "lucide-react";
 import { ToolLayout } from "@/components/layout/ToolLayout";
 import { CodeEditor } from "@/components/workspace/CodeEditor";
@@ -8,6 +7,7 @@ import { CopyButton, DownloadButton, OpenFileButton, PasteButton } from "@/compo
 import { ClearButton, RunButton } from "@/components/workspace/run";
 import { outputOf, statusFor } from "@/components/workspace/status";
 import { Pane, Panes, StatusBar, Toolbar, ToolbarGroup, ToolbarLabel, ToolbarSpacer } from "@/components/workspace/Workspace";
+import { usePersistentState } from "@/hooks/use-persistent-state";
 import { useFileLoader } from "@/hooks/use-file-loader";
 import { useShortcut } from "@/hooks/use-shortcut";
 import { useToolRunner } from "@/hooks/use-tool-runner";
@@ -20,9 +20,9 @@ const DEFAULT_NAME = "Root";
 
 const InterfaceGenerator = () => {
   const handoff = useHandoff();
-  const [input, setInput] = React.useState(handoff?.input ?? "");
-  const [fileName, setFileName] = React.useState<string | null>(null);
-  const [name, setName] = React.useState(DEFAULT_NAME);
+  const [input, setInput] = usePersistentState("json-to-interface", "input", handoff?.input ?? "");
+  const [fileName, setFileName] = usePersistentState<string | null>("json-to-interface", "fileName", null);
+  const [name, setName] = usePersistentState("json-to-interface", "name", DEFAULT_NAME);
 
   const runner = useToolRunner(input, (text) => generateInterface(parseJson(text), name || DEFAULT_NAME), [name]);
   useShortcut({ key: "Enter", mod: true }, runner.run);

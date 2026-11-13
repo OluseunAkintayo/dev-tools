@@ -10,6 +10,7 @@ import { CopyButton } from "@/components/workspace/actions";
 import { ClearButton } from "@/components/workspace/run";
 import { Pane, Panes, StatusBar, Toolbar, ToolbarGroup, ToolbarLabel, ToolbarSpacer } from "@/components/workspace/Workspace";
 import { useCopy } from "@/hooks/use-copy";
+import { usePersistentState } from "@/hooks/use-persistent-state";
 import { useJwtSigning } from "@/hooks/use-jwt-signing";
 import { useToolRunner } from "@/hooks/use-tool-runner";
 import {
@@ -75,12 +76,15 @@ interface EncodeProps {
 
 export const JwtEncode = ({ modeControl, seed, onVerify, onSnapshot }: EncodeProps) => {
   const seededAlg = seed?.alg ?? SIGNING_ALGORITHMS.find((alg) => alg === seed?.header?.alg);
-  const [alg, setAlg] = React.useState<SigningAlg>(seededAlg ?? "HS256");
-  const [payload, setPayload] = React.useState(() => seed?.payload ?? prettyJson({ sub: "1234567890", name: "John Doe", iat: nowSeconds() }));
-  const [header, setHeader] = React.useState(() => seed?.headerText ?? headerTextWithoutAlg(seed?.header ?? {}));
-  const [editing, setEditing] = React.useState<Editing>("payload");
+  const [alg, setAlg] = usePersistentState<SigningAlg>("jwt:encode", "alg", "HS256", { override: seededAlg });
+  const [payload, setPayload] = usePersistentState("jwt:encode", "payload", () => prettyJson({ sub: "1234567890", name: "John Doe", iat: nowSeconds() }), { override: seed?.payload });
+  const [header, setHeader] = usePersistentState("jwt:encode", "header", () => headerTextWithoutAlg({}), {
+    override: seed?.headerText ?? (seed?.header ? headerTextWithoutAlg(seed.header) : undefined),
+  });
+  const [editing, setEditing] = usePersistentState<Editing>("jwt:encode", "editing", "payload");
+  // The signing key is deliberately plain state: secrets are never saved or shared.
   const [key, setKey] = React.useState(seed?.key ?? "");
-  const [encoding, setEncoding] = React.useState<SecretEncoding>(seed?.encoding ?? "utf8");
+  const [encoding, setEncoding] = usePersistentState<SecretEncoding>("jwt:encode", "encoding", "utf8", { override: seed?.encoding });
 
   React.useEffect(() => {
     onSnapshot({ payload, headerText: header, alg, key, encoding });
@@ -164,7 +168,7 @@ export const JwtEncode = ({ modeControl, seed, onVerify, onSnapshot }: EncodePro
           : { kind: "idle" as const, label: key ? "Waiting for valid JSON" : `Add a ${symmetric ? "secret" : "private key"} to sign` };
 
   return (
-    <ToolLayout toolId="jwt">
+    <ToolLayout toolId="jwt" shareScope="jwt:encode" shareHasSecrets>
       <Toolbar>
         {modeControl}
         <ToolbarGroup>

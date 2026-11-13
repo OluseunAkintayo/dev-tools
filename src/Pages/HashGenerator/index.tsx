@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/workspace/Feedback";
 import { CopyButton, OpenFileButton, PasteButton } from "@/components/workspace/actions";
 import { ClearButton } from "@/components/workspace/run";
 import { Pane, Panes, StatusBar, Toolbar, ToolbarGroup, ToolbarLabel, ToolbarSpacer } from "@/components/workspace/Workspace";
+import { usePersistentState } from "@/hooks/use-persistent-state";
 import { useHashes } from "@/hooks/use-hashes";
 import { useHandoff } from "@/lib/handoff";
 import { findMatch, formatDigest, HASH_ALGORITHMS, keyBytes, WEAK_ALGORITHMS, type DigestFormat, type KeyEncoding } from "@/lib/hash";
@@ -31,13 +32,14 @@ const fieldClass =
 
 const HashGenerator = () => {
   const handoff = useHandoff();
-  const [input, setInput] = React.useState(handoff?.input ?? "");
+  const [input, setInput] = usePersistentState("hash", "input", handoff?.input ?? "");
   const [file, setFile] = React.useState<File | null>(null);
-  const [format, setFormat] = React.useState<DigestFormat>("hex");
-  const [hmac, setHmac] = React.useState(false);
+  const [format, setFormat] = usePersistentState<DigestFormat>("hash", "format", "hex");
+  const [hmac, setHmac] = usePersistentState("hash", "hmac", false);
+  // The HMAC key is deliberately plain state: secrets are never saved or shared.
   const [key, setKey] = React.useState("");
-  const [keyEncoding, setKeyEncoding] = React.useState<KeyEncoding>("text");
-  const [expected, setExpected] = React.useState("");
+  const [keyEncoding, setKeyEncoding] = usePersistentState<KeyEncoding>("hash", "keyEncoding", "text");
+  const [expected, setExpected] = usePersistentState("hash", "expected", "");
 
   // A stable key object, so hashing only re-runs when the key actually changes.
   const keyResult = React.useMemo(() => {
@@ -75,7 +77,7 @@ const HashGenerator = () => {
   };
 
   return (
-    <ToolLayout toolId="hash">
+    <ToolLayout toolId="hash" shareHasSecrets>
       <Toolbar>
         <ToolbarGroup>
           <ToolbarLabel>Output</ToolbarLabel>

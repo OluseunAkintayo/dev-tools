@@ -8,6 +8,7 @@ import { EmptyState, ErrorNotice } from "@/components/workspace/Feedback";
 import { CopyButton, OpenFileButton, PasteButton } from "@/components/workspace/actions";
 import { ClearButton } from "@/components/workspace/run";
 import { Pane, Panes, StatusBar, Toolbar, ToolbarGroup, ToolbarSpacer } from "@/components/workspace/Workspace";
+import { usePersistentState } from "@/hooks/use-persistent-state";
 import { useFileLoader } from "@/hooks/use-file-loader";
 import { useToolRunner } from "@/hooks/use-tool-runner";
 import { diffJson, diffReport, type ChangeKind } from "@/lib/jsonDiff";
@@ -18,12 +19,12 @@ import { ChangeList } from "./ChangeList";
 type Filter = "all" | ChangeKind;
 
 const JsonDiff = () => {
-  const [left, setLeft] = React.useState("");
-  const [right, setRight] = React.useState("");
-  const [leftName, setLeftName] = React.useState<string | null>(null);
-  const [rightName, setRightName] = React.useState<string | null>(null);
-  const [ignoreArrayOrder, setIgnoreArrayOrder] = React.useState(false);
-  const [filter, setFilter] = React.useState<Filter>("all");
+  const [left, setLeft] = usePersistentState("json-diff", "left", "");
+  const [right, setRight] = usePersistentState("json-diff", "right", "");
+  const [leftName, setLeftName] = usePersistentState<string | null>("json-diff", "leftName", null);
+  const [rightName, setRightName] = usePersistentState<string | null>("json-diff", "rightName", null);
+  const [ignoreArrayOrder, setIgnoreArrayOrder] = usePersistentState("json-diff", "ignoreArrayOrder", false);
+  const [filter, setFilter] = usePersistentState<Filter>("json-diff", "filter", "all");
 
   const leftRunner = useToolRunner(left, parseJson, []);
   const rightRunner = useToolRunner(right, parseJson, []);

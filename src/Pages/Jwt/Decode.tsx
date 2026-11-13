@@ -10,6 +10,7 @@ import { CopyButton, PasteButton } from "@/components/workspace/actions";
 import { ClearButton } from "@/components/workspace/run";
 import { outputOf, statusFor } from "@/components/workspace/status";
 import { Pane, Panes, StatusBar, Toolbar, ToolbarGroup, ToolbarSpacer } from "@/components/workspace/Workspace";
+import { usePersistentState } from "@/hooks/use-persistent-state";
 import { useJwtVerification } from "@/hooks/use-jwt-verification";
 import { useToolRunner } from "@/hooks/use-tool-runner";
 import { useHandoff } from "@/lib/handoff";
@@ -49,14 +50,15 @@ interface DecodeProps {
 
 export const JwtDecode = ({ modeControl, seed, onEditPayload, onSnapshot }: DecodeProps) => {
   const handoff = useHandoff();
-  const [input, setInput] = React.useState(seed?.token ?? handoff?.input ?? "");
+  // The key is deliberately plain state: secrets are never saved or shared.
+  const [input, setInput] = usePersistentState("jwt:decode", "token", handoff?.input ?? "", { override: seed?.token });
   const [key, setKey] = React.useState(seed?.key ?? "");
-  const [encoding, setEncoding] = React.useState<SecretEncoding>(seed?.encoding ?? "utf8");
+  const [encoding, setEncoding] = usePersistentState<SecretEncoding>("jwt:decode", "encoding", "utf8", { override: seed?.encoding });
 
   React.useEffect(() => {
     onSnapshot({ token: input, key, encoding });
   }, [input, key, encoding, onSnapshot]);
-  const [view, setView] = React.useState<View>("payload");
+  const [view, setView] = usePersistentState<View>("jwt:decode", "view", "payload");
 
   const runner = useToolRunner(input, decodeJwt, []);
   const decoded = runner.outcome.kind === "ok" ? runner.outcome.value : null;
@@ -108,6 +110,8 @@ export const JwtDecode = ({ modeControl, seed, onEditPayload, onSnapshot }: Deco
   return (
     <ToolLayout
       toolId="jwt"
+      shareScope="jwt:decode"
+      shareHasSecrets
       next={[
         { to: "json-formatter", label: "Open payload in JSON Formatter", handoff: payloadJson ? { input: payloadJson } : undefined },
         { to: "json-to-interface", label: "Generate interface from payload", handoff: payloadJson ? { input: payloadJson } : undefined },

@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/workspace/Feedback";
 import { CopyButton, PasteButton } from "@/components/workspace/actions";
 import { ClearButton } from "@/components/workspace/run";
 import { Pane, Panes, StatusBar, Toolbar, ToolbarGroup, ToolbarSpacer } from "@/components/workspace/Workspace";
+import { usePersistentState } from "@/hooks/use-persistent-state";
 import { useRegex } from "@/hooks/use-regex";
 import { MAX_MATCHES, normaliseFlags, REGEX_TIMEOUT_MS, type RegexFlag } from "@/lib/regex";
 import { REGEX_PRESETS } from "@/lib/regexPresets";
@@ -26,11 +27,11 @@ const VIEW_OPTIONS: { value: View; label: string }[] = [
 const PRESET_OPTIONS = REGEX_PRESETS.map((preset) => ({ value: preset.id, label: preset.label, hint: preset.group, keywords: preset.description }));
 
 const RegexTester = () => {
-  const [pattern, setPattern] = React.useState("");
-  const [flags, setFlags] = React.useState("g");
-  const [text, setText] = React.useState("");
-  const [view, setView] = React.useState<View>("matches");
-  const [replacement, setReplacement] = React.useState("");
+  const [pattern, setPattern] = usePersistentState("regex", "pattern", "");
+  const [flags, setFlags] = usePersistentState("regex", "flags", "g");
+  const [text, setText] = usePersistentState("regex", "text", "");
+  const [view, setView] = usePersistentState<View>("regex", "view", "matches");
+  const [replacement, setReplacement] = usePersistentState("regex", "replacement", "");
   const [active, setActive] = React.useState<number | null>(null);
 
   const state = useRegex(pattern, flags, text, view === "replace" ? replacement : undefined);

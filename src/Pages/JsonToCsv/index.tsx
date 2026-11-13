@@ -1,4 +1,3 @@
-import React from "react";
 import { ArrowLeftRight, Sheet } from "lucide-react";
 import { ToolLayout } from "@/components/layout/ToolLayout";
 import { CodeEditor } from "@/components/workspace/CodeEditor";
@@ -9,6 +8,7 @@ import { CopyButton, DownloadButton, OpenFileButton, PasteButton } from "@/compo
 import { ClearButton, RunButton } from "@/components/workspace/run";
 import { outputOf, statusFor } from "@/components/workspace/status";
 import { Pane, Panes, StatusBar, Toolbar, ToolbarGroup, ToolbarSpacer } from "@/components/workspace/Workspace";
+import { usePersistentState } from "@/hooks/use-persistent-state";
 import { useFileLoader } from "@/hooks/use-file-loader";
 import { useShortcut } from "@/hooks/use-shortcut";
 import { useToolRunner } from "@/hooks/use-tool-runner";
@@ -21,9 +21,9 @@ type View = "table" | "csv";
 
 const JsonToCsv = () => {
   const handoff = useHandoff();
-  const [input, setInput] = React.useState(handoff?.input ?? "");
-  const [fileName, setFileName] = React.useState<string | null>(null);
-  const [view, setView] = React.useState<View>("table");
+  const [input, setInput] = usePersistentState("json-to-csv", "input", handoff?.input ?? "");
+  const [fileName, setFileName] = usePersistentState<string | null>("json-to-csv", "fileName", null);
+  const [view, setView] = usePersistentState<View>("json-to-csv", "view", "table");
 
   const runner = useToolRunner(input, jsonToCsv, []);
   useShortcut({ key: "Enter", mod: true }, runner.run);

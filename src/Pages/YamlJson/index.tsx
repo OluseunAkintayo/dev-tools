@@ -9,6 +9,7 @@ import { CopyButton, DownloadButton, OpenFileButton, PasteButton } from "@/compo
 import { ClearButton, RunButton } from "@/components/workspace/run";
 import { outputOf, statusFor } from "@/components/workspace/status";
 import { Pane, Panes, StatusBar, Toolbar, ToolbarGroup, ToolbarLabel, ToolbarSpacer } from "@/components/workspace/Workspace";
+import { usePersistentState } from "@/hooks/use-persistent-state";
 import { useFileLoader } from "@/hooks/use-file-loader";
 import { useShortcut } from "@/hooks/use-shortcut";
 import { useToolRunner } from "@/hooks/use-tool-runner";
@@ -25,9 +26,9 @@ const INDENT_OPTIONS: { value: JsonIndent; label: string }[] = [
 
 const YamlToJson = () => {
   const handoff = useHandoff();
-  const [input, setInput] = React.useState(handoff?.input ?? "");
-  const [fileName, setFileName] = React.useState<string | null>(null);
-  const [indent, setIndent] = React.useState<JsonIndent>("2");
+  const [input, setInput] = usePersistentState("yaml-to-json", "input", handoff?.input ?? "");
+  const [fileName, setFileName] = usePersistentState<string | null>("yaml-to-json", "fileName", null);
+  const [indent, setIndent] = usePersistentState<JsonIndent>("yaml-to-json", "indent", "2");
 
   const runner = useToolRunner(input, (text) => yamlToJson(text, indent), [indent]);
   useShortcut({ key: "Enter", mod: true }, runner.run);

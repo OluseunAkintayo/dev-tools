@@ -1,4 +1,3 @@
-import React from "react";
 import { ArrowLeftRight, FileJson } from "lucide-react";
 import { ToolLayout } from "@/components/layout/ToolLayout";
 import { CodeEditor } from "@/components/workspace/CodeEditor";
@@ -9,6 +8,7 @@ import { CopyButton, DownloadButton, OpenFileButton, PasteButton } from "@/compo
 import { ClearButton, RunButton } from "@/components/workspace/run";
 import { outputOf, statusFor } from "@/components/workspace/status";
 import { Pane, Panes, StatusBar, Toolbar, ToolbarGroup, ToolbarLabel, ToolbarSpacer } from "@/components/workspace/Workspace";
+import { usePersistentState } from "@/hooks/use-persistent-state";
 import { useFileLoader } from "@/hooks/use-file-loader";
 import { useShortcut } from "@/hooks/use-shortcut";
 import { useToolRunner } from "@/hooks/use-tool-runner";
@@ -19,12 +19,12 @@ import { DELIMITER_OPTIONS, initialChoice, type DelimiterChoice } from "./delimi
 
 const CsvToJson = () => {
   const handoff = useHandoff();
-  const [input, setInput] = React.useState(handoff?.input ?? "");
-  const [fileName, setFileName] = React.useState<string | null>(null);
-  const [choice, setChoice] = React.useState<DelimiterChoice>(() => initialChoice(handoff?.options?.delimiter));
-  const [custom, setCustom] = React.useState("");
-  const [detectTypes, setDetectTypes] = React.useState(true);
-  const [nestKeys, setNestKeys] = React.useState(true);
+  const [input, setInput] = usePersistentState("csv-to-json", "input", handoff?.input ?? "");
+  const [fileName, setFileName] = usePersistentState<string | null>("csv-to-json", "fileName", null);
+  const [choice, setChoice] = usePersistentState<DelimiterChoice>("csv-to-json", "choice", () => initialChoice(handoff?.options?.delimiter));
+  const [custom, setCustom] = usePersistentState("csv-to-json", "custom", "");
+  const [detectTypes, setDetectTypes] = usePersistentState("csv-to-json", "detectTypes", true);
+  const [nestKeys, setNestKeys] = usePersistentState("csv-to-json", "nestKeys", true);
 
   const delimiter = choice === "custom" ? (custom === "\\t" ? "\t" : custom) : choice;
 

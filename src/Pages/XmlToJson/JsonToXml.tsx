@@ -8,6 +8,7 @@ import { CopyButton, DownloadButton, OpenFileButton, PasteButton } from "@/compo
 import { ClearButton, RunButton } from "@/components/workspace/run";
 import { outputOf, statusFor } from "@/components/workspace/status";
 import { Pane, Panes, StatusBar, Toolbar, ToolbarGroup, ToolbarSpacer } from "@/components/workspace/Workspace";
+import { usePersistentState } from "@/hooks/use-persistent-state";
 import { useFileLoader } from "@/hooks/use-file-loader";
 import { useShortcut } from "@/hooks/use-shortcut";
 import { useToolRunner } from "@/hooks/use-tool-runner";
@@ -18,8 +19,8 @@ import { jsonToXml } from "@/lib/xml";
 
 const JsonToXml = () => {
   const handoff = useHandoff();
-  const [input, setInput] = React.useState(handoff?.input ?? "");
-  const [fileName, setFileName] = React.useState<string | null>(null);
+  const [input, setInput] = usePersistentState("json-to-xml", "input", handoff?.input ?? "");
+  const [fileName, setFileName] = usePersistentState<string | null>("json-to-xml", "fileName", null);
 
   const runner = useToolRunner(input, jsonToXml, []);
   useShortcut({ key: "Enter", mod: true }, runner.run);

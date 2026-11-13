@@ -11,6 +11,7 @@ import { CopyButton, DownloadButton, PasteButton } from "@/components/workspace/
 import { ClearButton, RunButton } from "@/components/workspace/run";
 import { outputOf, statusFor } from "@/components/workspace/status";
 import { Pane, Panes, StatusBar, Toolbar, ToolbarGroup, ToolbarSpacer } from "@/components/workspace/Workspace";
+import { usePersistentState } from "@/hooks/use-persistent-state";
 import { useShortcut } from "@/hooks/use-shortcut";
 import { useToolRunner } from "@/hooks/use-tool-runner";
 import { decodeFromBase64, encodeToBase64, validateBase64Input } from "@/lib/base64";
@@ -26,8 +27,8 @@ const MODE_OPTIONS: { value: Mode; label: string }[] = [
 
 const Base64EncoderDecoder = () => {
   const handoff = useHandoff();
-  const [mode, setMode] = React.useState<Mode>(handoff?.options?.mode === "decode" ? "decode" : "encode");
-  const [input, setInput] = React.useState(handoff?.input ?? "");
+  const [mode, setMode] = usePersistentState<Mode>("base64", "mode", handoff?.options?.mode === "decode" ? "decode" : "encode");
+  const [input, setInput] = usePersistentState("base64", "input", handoff?.input ?? "");
 
   const runner = useToolRunner(
     input,

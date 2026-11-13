@@ -10,6 +10,7 @@ import { CopyButton, PasteButton } from "@/components/workspace/actions";
 import { ClearButton } from "@/components/workspace/run";
 import { outputOf, statusFor } from "@/components/workspace/status";
 import { Pane, Panes, StatusBar, Toolbar, ToolbarGroup, ToolbarLabel, ToolbarSpacer } from "@/components/workspace/Workspace";
+import { usePersistentState } from "@/hooks/use-persistent-state";
 import { useNow } from "@/hooks/use-now";
 import { useToolRunner } from "@/hooks/use-tool-runner";
 import { useHandoff } from "@/lib/handoff";
@@ -28,9 +29,9 @@ const fieldClass =
 
 const TimestampConverter = () => {
   const handoff = useHandoff();
-  const [input, setInput] = React.useState(handoff?.input ?? "");
-  const [unit, setUnit] = React.useState<TimestampUnit>("auto");
-  const [timeZone, setTimeZone] = React.useState(localTimeZone);
+  const [input, setInput] = usePersistentState("timestamp", "input", handoff?.input ?? "");
+  const [unit, setUnit] = usePersistentState<TimestampUnit>("timestamp", "unit", "auto");
+  const [timeZone, setTimeZone] = usePersistentState("timestamp", "timeZone", localTimeZone);
   // Offsets are taken once on load; they only change at DST transitions.
   const zones = React.useMemo(() => timeZoneOptions(), []);
   const now = useNow();
