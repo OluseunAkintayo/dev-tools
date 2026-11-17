@@ -3,10 +3,6 @@ import { signJwt, type SecretEncoding, type SignResult, type SigningAlg } from "
 
 export type Signing = { kind: "idle" } | { kind: "signing" } | ({ kind: "done" } & SignResult);
 
-/**
- * Re-signs the token whenever its inputs change. Stays idle until the header and
- * payload are valid (not undefined) and a key is present.
- */
 export const useJwtSigning = (
   alg: SigningAlg,
   header: Record<string, unknown> | undefined,

@@ -2,7 +2,6 @@ import React from "react";
 import { previewValue, type Change, type ChangeKind } from "@/lib/jsonDiff";
 import { cn } from "@/lib/utils";
 
-/** Rows rendered at once; the rest are reachable through "Show more". */
 const PAGE_SIZE = 200;
 
 const BADGE: Record<ChangeKind, { label: string; className: string; sign: string }> = {
@@ -11,7 +10,6 @@ const BADGE: Record<ChangeKind, { label: string; className: string; sign: string
   changed: { label: "Changed", sign: "~", className: "border-warn/25 bg-warn/10 text-warn" },
 };
 
-/** Differences in document order: kind, JSONPath, and the old and new values. */
 export const ChangeList = ({ changes }: { changes: Change[] }) => {
   const [limit, setLimit] = React.useState(PAGE_SIZE);
   React.useEffect(() => setLimit(PAGE_SIZE), [changes]);

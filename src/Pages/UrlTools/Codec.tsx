@@ -35,7 +35,6 @@ interface CodecProps {
   onInputChange: (value: string) => void;
   encoding: UrlEncoding;
   onEncodingChange: (value: UrlEncoding) => void;
-  /** Put `text` in the input and flip direction. */
   onSwap: (text: string) => void;
 }
 

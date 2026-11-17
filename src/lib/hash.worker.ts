@@ -1,12 +1,11 @@
 import { digestAll, type HashWorkerRequest, type HashWorkerResponse } from "@/lib/hash";
 
-// Typed loosely so this file does not need the WebWorker lib, which conflicts with DOM types.
+// Typed loosely: the WebWorker lib conflicts with DOM types.
 const scope = self as unknown as {
   postMessage: (message: HashWorkerResponse) => void;
   onmessage: ((event: MessageEvent<HashWorkerRequest>) => void) | null;
 };
 
-/** Reads the file in chunks (reporting progress), then hashes it with every algorithm. */
 scope.onmessage = async (event) => {
   const { file, key } = event.data;
   try {

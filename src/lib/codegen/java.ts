@@ -3,7 +3,7 @@ import { uniqueName, upperFirst, type NamingRules } from "./naming";
 import type { CodeOptions, EmitResult, LanguageSpec } from "./types";
 
 const KEYWORDS = new Set(
-  // Keywords and literals, plus names a record component may not have (they clash with Object's methods).
+  // Keywords, literals, and names that clash with Object's methods.
   "abstract assert boolean break byte case catch char class const continue default do double else enum extends final finally float for goto if implements import instanceof int interface long native new package private protected public return short static strictfp super switch synchronized this throw throws transient try void volatile while true false null _ clone finalize getClass hashCode notify notifyAll toString wait".split(" ")
 );
 
@@ -19,7 +19,7 @@ export const javaRules: NamingRules = {
   reservedTypes: new Set(["Boolean", "Double", "Integer", "JsonAutoDetect", "JsonProperty", "List", "Long", "Map", "Object", "Override", "Record", "String", "Visibility"]),
 };
 
-/** `boxed` is needed inside generics and wherever null is possible. */
+/** Boxed inside generics and wherever null is possible. */
 const typeOf = (ref: TypeRef, boxed: boolean): string => {
   switch (ref.kind) {
     case "string":
@@ -65,14 +65,14 @@ const asRecord = (decl: TypeDecl, nested: string[]) => {
 /** The property name Jackson derives from a getter: leading capitals are lowered, so getHTTPStatus is "httpstatus". */
 const impliedName = (accessorSuffix: string) => accessorSuffix.replace(/^[A-Z]+/, (capitals) => capitals.toLowerCase());
 const asClass = (decl: TypeDecl, nested: string[], isNested: boolean) => {
-  // getClass() is final in Object, and two fields may differ only by case, so accessor names are made unique.
+  // getClass() is final in Object and fields may differ only by case, so accessor names are made unique.
   const taken = new Set(["Class"]);
   const accessorNames = decl.fields.map((field) => {
     const suffix = uniqueName(upperFirst(field.name), taken);
     taken.add(suffix);
     return suffix;
   });
-  // Jackson pairs a field with its getter by name. When the two differ it would see two properties, so it reads fields only.
+  // Jackson pairs a field with its getter by name; when they differ it sees two properties, so it reads fields only.
   const byField = decl.fields.some((field, index) => annotation(field) || impliedName(accessorNames[index]) !== field.name);
   const fields = decl.fields.map((field) => `${annotation(field) ? `    ${annotation(field)}\n` : ""}    private ${fieldType(field)} ${field.name};`);
   const accessors = decl.fields.map((field, index) => {
@@ -92,7 +92,7 @@ const emit = (model: Model, options: CodeOptions): EmitResult => {
   const [root, ...rest] = model.types;
   const record = options.javaKind === "record";
   const render = (decl: TypeDecl, nested: string[], isNested: boolean) => (record ? asRecord(decl, nested) : asClass(decl, nested, isNested));
-  // Every other type is nested directly in the root, so they all resolve by simple name.
+  // Every other type is nested in the root, so all resolve by simple name.
   const body = render(root, rest.map((decl) => render(decl, [], true)), false);
   const imports = [
     /@JsonAutoDetect/.test(body) && "import com.fasterxml.jackson.annotation.JsonAutoDetect;",

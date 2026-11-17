@@ -12,21 +12,16 @@ const MODE_OPTIONS: { value: Mode; label: string }[] = [
   { value: "encode", label: "Encode" },
 ];
 
-/** A token or payload handed from one mode to the other (Verify, Edit and re-sign). */
 type Transfer = { mode: "decode"; seed: DecodeSeed } | { mode: "encode"; seed: EncodeSeed };
 
-/**
- * /jwt?mode=decode (default) or /jwt?mode=encode. The mode lives in the URL so it can be
- * linked to and survives back/forward; each mode's inputs are kept while switching.
- */
+/** /jwt?mode=decode|encode. The mode is in the URL so it survives back/forward; each mode keeps its inputs while switching. */
 const JwtTool = () => {
   const handoff = useHandoff();
   const [params, setParams] = useSearchParams();
   const requested = params.get("mode") ?? handoff?.options?.mode;
   const mode: Mode = requested === "encode" ? "encode" : "decode";
 
-  // The last state of each mode, so switching back restores what was there.
-  // A transfer (Verify, Edit and re-sign) simply overwrites the target mode's snapshot.
+  // Each mode's last state, restored on switch back; a transfer overwrites the target's snapshot.
   const decodeSnapshot = React.useRef<DecodeSeed>();
   const encodeSnapshot = React.useRef<EncodeSeed>();
   const saveDecode = React.useCallback((snapshot: DecodeSeed) => {
@@ -43,7 +38,7 @@ const JwtTool = () => {
         updated.set("mode", next);
         return updated;
       },
-      // Keep router state so a handoff from another tool is not lost on the first switch.
+      // Keep router state so a handoff survives the first switch.
       { state: handoff ?? undefined }
     );
 
@@ -55,7 +50,7 @@ const JwtTool = () => {
 
   const modeControl = <Segmented label="Mode" value={mode} options={MODE_OPTIONS} onChange={goTo} />;
 
-  // key={mode} remounts the panel on every switch, so it starts from its snapshot.
+  // key={mode} remounts the panel so it starts from its snapshot.
   return mode === "decode" ? (
     <JwtDecode key="decode" modeControl={modeControl} seed={decodeSnapshot.current} onSnapshot={saveDecode} onEditPayload={(seed) => send({ mode: "encode", seed })} />
   ) : (

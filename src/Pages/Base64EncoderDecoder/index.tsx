@@ -55,7 +55,6 @@ const Base64EncoderDecoder = () => {
     [input, output]
   );
 
-  /** Move the result into the input and flip direction, for quick round-trips. */
   const swap = () => {
     if (!output) return;
     setInput(output);

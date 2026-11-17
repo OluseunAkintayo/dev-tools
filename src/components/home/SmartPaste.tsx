@@ -22,17 +22,13 @@ type Mode = { kind: "empty" } | { kind: "search"; query: string } | { kind: "dat
 const resolveMode = (value: string): Mode => {
   if (!value.trim()) return { kind: "empty" };
   const detection = detectFormat(value);
-  // A JWT, URL, UUID or timestamp is never a search query, however short.
+  // A JWT, URL, UUID or timestamp is never a search query.
   if (detection?.strong) return { kind: "data", detection };
   if (looksLikeSearch(value) && searchTools(value).length > 0) return { kind: "search", query: value };
   if (detection) return { kind: "data", detection };
   return looksLikeSearch(value) ? { kind: "search", query: value } : { kind: "text" };
 };
 
-/**
- * One box for both jobs: type to search tools, or paste data to get the
- * right tool suggested. Enter opens the highlighted option with the data.
- */
 export const SmartPaste = () => {
   const navigate = useNavigate();
   const [value, setValue] = React.useState("");
@@ -72,7 +68,6 @@ export const SmartPaste = () => {
 
   React.useEffect(() => setActive(0), [options]);
 
-  // Grow with content up to MAX_ROWS, then scroll.
   React.useLayoutEffect(() => {
     const element = inputRef.current;
     if (!element) return;

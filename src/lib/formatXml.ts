@@ -1,6 +1,5 @@
-// Format XML output for readability
 export const formatXml = (xmlString: string) => {
-  const PADDING = " ".repeat(2); // set desired indent size here
+  const PADDING = " ".repeat(2);
   const reg = /(>)(<)(\/*)/g;
   let formatted = "";
   let pad = 0;

@@ -1,9 +1,6 @@
 import { useToast } from "@/hooks/use-toast";
 
-/**
- * Copies text to the clipboard. Success is shown inline by the caller
- * (see CopyButton); only failures raise a toast.
- */
+/** Only failures raise a toast; success is shown by the caller. */
 export const useCopy = () => {
   const { toast } = useToast();
   return async (text: string): Promise<boolean> => {

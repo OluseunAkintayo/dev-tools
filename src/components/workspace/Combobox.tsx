@@ -5,30 +5,23 @@ import { cn } from "@/lib/utils";
 export interface ComboboxOption {
   value: string;
   label: string;
-  /** Secondary text on the right, e.g. an offset. */
   hint?: string;
-  /** Extra text that search should match but that is not shown. */
+  /** Matched by search but not shown. */
   keywords?: string;
 }
 
 interface ComboboxProps {
   id: string;
-  /** Accessible name, e.g. "Time zone". */
   label: string;
   value: string;
   options: ComboboxOption[];
   onChange: (value: string) => void;
-  /** Shown when nothing matches the search. */
   emptyText?: string;
-  /** Shown in the field when no option is selected. */
   placeholder?: string;
   className?: string;
 }
 
-/**
- * A text field that filters a list as you type (ARIA 1.2 combobox with a listbox popup).
- * ↑/↓ move, Enter picks, Escape restores the current value. Every typed word must match.
- */
+/** ↑/↓ move, Enter picks, Escape restores. Every typed word must match. */
 export const Combobox = ({ id, label, value, options, onChange, emptyText = "No matches", placeholder = "Search", className }: ComboboxProps) => {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
@@ -42,8 +35,7 @@ export const Combobox = ({ id, label, value, options, onChange, emptyText = "No 
   const filtered = React.useMemo(() => {
     const words = query.toLowerCase().split(/\s+/).filter(Boolean);
     if (!words.length) return options;
-    // Rank: label starts with the query, then label contains every word, then any match
-    // (value, hint or keywords). The sort is stable, so ties keep their original order.
+    // Rank: label prefix, then every word in the label, then any match. Stable sort.
     const phrase = words.join(" ");
     const ranked: { option: ComboboxOption; rank: number }[] = [];
     for (const option of options) {
@@ -55,7 +47,6 @@ export const Combobox = ({ id, label, value, options, onChange, emptyText = "No 
     return ranked.sort((a, b) => a.rank - b.rank).map((entry) => entry.option);
   }, [options, query]);
 
-  // Keep the highlighted option in view while moving with the keyboard.
   React.useEffect(() => {
     if (!open) return;
     listRef.current?.querySelector<HTMLElement>(`[data-index="${active}"]`)?.scrollIntoView({ block: "nearest" });
@@ -136,7 +127,7 @@ export const Combobox = ({ id, label, value, options, onChange, emptyText = "No 
           id={listId}
           role="listbox"
           aria-label={label}
-          // Keep focus in the input when clicking an option, so blur does not close the list first.
+          // Keep focus in the input so blur does not close the list before the click.
           onMouseDown={(event) => event.preventDefault()}
           className="absolute left-0 top-[calc(100%+4px)] z-30 max-h-72 w-full min-w-[18rem] animate-fade-in overflow-auto rounded-xl border border-line-strong bg-surface p-1 shadow-lift"
         >

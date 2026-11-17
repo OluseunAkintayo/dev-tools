@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { ArrowLeftRight, BadgeCheck, Binary, Braces, Clock, FileCode2, FileJson, FileText, Fingerprint, FlaskConical, GitCompareArrows, IdCard, KeyRound, Link2, Palette, Regex, Sheet, WandSparkles } from "lucide-react";
+import { ArrowLeftRight, BadgeCheck, Binary, Braces, Clock, FileCode2, FileJson, FileText, Fingerprint, FlaskConical, GitCompareArrows, IdCard, KeyRound, Link2, Lock, Palette, Regex, Sheet, WandSparkles } from "lucide-react";
 
 export type CategoryId = "format" | "convert" | "generate" | "encode" | "compare" | "test" | "design";
 
@@ -30,6 +30,7 @@ export type ToolId =
   | "timestamp"
   | "url"
   | "hash"
+  | "encrypt"
   | "uuid"
   | "csv-to-json"
   | "json-to-csv"
@@ -42,18 +43,14 @@ export type ToolId =
 export interface Tool {
   id: ToolId;
   title: string;
-  /** One-line summary used on cards and in the command menu. */
   description: string;
-  /** Sentence shown under the tool page heading. */
   intro: string;
   category: CategoryId;
   icon: LucideIcon;
   link: string;
   status: "live" | "soon";
   keywords: string[];
-  /** Landing grid footprint when the "All" filter is active. */
   size: "feature" | "wide" | "normal" | "banner";
-  /** Input/output format pair, shown on converter cards. */
   pair?: [string, string];
 }
 
@@ -180,6 +177,19 @@ export const tools: Tool[] = [
     size: "normal",
   },
   {
+    id: "encrypt",
+    title: "Encrypt / Decrypt",
+    description: "AES-GCM, AES-CBC and RSA-OAEP, with a passphrase or key.",
+    intro: "Encrypt text with a passphrase, a raw AES key or an RSA public key, and decrypt it again. It all happens in your browser, and nothing is stored.",
+    category: "encode",
+    icon: Lock,
+    link: "/encrypt-decrypt",
+    status: "live",
+    keywords: ["encrypt", "decrypt", "encryption", "decryption", "aes", "aes-gcm", "gcm", "cbc", "rsa", "oaep", "passphrase", "password", "pbkdf2", "cipher", "key", "secret", "crypto"],
+    size: "normal",
+    pair: ["Text", "Cipher"],
+  },
+  {
     id: "uuid",
     title: "UUID Generator",
     description: "Random v4 or time-ordered v7 UUIDs, in bulk. Inspect any UUID.",
@@ -293,7 +303,6 @@ export const getCategory = (id: CategoryId): Category => categories.find((item) 
 
 export const countByCategory = (id: CategoryId) => tools.filter((tool) => tool.category === id).length;
 
-/** Case-insensitive search over title, category and keywords. Title matches rank first. */
 export const searchTools = (query: string): Tool[] => {
   const q = query.trim().toLowerCase();
   if (!q) return tools;

@@ -10,7 +10,6 @@ import { getTool, type ToolId } from "@/lib/tools";
 export interface NextStep {
   to: ToolId;
   label: string;
-  /** Output to carry into the next tool, if any. */
   handoff?: Handoff;
 }
 
@@ -18,10 +17,10 @@ interface ToolLayoutProps {
   toolId: ToolId;
   children: React.ReactNode;
   next?: NextStep[];
-  /** The usePersistentState scope the Share button links to; defaults to toolId. */
   shareScope?: string;
-  /** The tool takes a key or secret, which share links leave out. */
   shareHasSecrets?: boolean;
+  /** Hide the Share button for tools that save nothing. */
+  shareable?: boolean;
 }
 
 const NextSteps = ({ steps }: { steps: NextStep[] }) => (
@@ -45,7 +44,7 @@ const NextSteps = ({ steps }: { steps: NextStep[] }) => (
   </nav>
 );
 
-export const ToolLayout = ({ toolId, children, next, shareScope, shareHasSecrets = false }: ToolLayoutProps) => {
+export const ToolLayout = ({ toolId, children, next, shareScope, shareHasSecrets = false, shareable = true }: ToolLayoutProps) => {
   const tool = getTool(toolId);
   useDocumentTitle(`${tool.title} | NexTools`);
 
@@ -58,7 +57,7 @@ export const ToolLayout = ({ toolId, children, next, shareScope, shareHasSecrets
             <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.025em] sm:text-[30px]">{tool.title}</h1>
             <p className="mt-1.5 max-w-[65ch] text-[15px] text-ink-3">{tool.intro}</p>
           </div>
-          <ShareButton scope={shareScope ?? toolId} hasSecrets={shareHasSecrets} />
+          {shareable && <ShareButton scope={shareScope ?? toolId} hasSecrets={shareHasSecrets} />}
         </div>
         {children}
         {next && next.length > 0 && <NextSteps steps={next} />}

@@ -5,7 +5,6 @@ export interface ToolFix {
 
 export interface ToolError {
   message: string;
-  /** 1-based line in the input, when known. */
   line?: number;
   column?: number;
   fix?: ToolFix;
@@ -28,7 +27,7 @@ const positionToLineColumn = (text: string, position: number) => {
 const TRAILING_COMMA = /,(\s*[}\]])/g;
 
 const findTrailingComma = (text: string) => {
-  // Ignore commas inside strings by blanking string contents first.
+  // Blank out string contents so commas inside strings are ignored.
   const masked = text.replace(/"(?:[^"\\]|\\.)*"/g, (match) => `"${" ".repeat(match.length - 2)}"`);
   const match = /,\s*[}\]]/.exec(masked);
   return match ? match.index : -1;
@@ -41,12 +40,11 @@ const removeTrailingCommas = (text: string) => {
   for (const match of masked.matchAll(TRAILING_COMMA)) {
     const index = match.index ?? 0;
     result += text.slice(last, index);
-    last = index + 1; // drop the comma itself
+    last = index + 1;
   }
   return result + text.slice(last);
 };
 
-/** Parse JSON, turning engine errors into a located, human-readable ToolInputError. */
 export const parseJson = (text: string): unknown => {
   try {
     return JSON.parse(text);

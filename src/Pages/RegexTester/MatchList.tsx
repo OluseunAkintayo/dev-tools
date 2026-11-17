@@ -10,7 +10,6 @@ interface MatchListProps {
   onSelect: (index: number) => void;
 }
 
-/** Each match with its position and capture groups. Selecting one outlines it in the text. */
 export const MatchList = ({ matches, active, onSelect }: MatchListProps) => {
   const [limit, setLimit] = React.useState(PAGE_SIZE);
   React.useEffect(() => setLimit(PAGE_SIZE), [matches]);

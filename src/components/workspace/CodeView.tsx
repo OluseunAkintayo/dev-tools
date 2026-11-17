@@ -6,13 +6,10 @@ interface CodeViewProps {
   code: string;
   language: CodeLanguage;
   label: string;
-  /** Soft-wrap long lines and hide line numbers. */
   wrap?: boolean;
-  /** Fade the output while it no longer matches the input (e.g. during an error). */
   dimmed?: boolean;
 }
 
-/** Read-only, syntax-highlighted output with sticky line numbers. */
 export const CodeView = React.memo(({ code, language, label, wrap = false, dimmed = false }: CodeViewProps) => {
   const lines = React.useMemo(() => code.split("\n").length, [code]);
   const numbers = React.useMemo(() => Array.from({ length: lines }, (_, i) => i + 1).join("\n"), [lines]);

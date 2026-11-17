@@ -7,8 +7,6 @@ import { cn } from "@/lib/utils";
 
 type Filter = "all" | CategoryId;
 
-/* Small, real input/output samples shown on the larger tiles. */
-
 const FormatterSample = () => (
   <div className="mt-6 grid grid-cols-1 items-center gap-3 font-mono text-[12.5px] leading-[1.65] sm:grid-cols-[1fr_auto_1fr]">
     <pre className="overflow-hidden rounded-[10px] border border-white/10 bg-white/[0.06] p-3.5 text-white/60">
@@ -118,7 +116,7 @@ const ToolTile = ({ tool, compact }: { tool: Tool; compact: boolean }) => {
         size === "wide" && "sm:col-span-2"
       )}
     >
-      {/* The feature tile is dark in both themes, so ".dark" scopes its category tokens to the dark-theme hues. */}
+      {/* Dark in both themes, so ".dark" scopes the category tokens to the dark hues. */}
       <span className={cn("flex items-start justify-between gap-3", feature && "dark")}>
         <span className={cn("grid h-[34px] w-[34px] place-items-center rounded-[9px]", tone.icon)}>
           <Icon className="h-4 w-4" />

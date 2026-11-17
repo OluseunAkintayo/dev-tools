@@ -5,11 +5,8 @@ export type ZodVersion = "4" | "3";
 export interface ZodOptions {
   name: string;
   version: ZodVersion;
-  /** Reject unknown keys (z.strictObject in v4, .strict() in v3). */
   strict: boolean;
-  /** Use z.email(), z.url() and similar when every sample value has that format. */
   formats: boolean;
-  /** Add `export type X = z.infer<typeof XSchema>`. */
   inferType: boolean;
 }
 
@@ -46,7 +43,7 @@ const schemaFor = (shape: Shape, depth: number, options: ZodOptions): string => 
     case "array":
       return `z.array(${schemaFor(shape.item, depth, options)})`;
     case "union": {
-      // "X or null" reads better as X.nullable() than as a two-member union.
+      // "X or null" reads better as X.nullable() than a two-member union.
       const nonNull = shape.options.filter((option) => option.kind !== "null");
       const nullable = nonNull.length < shape.options.length;
       const inner = nonNull.length === 1 ? schemaFor(nonNull[0], depth, options) : `z.union([${nonNull.map((option) => schemaFor(option, depth, options)).join(", ")}])`;
@@ -63,7 +60,6 @@ const schemaFor = (shape: Shape, depth: number, options: ZodOptions): string => 
   }
 };
 
-/** A Zod schema module for a JSON sample. Arrays merge all their items. */
 export const generateZod = (data: unknown, options: ZodOptions): string => {
   const typeName = toTypeName(options.name);
   if (!typeName) throw new Error("The schema name must contain at least one letter.");

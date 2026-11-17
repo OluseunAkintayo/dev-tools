@@ -2,7 +2,8 @@ import { Braces, Info, TriangleAlert } from "lucide-react";
 import { ToolLayout } from "@/components/layout/ToolLayout";
 import { CodeEditor } from "@/components/workspace/CodeEditor";
 import { CodeView } from "@/components/workspace/CodeView";
-import { Segmented, Select, Switch } from "@/components/workspace/controls";
+import { Dropdown } from "@/components/workspace/Dropdown";
+import { Segmented, Switch } from "@/components/workspace/controls";
 import { EmptyState, ErrorNotice } from "@/components/workspace/Feedback";
 import { CopyButton, DownloadButton, OpenFileButton, PasteButton } from "@/components/workspace/actions";
 import { ClearButton, RunButton } from "@/components/workspace/run";
@@ -91,7 +92,7 @@ const JsonToCode = () => {
         </ToolbarGroup>
         <ToolbarGroup>
           <ToolbarLabel htmlFor="code-language">Language</ToolbarLabel>
-          <Select id="code-language" label="Language" value={language} options={LANGUAGE_OPTIONS} onChange={setLanguage} className="w-36" />
+          <Dropdown id="code-language" label="Language" value={language} options={LANGUAGE_OPTIONS} onChange={setLanguage} className="w-36" />
         </ToolbarGroup>
         <ToolbarSpacer />
         <ToolbarGroup>
@@ -102,7 +103,7 @@ const JsonToCode = () => {
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-x border-b border-line bg-surface px-3 py-2">
         <ToolbarGroup>
           <ToolbarLabel htmlFor="code-naming">Field names</ToolbarLabel>
-          <Select id="code-naming" label="Field names" value={naming} options={NAMING_OPTIONS} onChange={setNaming} className="w-36" />
+          <Dropdown id="code-naming" label="Field names" value={naming} options={NAMING_OPTIONS} onChange={setNaming} className="w-36" />
           {naming === "auto" && <span className="text-[12px] text-ink-3">{autoLabel}</span>}
         </ToolbarGroup>
         {language === "csharp" && <Segmented label="C# type" value={csharpKind} options={CLASS_OPTIONS} onChange={setCsharpKind} />}

@@ -10,7 +10,6 @@ export type DigestFormat = "hex" | "HEX" | "base64";
 
 export type Digests = Record<HashAlgorithm, Uint8Array>;
 
-/** Every algorithm over the same bytes. With a key, each one becomes HMAC-<algorithm>. */
 export const digestAll = async (data: Uint8Array, key?: Uint8Array): Promise<Digests> => {
   const sha = HASH_ALGORITHMS.filter((alg) => alg !== "MD5");
   const shaDigests = await Promise.all(
@@ -36,10 +35,7 @@ export const formatDigest = (bytes: Uint8Array, format: DigestFormat): string =>
   return format === "HEX" ? hex.toUpperCase() : hex;
 };
 
-/**
- * Which algorithm produced `expected`, if any. Accepts hex in either case or Base64,
- * and ignores spaces and a "sha256:" style prefix, as checksum files often add them.
- */
+/** Which algorithm produced `expected` (hex or Base64; spaces and a "sha256:" prefix are ignored). */
 export const findMatch = (digests: Digests, expected: string): HashAlgorithm | null => {
   const cleaned = expected.trim().replace(/^[a-z0-9-]+[:=]\s*/i, "").replace(/\s+/g, "");
   if (!cleaned) return null;
@@ -51,13 +47,11 @@ export const findMatch = (digests: Digests, expected: string): HashAlgorithm | n
   );
 };
 
-/** Messages between useHashes and hash.worker.ts. */
 export type HashWorkerRequest = { file: File; key?: Uint8Array };
 export type HashWorkerResponse = { type: "progress"; loaded: number } | { type: "done"; digests: Digests } | { type: "error"; message: string };
 
 export type KeyEncoding = "text" | "hex";
 
-/** HMAC key bytes. Throws with a readable message for malformed hex. */
 export const keyBytes = (key: string, encoding: KeyEncoding): Uint8Array => {
   if (encoding === "text") return new TextEncoder().encode(key);
   const hex = key.replace(/\s+/g, "").replace(/^0x/i, "");

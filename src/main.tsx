@@ -10,8 +10,7 @@ import { toast } from "./hooks/use-toast.ts";
 import { loadSharedState, stripFragment } from "./lib/toolState.ts";
 import { Analytics } from "@vercel/analytics/react";
 
-// A share link keeps its data after "#". Decode it (and clear it from the address bar)
-// before the first render, so the tool mounts with the shared input already in place.
+// Decode a share link (and clear it from the address bar) before first render, so the tool mounts with the shared input.
 loadSharedState().then((result) => {
   createRoot(document.getElementById("BS2GHRGSXY")!).render(
     <StrictMode>

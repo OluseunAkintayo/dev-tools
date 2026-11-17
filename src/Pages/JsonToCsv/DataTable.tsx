@@ -1,6 +1,5 @@
 import type { CsvResult } from "@/lib/jsonToCsv";
 
-/** Rows rendered in the table preview; Copy and Download always include every row. */
 const PREVIEW_ROWS = 100;
 
 export const DataTable = ({ result, dimmed }: { result: CsvResult; dimmed: boolean }) => (

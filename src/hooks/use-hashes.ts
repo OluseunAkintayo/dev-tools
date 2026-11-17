@@ -8,10 +8,7 @@ export type HashState =
   | { kind: "done"; digests: Digests; bytes: number }
   | { kind: "error"; message: string };
 
-/**
- * Hashes a file (in a Web Worker, with progress) or text (UTF-8, on the main thread).
- * A file takes priority over text. `key` switches every algorithm to HMAC.
- */
+/** A file (worker, with progress) takes priority over text. `key` switches every algorithm to HMAC. */
 export const useHashes = (text: string, file: File | null, key: Uint8Array | undefined): HashState => {
   const [state, setState] = React.useState<HashState>({ kind: "idle" });
   const deferredText = React.useDeferredValue(text);

@@ -1,7 +1,5 @@
 import { ToolInputError } from "@/lib/toolError";
 
-/* ---------- Relative time ---------- */
-
 const relative = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
 const UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
   ["year", 31_536_000],
@@ -12,20 +10,13 @@ const UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
   ["second", 1],
 ];
 
-/** "in 2 hours", "3 days ago". Both arguments are Unix seconds. */
 export const relativeTime = (seconds: number, now = Date.now() / 1000) => {
   const delta = seconds - now;
   const [unit, size] = UNITS.find(([, size]) => Math.abs(delta) >= size) ?? UNITS[UNITS.length - 1];
   return relative.format(Math.round(delta / size), unit);
 };
 
-/* ---------- Time zones ---------- */
-
-/**
- * Browsers list zones from ICU/CLDR, which keeps some pre-rename IDs (Asia/Calcutta,
- * Europe/Kiev). Intl accepts the current IANA names too, so the picker uses those and
- * keeps the old name as a search keyword.
- */
+/** Browsers keep some pre-rename IDs (Asia/Calcutta); the picker shows the current IANA name and keeps the old one as a search keyword. */
 const RENAMED_ZONES: Record<string, string> = {
   "Africa/Asmera": "Africa/Asmara",
   "America/Buenos_Aires": "America/Argentina/Buenos_Aires",
@@ -49,36 +40,28 @@ const RENAMED_ZONES: Record<string, string> = {
 };
 const FORMER_NAMES = Object.fromEntries(Object.entries(RENAMED_ZONES).map(([old, current]) => [current, old]));
 
-/** The current IANA name for a zone ID that may be a legacy alias. */
 const currentZoneName = (timeZone: string) => RENAMED_ZONES[timeZone] ?? timeZone;
 
 export const localTimeZone = () => currentZoneName(Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC");
 
-/** Every IANA zone the browser knows, with UTC and the local zone first. */
 export const timeZoneList = (): string[] => {
   const local = localTimeZone();
-  // Not in this project's TypeScript lib target (ES2022+), but in every current browser.
+  // Not in the project TS lib target, but in every current browser.
   const supportedValuesOf = (Intl as unknown as { supportedValuesOf?: (key: "timeZone") => string[] }).supportedValuesOf;
   const all = typeof supportedValuesOf === "function" ? supportedValuesOf("timeZone").map(currentZoneName) : [];
   return Array.from(new Set(["UTC", local, ...all]));
 };
 
-/**
- * IANA IDs use underscores because they cannot contain spaces ("America/New_York").
- * The ID must be passed to Intl unchanged, so only the display swaps them for spaces.
- */
+/** IANA IDs use underscores; only the display swaps them for spaces, as Intl needs the ID unchanged. */
 export const timeZoneLabel = (timeZone: string) => timeZone.replace(/_/g, " ");
 
 export interface TimeZoneOption {
   value: string;
   label: string;
-  /** Current offset, e.g. "UTC+05:30". */
   hint: string;
-  /** Extra text to match when searching, e.g. "+0530 +5:30". */
   keywords: string;
 }
 
-/** Zones for the picker, each with its offset at `now` so users can search by offset. */
 export const timeZoneOptions = (now = Date.now()): TimeZoneOption[] => {
   const local = localTimeZone();
   return timeZoneList().map((zone) => {
@@ -131,7 +114,6 @@ const partsFormatter = (timeZone: string) => {
   return formatter;
 };
 
-/** Wall-clock fields of an instant in a time zone. */
 const zonedFields = (ms: number, timeZone: string): ZonedFields => {
   const parts = Object.fromEntries(partsFormatter(timeZone).formatToParts(new Date(ms)).map((part) => [part.type, part.value]));
   const year = Number(parts.year);
@@ -153,14 +135,12 @@ const utcFromFields = (year: number, month: number, day: number, hour = 0, minut
   return date.getTime();
 };
 
-/** Minutes the zone is ahead of UTC at this instant, e.g. 60 for Africa/Lagos. */
 export const zoneOffsetMinutes = (ms: number, timeZone: string) => {
   const whole = Math.floor(ms / 1000) * 1000;
   const f = zonedFields(whole, timeZone);
   return Math.round((utcFromFields(f.year, f.month, f.day, f.hour, f.minute, f.second) - whole) / 60_000);
 };
 
-/** Wall-clock time in a zone to an instant. Handles DST by re-checking the offset. */
 const zonedToUtc = (year: number, month: number, day: number, hour: number, minute: number, second: number, millisecond: number, timeZone: string) => {
   const guess = utcFromFields(year, month, day, hour, minute, second, millisecond);
   const first = guess - zoneOffsetMinutes(guess, timeZone) * 60_000;
@@ -173,27 +153,22 @@ const formatOffset = (minutes: number, separator = ":") => {
   return `${sign}${String(Math.floor(abs / 60)).padStart(2, "0")}${separator}${String(abs % 60).padStart(2, "0")}`;
 };
 
-/* ---------- Parsing ---------- */
-
 export type TimestampUnit = "auto" | "s" | "ms" | "us" | "ns";
 
 export type InputKind = "seconds" | "milliseconds" | "microseconds" | "nanoseconds" | "date" | "now";
 
 export interface ParsedTimestamp {
-  /** Unix time in milliseconds. */
   ms: number;
   kind: InputKind;
-  /** How the input was read, when that is worth pointing out. */
   note?: string;
 }
 
-/** Largest instant a JS Date can hold: ±100,000,000 days from 1970. */
 const MAX_MS = 8.64e15;
 
 const UNIT_DIVISOR: Record<Exclude<TimestampUnit, "auto">, number> = { s: 1e-3, ms: 1, us: 1e3, ns: 1e6 };
 const UNIT_KIND: Record<Exclude<TimestampUnit, "auto">, InputKind> = { s: "seconds", ms: "milliseconds", us: "microseconds", ns: "nanoseconds" };
 
-/** Pick a unit from the digit count: up to 11 digits is seconds (until year 5138), then ms, µs, ns. */
+/** Unit from digit count: up to 11 digits is seconds (until year 5138), then ms, µs, ns. */
 const guessUnit = (integerDigits: number): Exclude<TimestampUnit, "auto"> =>
   integerDigits <= 11 ? "s" : integerDigits <= 14 ? "ms" : integerDigits <= 17 ? "us" : "ns";
 
@@ -208,10 +183,7 @@ const checkRange = (ms: number) => {
   return ms;
 };
 
-/**
- * Read a Unix timestamp (s, ms, µs or ns), an ISO 8601 date, "now", or any date string
- * the browser understands. Dates without an offset are read in `timeZone`.
- */
+/** Reads a Unix timestamp (s, ms, µs, ns), ISO 8601, "now" or any browser-parsable date; offset-less dates use `timeZone`. */
 export const parseTimestamp = (input: string, unit: TimestampUnit, timeZone: string, now = Date.now()): ParsedTimestamp => {
   const text = input.trim().replace(/_/g, "");
   if (/^now$/i.test(text)) return { ms: now, kind: "now" };
@@ -240,7 +212,7 @@ export const parseTimestamp = (input: string, unit: TimestampUnit, timeZone: str
       ms = zonedToUtc(year, month, day, hour, minute, second, millisecond, timeZone);
       note = `No offset given, read as ${timeZoneLabel(timeZone)} time`;
     }
-    // Reject dates such as 31 February, which Date would roll into March.
+    // Reject dates like 31 February that Date would roll into March.
     const check = zone ? new Date(utcFromFields(year, month, day)) : null;
     if (check && (check.getUTCMonth() + 1 !== month || check.getUTCDate() !== day)) fail(`${y}-${mo} has no day ${day}.`);
     if (!zone) {
@@ -257,15 +229,12 @@ export const parseTimestamp = (input: string, unit: TimestampUnit, timeZone: str
   return { ms: checkRange(parsed), kind: "date" };
 };
 
-/* ---------- Output formats ---------- */
-
 export interface TimeFormat {
   id: string;
   label: string;
   value: string;
 }
 
-/** ISO 8601 week number and week-numbering year. */
 const isoWeek = (year: number, month: number, day: number) => {
   // The ISO week belongs to the year containing its Thursday.
   const date = new Date(utcFromFields(year, month, day));
@@ -282,7 +251,6 @@ const isoYear = (year: number) => (year >= 0 && year <= 9999 ? pad(year, 4) : `$
 
 const trimDecimal = (value: number) => (Number.isInteger(value) ? String(value) : value.toFixed(3).replace(/0+$/, ""));
 
-/** Every representation shown in the results list. */
 export const timeFormats = (ms: number, timeZone: string, now = Date.now()): TimeFormat[] => {
   const f = zonedFields(ms, timeZone);
   const offset = zoneOffsetMinutes(ms, timeZone);
@@ -305,7 +273,6 @@ export const timeFormats = (ms: number, timeZone: string, now = Date.now()): Tim
   ];
 };
 
-/** A wall-clock value for <input type="datetime-local"> in the given zone. */
 export const toDateTimeLocal = (ms: number, timeZone: string) => {
   const f = zonedFields(ms, timeZone);
   if (f.year < 1 || f.year > 9999) return "";

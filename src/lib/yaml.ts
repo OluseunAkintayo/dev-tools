@@ -5,11 +5,9 @@ import { parseJson, ToolInputError } from "@/lib/toolError";
 export interface YamlToJsonResult {
   json: string;
   documents: number;
-  /** Things JSON cannot represent exactly, e.g. ".inf" written as null. */
   warnings: string[];
 }
 
-/** A YAMLError as a located ToolInputError, keeping only the first line of its message. */
 const toInputError = (err: YAMLError) => {
   const position = err.linePos?.[0];
   const reason = err.message.split("\n")[0].replace(/ at line \d+, column \d+:?$/, "");
@@ -20,7 +18,6 @@ const toInputError = (err: YAMLError) => {
   });
 };
 
-/** Walks the converted value once to find numbers JSON would turn into null. */
 const findNonFinite = (value: unknown, path: string, out: string[]) => {
   if (out.length >= 5) return;
   if (typeof value === "number" && !Number.isFinite(value)) out.push(`${path || "The value"} is ${value}, which JSON writes as null.`);
@@ -28,14 +25,10 @@ const findNonFinite = (value: unknown, path: string, out: string[]) => {
   else if (value && typeof value === "object") for (const [key, item] of Object.entries(value)) findNonFinite(item, path ? `${path}.${key}` : key, out);
 };
 
-/**
- * YAML 1.2 (core schema) to JSON. Several "---" documents become a JSON array.
- * Anchors and aliases are expanded, with the library's alias limit guarding against
- * "billion laughs" inputs; "<<" merge keys are applied.
- */
+/** YAML 1.2 to JSON. Several documents become an array; aliases are expanded (the alias limit stops "billion laughs") and "<<" merges apply. */
 export const yamlToJson = (text: string, indent: JsonIndent): YamlToJsonResult => {
   const docs = parseAllDocuments(text, { merge: true, prettyErrors: true });
-  if (!Array.isArray(docs)) return { json: "", documents: 0, warnings: [] }; // only comments or directives
+  if (!Array.isArray(docs)) return { json: "", documents: 0, warnings: [] };
   const failed = docs.flatMap((doc) => doc.errors)[0];
   if (failed) throw toInputError(failed);
 
@@ -59,13 +52,7 @@ export interface JsonToYamlOptions {
   sortKeys: boolean;
 }
 
-/**
- * JSON to block-style YAML. Long strings stay on one line instead of being folded.
- * Written with YAML 1.1 quoting rules, so strings such as "yes", "on", "no" or
- * "2026-11-12" are quoted. YAML 1.2 parsers read the result the same way, and 1.1
- * parsers (PyYAML, older Kubernetes and Ansible tooling) do not turn them into
- * booleans or dates.
- */
+/** JSON to block-style YAML, with 1.1 quoting so "yes", "on", "2026-11-12" etc. stay strings in PyYAML and older tooling. */
 export const jsonToYaml = (text: string, { indent, sortKeys }: JsonToYamlOptions) => {
   const value = parseJson(text);
   return stringify(sortKeys ? sortKeysDeep(value) : value, { indent, lineWidth: 0, version: "1.1" });

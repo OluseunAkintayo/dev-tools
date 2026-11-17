@@ -15,7 +15,6 @@ const toCell = (value: unknown): string => {
   return String(value);
 };
 
-/** Convert a JSON object or array of objects to CSV. Nested keys become dotted columns. */
 export const jsonToCsv = (text: string): CsvResult => {
   const parsed = parseJson(text);
   const items = Array.isArray(parsed) ? parsed : [parsed];

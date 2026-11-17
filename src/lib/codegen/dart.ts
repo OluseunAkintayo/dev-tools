@@ -4,7 +4,6 @@ import { stringLiteral } from "./strings";
 import type { EmitResult, LanguageSpec } from "./types";
 
 const KEYWORDS = new Set(
-  // Reserved words, plus members every object has that a field must not replace.
   "assert break case catch class const continue default do else enum extends false final finally for if in is new null rethrow return super switch this throw true try var void while with await yield hashCode runtimeType toString toJson noSuchMethod".split(" ")
 );
 
@@ -14,9 +13,9 @@ export const dartRules: NamingRules = {
   autoStyle: "camel",
   cleanStyle: "camel",
   isValid: /^[A-Za-z_]\w*$/,
-  // A field called String or List would hide that type from the rest of the class.
+  // A field named String or List would hide that type in the class.
   reserved: { has: (name) => KEYWORDS.has(name) || DART_TYPES.has(name) || name.startsWith("_") },
-  // A leading underscore makes a member private, and a private name can't be a named parameter.
+  // A leading underscore makes a member private, which can't be a named parameter.
   escape: (name) => `${name.replace(/^_+/, "") || "field"}_`,
   asciiOnly: true,
   digitPrefix: "n",
@@ -55,7 +54,6 @@ const typeOf = (ref: TypeRef): string => {
   }
 };
 
-/** Reads a value out of decoded JSON (`dynamic`), casting it to the field's type. */
 const fromJson = (ref: TypeRef, source: string, nullable = false): string => {
   const q = nullable ? "?" : "";
   switch (ref.kind) {
@@ -82,7 +80,6 @@ const fromJson = (ref: TypeRef, source: string, nullable = false): string => {
   }
 };
 
-/** Whether a value has to be converted to be written as JSON. */
 const needsToJson = (ref: TypeRef): boolean => ref.kind === "object" || (ref.kind === "list" && needsToJson(ref.item)) || (ref.kind === "nullable" && needsToJson(ref.inner));
 
 const toJson = (ref: TypeRef, source: string, nullable = false): string => {
@@ -152,7 +149,6 @@ export const dart: LanguageSpec = {
   library: "fromJson / toJson",
   rules: dartRules,
   needsObjectRoot: true,
-  // Dart files are snake_case.
   fileName: (typeName) => `${typeName.replace(/([a-z0-9])([A-Z])/g, "$1_$2").toLowerCase() || "model"}.dart`,
   emit,
 };

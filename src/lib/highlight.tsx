@@ -7,11 +7,6 @@ const HIGHLIGHT_LIMIT = 300_000;
 
 const JSON_TOKEN = /("(?:\\.|[^"\\])*")(\s*:)?|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|\b(true|false|null)\b|([{}[\],:])/g;
 const XML_TOKEN = /(<!--[\s\S]*?-->)|(<\/?[\w:.-]+)|([\w:.-]+)(=)("[^"]*"|'[^']*')|(\/?>)/g;
-/**
- * Line-oriented YAML: comments (# after whitespace), "key:" at the start of a line or
- * after "- ", quoted strings, anchors and aliases, document markers, and plain
- * true/false/null/numbers that make up a whole value.
- */
 const YAML_TOKEN =
   /((?:^|[ \t])#.*$)|^([ \t]*(?:- +)*)("(?:\\.|[^"\\\n])*"|'(?:[^'\n]|'')*'|[^\s#'"{[\]},&*!|>%@`-][^\n#]*?|-[^\s\n#][^\n#]*?)([ \t]*:)(?=[ \t]|$)|("(?:\\.|[^"\\\n])*"|'(?:[^'\n]|'')*')|([&*][^\s,\]}]+)|(^(?:---|\.\.\.)(?=\s|$))|((?<=:[ \t]+|^[ \t]*-[ \t]+|[[,][ \t]*)(?:true|false|null|~|-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?)(?=[ \t]*(?:$|#|,|\]|})))/gm;
 
@@ -65,11 +60,8 @@ const classifyTs = (m: RegExpExecArray): Piece[] => {
   return [{ text: m[0], className: "text-ink-3" }];
 };
 
-/* ---------- C-family languages and Python, from one pattern per language ---------- */
-
 interface CodeSyntax {
   comment: string;
-  /** Annotations or attributes, e.g. @JsonProperty or the name inside [JsonPropertyName(...)]. */
   annotation: string;
   keywords: string[];
   types: string[];

@@ -28,12 +28,10 @@ const lineColumn = (text: string, index: number) => {
   return { line: lines.length, column: lines[lines.length - 1].length + 1 };
 };
 
-/** Replace "%" signs that do not start a valid escape with "%25". */
 const escapeStrayPercents = (text: string) => text.replace(/%(?![0-9A-Fa-f]{2})/g, "%25");
 
 const STRAY_PERCENT_FIX = { label: "Encode stray % signs", apply: escapeStrayPercents };
 
-/** Find why decoding failed: a "%" without two hex digits, or bytes that are not UTF-8. */
 const decodeError = (text: string): never => {
   const stray = /%(?![0-9A-Fa-f]{2})/.exec(text);
   if (stray) {
@@ -45,7 +43,7 @@ const decodeError = (text: string): never => {
       fix: STRAY_PERCENT_FIX,
     });
   }
-  // Every escape is well formed, so a run of escapes must decode to invalid UTF-8.
+  // Every escape is well formed, so a run of them decodes to invalid UTF-8.
   for (const run of text.matchAll(/(?:%[0-9A-Fa-f]{2})+/g)) {
     try {
       decodeURIComponent(run[0]);
@@ -70,10 +68,8 @@ export const decodeUrl = (text: string, encoding: UrlEncoding): string => {
   }
 };
 
-/** Number of %XX escapes, for the status bar. */
 export const countEscapes = (text: string) => text.match(/%[0-9A-Fa-f]{2}/g)?.length ?? 0;
 
-/** True when decoding once more would change the text, a sign of double encoding. */
 export const looksDoubleEncoded = (decoded: string) => /%[0-9A-Fa-f]{2}/.test(decoded) && (() => {
   try {
     return decodeURIComponent(decoded) !== decoded;
@@ -81,8 +77,6 @@ export const looksDoubleEncoded = (decoded: string) => /%[0-9A-Fa-f]{2}/.test(de
     return false;
   }
 })();
-
-/* ---------- Parsing ---------- */
 
 export interface UrlPart {
   id: string;
@@ -92,7 +86,6 @@ export interface UrlPart {
 
 export interface ParsedUrl {
   parts: UrlPart[];
-  /** Query parameters in order, decoded. Duplicate keys are kept. */
   params: [string, string][];
   /** Set when "https://" was added because the input had no scheme. */
   assumedScheme: boolean;
@@ -124,7 +117,7 @@ export const parseUrl = (input: string): ParsedUrl => {
       return fail("This is not a valid URL. Check the scheme (https://) and the host name.");
     }
   }
-  // "localhost:3000" parses as scheme "localhost:"; treat it as a host instead.
+  // "localhost:3000" parses as scheme "localhost:"; treat it as a host.
   if (!assumedScheme && !text.includes("//") && /^[a-z0-9.-]+:\d+/i.test(text)) {
     url = new URL(`http://${text}`);
     assumedScheme = true;
@@ -149,10 +142,7 @@ export const parseUrl = (input: string): ParsedUrl => {
   return { parts, params: [...url.searchParams.entries()], assumedScheme };
 };
 
-/**
- * Replace only the query of `input` with `params`, leaving everything else exactly as
- * typed. Values are form-encoded, as URLSearchParams would send them.
- */
+/** Replaces only the query of `input`, leaving the rest as typed. Values are form-encoded. */
 export const withQuery = (input: string, params: [string, string][]) => {
   const text = input.trim();
   const hashIndex = text.indexOf("#");

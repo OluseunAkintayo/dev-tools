@@ -1,4 +1,4 @@
-/** Flags the tester offers. "d" (indices) is always added internally to locate groups. */
+/** "d" (indices) is always added internally to locate groups. */
 export const REGEX_FLAGS = [
   { flag: "g", name: "global", hint: "Find every match, not just the first" },
   { flag: "i", name: "ignore case", hint: "Case-insensitive" },
@@ -12,7 +12,6 @@ export const REGEX_FLAGS = [
 export type RegexFlag = (typeof REGEX_FLAGS)[number]["flag"];
 
 export interface MatchGroup {
-  /** "1", "2", … or the group's name. */
   label: string;
   value: string | undefined;
   start?: number;
@@ -28,26 +27,20 @@ export interface RegexMatch {
 
 export interface RegexResult {
   matches: RegexMatch[];
-  /** More matches exist than were collected. */
   truncated: boolean;
-  /** Present when a replacement was requested. */
   replaced?: string;
 }
 
-/** Stop collecting after this many matches; highlighting more would not help anyone. */
 export const MAX_MATCHES = 5000;
 
-/** A pattern that has not finished after this long is stopped. */
 export const REGEX_TIMEOUT_MS = 1500;
 
-/** Normalise flags: valid letters only, each once, u and v never together (v wins). */
 export const normaliseFlags = (flags: string) => {
   const set = new Set(flags.split("").filter((flag) => REGEX_FLAGS.some((item) => item.flag === flag)));
   if (set.has("v")) set.delete("u");
   return REGEX_FLAGS.map((item) => item.flag).filter((flag) => set.has(flag)).join("");
 };
 
-/** Build the RegExp, or return the engine's syntax error in readable form. */
 export const compileRegex = (source: string, flags: string): { regex: RegExp } | { error: string } => {
   try {
     return { regex: new RegExp(source, `${normaliseFlags(flags)}d`) };
@@ -58,11 +51,7 @@ export const compileRegex = (source: string, flags: string): { regex: RegExp } |
   }
 };
 
-/**
- * The name of each capturing group in order (undefined for unnamed ones), read from the
- * pattern: escapes and character classes are skipped, and (?:, (?=, (?!, (?<=, (?<!
- * and modifier groups such as (?i:) do not capture.
- */
+/** Capturing group names in order (undefined if unnamed). Skips escapes, classes and non-capturing groups such as (?:, (?=, (?<! and (?i:). */
 export const groupNames = (source: string): (string | undefined)[] => {
   const names: (string | undefined)[] = [];
   let inClass = 0;
@@ -85,14 +74,13 @@ export const groupNames = (source: string): (string | undefined)[] => {
   return names;
 };
 
-/** Every match with group positions. Runs inside the worker. */
 export const runRegex = (source: string, flags: string, text: string, replacement?: string): RegexResult => {
   const compiled = compileRegex(source, flags);
   if ("error" in compiled) throw new Error(compiled.error);
   const { regex } = compiled;
 
   const names = groupNames(source);
-  // `indices` (the d flag, ES2022) is newer than this project's TypeScript lib target.
+  // `indices` (the d flag, ES2022) is newer than the project TS lib target.
   const toMatch = (match: RegExpExecArray): RegexMatch => {
     const indices = (match as RegExpExecArray & { indices?: ([number, number] | undefined)[] }).indices;
     const groups: MatchGroup[] = [];
@@ -114,7 +102,7 @@ export const runRegex = (source: string, flags: string, text: string, replacemen
         break;
       }
       matches.push(toMatch(match));
-      if (!regex.global) break; // sticky without global: one match at lastIndex
+      if (!regex.global) break;
       // An empty match would loop forever; step past it (by code point in u/v mode).
       if (match[0] === "") {
         const unicode = regex.flags.includes("u") || regex.flags.includes("v");
@@ -134,16 +122,14 @@ export const runRegex = (source: string, flags: string, text: string, replacemen
   return result;
 };
 
-/** Messages between useRegex and regex.worker.ts. */
 export type RegexWorkerRequest = { id: number; source: string; flags: string; text: string; replacement?: string };
 export type RegexWorkerResponse = { id: number; result: RegexResult } | { id: number; error: string };
 
-/** Text split into plain and matched pieces, for highlighting. */
 export const splitByMatches = (text: string, matches: RegexMatch[]) => {
   const pieces: { text: string; match?: number }[] = [];
   let last = 0;
   matches.forEach((match, index) => {
-    if (match.end <= match.index) return; // empty matches have nothing to highlight
+    if (match.end <= match.index) return;
     if (match.index > last) pieces.push({ text: text.slice(last, match.index) });
     pieces.push({ text: text.slice(match.index, match.end), match: index });
     last = match.end;

@@ -87,11 +87,7 @@ const isNumberCell = (value: string) => {
   return Number.isFinite(number) && (!/^-?\d+$/.test(value) || Number.isSafeInteger(number));
 };
 
-/**
- * Detect a type per column: a column becomes number or boolean only when every non-empty
- * cell parses as that type. Empty cells and "null" in a typed column become null; columns
- * with any other text are left as strings so each key keeps one consistent type.
- */
+/** A column becomes number or boolean only if every non-empty cell parses as that type; empty and "null" cells become null. */
 export const inferColumnTypes = (rows: Record<string, string>[]): { rows: Record<string, unknown>[]; types: Record<string, ColumnType> } => {
   const headers = rows[0] ? Object.keys(rows[0]) : [];
   const types: Record<string, ColumnType> = {};
@@ -116,7 +112,6 @@ export const inferColumnTypes = (rows: Record<string, string>[]): { rows: Record
   };
 };
 
-/** e.g. "Typed: 2 number, 1 boolean"; null when type detection is off. */
 export const typeSummary = (types: Record<string, ColumnType> | null) => {
   if (!types) return null;
   const counts = Object.values(types).reduce<Record<string, number>>((acc, type) => ({ ...acc, [type]: (acc[type] ?? 0) + 1 }), {});
@@ -124,11 +119,7 @@ export const typeSummary = (types: Record<string, ColumnType> | null) => {
   return parts.length ? `Typed: ${parts.join(", ")}` : "All text";
 };
 
-/**
- * Turn dotted headers ("address.city") into nested objects, the reverse of how JSON to CSV
- * flattens them. A header stays flat when nesting would be ambiguous: empty segments
- * ("a..b", ".a") or a clash with another column ("a" next to "a.b").
- */
+/** Dotted headers ("address.city") become nested objects, unless that is ambiguous (empty segments, or a clash like "a" with "a.b"). */
 export const nestDottedKeys = (rows: Record<string, unknown>[]): { rows: Record<string, unknown>[]; nested: number } => {
   const headers = rows[0] ? Object.keys(rows[0]) : [];
   const headerSet = new Set(headers);

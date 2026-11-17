@@ -5,7 +5,6 @@ import { useDocumentTitle } from "@/hooks/use-document-title";
 
 const UPDATED = "13 November 2026";
 
-/** What Vercel Web Analytics records with each page view, per Vercel's documentation. */
 const ANALYTICS_FIELDS: [string, string][] = [
   ["Time of the visit", "2026-11-12 09:30"],
   ["Page address", "/json-formatter"],
@@ -69,7 +68,7 @@ const Privacy = () => {
             <h2 id="inputs">What you put into the tools</h2>
             <p>
               Every tool on NexTools runs in your browser. The text you type or paste, the files you open or drop, and the secrets and keys you enter (for example in
-              the JWT or Hash tools) are processed on your device. They are not uploaded to a server, and we never receive, store or log them.
+              the JWT, Hash or Encrypt / Decrypt tools) are processed on your device. They are not uploaded to a server, and we never receive, store or log them.
             </p>
             <ul>
               <li>Files are read by your browser. Large files are processed in a background thread of the same page, not on a server.</li>

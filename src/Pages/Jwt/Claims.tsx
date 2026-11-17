@@ -15,7 +15,6 @@ const CLAIM_LABELS: Record<string, string> = {
 };
 const TIME_CLAIMS = new Set(["exp", "nbf", "iat", "auth_time"]);
 
-/** Registered claims with readable labels and dates, followed by custom claims. */
 export const Claims = ({ payload }: { payload: unknown }) => {
   if (!isPlainObject(payload)) {
     return <p className="p-4 text-sm text-ink-3">The payload is not a JSON object, so it has no claims.</p>;

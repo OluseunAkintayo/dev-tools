@@ -3,13 +3,9 @@ import { useRegisterSW } from "virtual:pwa-register/react";
 import { ToastAction } from "@/components/ui/toast";
 import { useToast } from "@/hooks/use-toast";
 
-/** Check for a new version this often while the app stays open. */
 const UPDATE_CHECK_MS = 60 * 60 * 1000;
 
-/**
- * Registers the service worker. Says once when the app is ready to work offline, and
- * when a new version is available, offers a reload instead of reloading by itself.
- */
+/** Registers the service worker; says when the app can work offline, and offers a reload for new versions instead of reloading by itself. */
 export const UpdatePrompt = () => {
   const { toast } = useToast();
   const {

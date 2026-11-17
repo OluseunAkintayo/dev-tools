@@ -1,20 +1,15 @@
 import { isPlainObject } from "@/lib/utils";
 
-/**
- * The inferred type of a JSON sample, shared by the TypeScript and Zod generators.
- * Arrays merge every item, so a key missing from some objects becomes optional and a
- * key whose type varies becomes a union.
- */
+/** The inferred type of a JSON sample. Arrays merge every item: missing keys become optional, varying types become unions. */
 
 export type StringFormat = "email" | "url" | "uuid" | "datetime" | "date";
 
 export type Shape =
   | { kind: "string"; format?: StringFormat }
-  /** `integer` is false for decimals; `wide` marks whole numbers too big for 32 bits. */
   | { kind: "number"; integer: boolean; wide: boolean }
   | { kind: "boolean" }
   | { kind: "null" }
-  | { kind: "unknown" } // items of an empty array
+  | { kind: "unknown" }
   | { kind: "array"; item: Shape }
   | { kind: "object"; fields: Field[] }
   | { kind: "union"; options: Shape[] };
@@ -22,7 +17,6 @@ export type Shape =
 export interface Field {
   key: string;
   shape: Shape;
-  /** Missing from at least one of the objects merged into this shape. */
   optional: boolean;
 }
 
@@ -36,7 +30,6 @@ const FORMATS: [StringFormat, RegExp][] = [
 
 const stringFormat = (value: string): StringFormat | undefined => FORMATS.find(([, pattern]) => pattern.test(value))?.[0];
 
-/** Union members of the same kind are merged, so each kind appears at most once. */
 const slot = (shape: Shape) => shape.kind;
 
 const addOption = (options: Shape[], shape: Shape): Shape[] => {
@@ -97,13 +90,9 @@ export const inferShape = (value: unknown): Shape => {
   return { kind: "unknown" };
 };
 
-/** Quote keys that are not valid identifiers. */
 export const formatKey = (key: string) => (/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(key) ? key : JSON.stringify(key));
 
-/**
- * "user profile" → "UserProfile", "order_item" → "OrderItem". Only the first letter of each
- * part changes, so "MyAPI" stays as typed. Leading digits are dropped.
- */
+/** "user profile" → "UserProfile", "order_item" → "OrderItem". Only each part's first letter changes, so "MyAPI" stays as typed. */
 export const toTypeName = (name: string): string =>
   name
     .split(/[^\p{L}\p{N}]+/u)

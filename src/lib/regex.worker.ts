@@ -1,12 +1,11 @@
 import { runRegex, type RegexWorkerRequest, type RegexWorkerResponse } from "@/lib/regex";
 
-// Typed loosely so this file does not need the WebWorker lib, which conflicts with DOM types.
+// Typed loosely: the WebWorker lib conflicts with DOM types.
 const scope = self as unknown as {
   postMessage: (message: RegexWorkerResponse) => void;
   onmessage: ((event: MessageEvent<RegexWorkerRequest>) => void) | null;
 };
 
-/** Runs one pattern. A runaway pattern blocks only this worker, which the page terminates. */
 scope.onmessage = (event) => {
   const { id, source, flags, text, replacement } = event.data;
   try {

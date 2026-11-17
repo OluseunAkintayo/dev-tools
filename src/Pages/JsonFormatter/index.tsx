@@ -37,7 +37,6 @@ const VIEW_OPTIONS: { value: View; label: string }[] = [
   { value: "tree", label: "Tree" },
 ];
 
-/** Tree depth that starts expanded by default, and the values used by Expand all / Collapse all. */
 const DEFAULT_EXPAND = 2;
 const EXPAND_ALL = Number.POSITIVE_INFINITY;
 const COLLAPSE_ALL = 1;
