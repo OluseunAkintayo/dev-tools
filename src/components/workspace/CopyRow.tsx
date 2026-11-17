@@ -8,13 +8,10 @@ interface CopyRowProps {
   label: string;
   value: string;
   dimmed?: boolean;
-  /** Short text after the label, e.g. a warning or a "Matches" badge. */
   note?: React.ReactNode;
-  /** Tint the row, e.g. to mark the value that matches a pasted checksum. */
   highlighted?: boolean;
 }
 
-/** A label above a monospace value, with an icon copy button that confirms inline. */
 export const CopyRow = ({ label, value, dimmed = false, note, highlighted = false }: CopyRowProps) => {
   const copy = useCopy();
   const [copied, setCopied] = React.useState(false);

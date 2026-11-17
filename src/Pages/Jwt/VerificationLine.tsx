@@ -5,11 +5,9 @@ import { cn } from "@/lib/utils";
 interface VerificationLineProps {
   verification: Verification;
   hasToken: boolean;
-  /** Why this token cannot be verified at all (alg "none", unsupported alg), if so. */
   unverifiable: string | null;
 }
 
-/** One-line signature status under the key field in Decode mode. */
 export const VerificationLine = ({ verification, hasToken, unverifiable }: VerificationLineProps) => {
   const done = verification.kind === "done";
   const Icon = unverifiable ? ShieldAlert : done ? (verification.valid ? ShieldCheck : ShieldAlert) : ShieldQuestion;

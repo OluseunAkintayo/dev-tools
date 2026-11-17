@@ -9,7 +9,6 @@ interface StatusLabels {
   runLabel: string;
 }
 
-/** Maps a runner's state onto the status bar's kind and label. */
 export function statusFor<T>(runner: ToolRunner<T>, labels: StatusLabels): { kind: StatusKind; label: string } {
   if (runner.stale) return { kind: "stale", label: `Large input. Press ${labels.runLabel} (${modKey}↵) to update` };
   switch (runner.outcome.kind) {
@@ -22,7 +21,6 @@ export function statusFor<T>(runner: ToolRunner<T>, labels: StatusLabels): { kin
   }
 }
 
-/** Output to show: the latest result, or the last good one while the input is mid-edit. */
 export function outputOf<T>(runner: ToolRunner<T>): T | null {
   return runner.outcome.kind === "ok" ? runner.outcome.value : runner.lastValue;
 }

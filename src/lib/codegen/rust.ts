@@ -92,7 +92,6 @@ export const rust: LanguageSpec = {
   library: "serde",
   rules: rustRules,
   needsObjectRoot: true,
-  // Rust modules are snake_case.
   fileName: (typeName) => `${splitWords(typeName).join("_").toLowerCase() || "model"}.rs`,
   emit,
 };

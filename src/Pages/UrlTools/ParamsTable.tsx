@@ -9,9 +9,7 @@ interface Row {
 }
 
 interface ParamsTableProps {
-  /** Decoded parameters from the current URL. */
   params: [string, string][];
-  /** Called with every edit, including blank rows, which the URL leaves out. */
   onChange: (params: [string, string][]) => void;
   disabled?: boolean;
 }
@@ -19,16 +17,13 @@ interface ParamsTableProps {
 const cellClass =
   "h-8 w-full min-w-0 rounded-md border border-transparent bg-transparent px-2 font-mono text-[13px] text-ink outline-none placeholder:font-sans placeholder:text-ink-4 hover:border-line focus-visible:border-brand/60 focus-visible:bg-surface focus-visible:ring-2 focus-visible:ring-brand/20 disabled:opacity-60";
 
-/**
- * Decoded query parameters as editable rows. Rows keep their own ids so focus stays put
- * while typing, and blank rows survive locally until filled in.
- */
+/** Editable query rows with stable ids (focus survives typing); blank rows persist locally until filled. */
 export const ParamsTable = ({ params, onChange, disabled = false }: ParamsTableProps) => {
   const nextId = React.useRef(0);
   const toRows = (pairs: [string, string][]) => pairs.map(([key, value]) => ({ id: nextId.current++, key, value }));
   const [rows, setRows] = React.useState<Row[]>(() => toRows(params));
 
-  // Follow the URL when it changes from outside the table (typing in the URL field).
+  // Follow the URL when it changes outside the table.
   const incoming = JSON.stringify(params);
   React.useEffect(() => {
     setRows((current) => {

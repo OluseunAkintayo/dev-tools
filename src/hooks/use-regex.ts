@@ -11,11 +11,7 @@ export type RegexState =
 
 const createWorker = () => new Worker(new URL("../lib/regex.worker.ts", import.meta.url), { type: "module" });
 
-/**
- * Runs the pattern in a Web Worker as the inputs change. If it does not finish within
- * REGEX_TIMEOUT_MS (catastrophic backtracking), the worker is terminated and replaced,
- * so the page never freezes.
- */
+/** Runs the pattern in a worker; on timeout (catastrophic backtracking) the worker is replaced. */
 export const useRegex = (source: string, flags: string, text: string, replacement: string | undefined): RegexState => {
   const [state, setState] = React.useState<RegexState>({ kind: "idle" });
   const worker = React.useRef<Worker | null>(null);
@@ -29,7 +25,6 @@ export const useRegex = (source: string, flags: string, text: string, replacemen
       setState({ kind: "idle" });
       return;
     }
-    // Syntax errors are found without running anything.
     const compiled = compileRegex(source, flags);
     if ("error" in compiled) {
       setState({ kind: "invalid", message: compiled.error });

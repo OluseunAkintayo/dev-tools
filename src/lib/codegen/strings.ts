@@ -1,7 +1,4 @@
-/**
- * A string literal for Swift, Rust or Dart: control characters are written as \u{…},
- * which all three accept, and lone surrogates (not valid in any of them) become U+FFFD.
- */
+/** A Swift, Rust or Dart string literal: control characters become \u{…} and lone surrogates U+FFFD. */
 export const stringLiteral = (text: string, quote: '"' | "'" = '"', escapeDollar = false): string => {
   let out = "";
   for (const char of text) {

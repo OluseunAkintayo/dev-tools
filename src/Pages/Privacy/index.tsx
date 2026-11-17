@@ -5,7 +5,6 @@ import { useDocumentTitle } from "@/hooks/use-document-title";
 
 const UPDATED = "13 November 2026";
 
-/** What Vercel Web Analytics records with each page view, per Vercel's documentation. */
 const ANALYTICS_FIELDS: [string, string][] = [
   ["Time of the visit", "2026-11-12 09:30"],
   ["Page address", "/json-formatter"],

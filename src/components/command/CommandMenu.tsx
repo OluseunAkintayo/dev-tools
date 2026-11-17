@@ -23,7 +23,6 @@ interface Item {
   group: "Tools" | "Actions";
   label: string;
   hint?: string;
-  /** Category colour for the icon and hint. */
   tone?: string;
   icon: LucideIcon;
   disabled?: boolean;
@@ -43,10 +42,7 @@ const Highlight = ({ text, query }: { text: string; query: string }) => {
   );
 };
 
-/**
- * ⌘K tool switcher. Opens with no animation: it is used many times a day,
- * and motion would only make it feel slower.
- */
+/** Opens without animation: it is used many times a day. */
 export const CommandMenuProvider = ({ children }: { children: React.ReactNode }) => {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");

@@ -8,7 +8,6 @@ interface ShortcutOptions {
   enabled?: boolean;
 }
 
-/** Window-level keyboard shortcut. The latest handler is always used. */
 export const useShortcut = ({ key, mod = false, shift = false, enabled = true }: ShortcutOptions, handler: (event: KeyboardEvent) => void) => {
   const handlerRef = React.useRef(handler);
   React.useLayoutEffect(() => {

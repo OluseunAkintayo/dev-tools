@@ -10,7 +10,6 @@ import { getTool, type ToolId } from "@/lib/tools";
 export interface NextStep {
   to: ToolId;
   label: string;
-  /** Output to carry into the next tool, if any. */
   handoff?: Handoff;
 }
 
@@ -18,9 +17,7 @@ interface ToolLayoutProps {
   toolId: ToolId;
   children: React.ReactNode;
   next?: NextStep[];
-  /** The usePersistentState scope the Share button links to; defaults to toolId. */
   shareScope?: string;
-  /** The tool takes a key or secret, which share links leave out. */
   shareHasSecrets?: boolean;
 }
 

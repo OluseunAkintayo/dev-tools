@@ -2,29 +2,21 @@ import { inferShape, type Shape } from "@/lib/inferShape";
 import { ToolInputError } from "@/lib/toolError";
 import { fieldName, foldAscii, rootTypeName, typeNameFromKey, uniqueName, type NamingRules, type NamingStyle } from "./naming";
 
-/**
- * A language-neutral description of the types in a JSON sample. Each language turns it
- * into code, so inference, naming and de-duplication happen once.
- */
+/** A language-neutral description of a JSON sample's types; each language turns it into code. */
 
 export type ScalarKind = "string" | "boolean" | "int" | "long" | "double" | "any" | "map" | "null";
 
 export type TypeRef =
   | { kind: ScalarKind }
-  /** The value may be null. */
   | { kind: "nullable"; inner: TypeRef }
   | { kind: "list"; item: TypeRef }
   | { kind: "object"; decl: TypeDecl }
-  /** Different types in the same place, without null. */
   | { kind: "union"; options: TypeRef[] };
 
 export interface FieldDecl {
-  /** The key in the JSON. */
   key: string;
-  /** The name in the generated code. */
   name: string;
   type: TypeRef;
-  /** Missing from some of the objects in the sample. */
   optional: boolean;
 }
 
@@ -34,13 +26,9 @@ export interface TypeDecl {
 }
 
 export interface Model {
-  /** The type of the whole document, or of each item when it is an array of objects. */
   root: TypeRef;
-  /** Declared types, each before the types it contains. */
   types: TypeDecl[];
-  /** The JSON is an array and the types describe its items. */
   rootIsList: boolean;
-  /** Fields whose name differs from the JSON key. */
   renamed: number;
 }
 
@@ -48,7 +36,6 @@ export interface BuildOptions {
   rootName: string;
   naming: NamingStyle;
   rules: NamingRules;
-  /** Tell int from long from double; when false every number is a double. */
   integers: boolean;
 }
 
@@ -115,7 +102,6 @@ export const buildModel = (data: unknown, options: BuildOptions): Model => {
   };
 
   const inferred = inferShape(data);
-  // An array of objects describes its items.
   const rootIsList = inferred.kind === "array" && inferred.item.kind === "object";
   const rootShape = rootIsList ? (inferred as Extract<Shape, { kind: "array" }>).item : inferred;
 
@@ -131,7 +117,6 @@ export const buildModel = (data: unknown, options: BuildOptions): Model => {
   return { root, types, rootIsList, renamed };
 };
 
-/** Every type a reference points to, directly or inside lists, nullables and unions. */
 export const referencedDecls = (ref: TypeRef): TypeDecl[] => {
   switch (ref.kind) {
     case "object":
@@ -147,10 +132,7 @@ export const referencedDecls = (ref: TypeRef): TypeDecl[] => {
   }
 };
 
-/**
- * Renames fields that share a name with any of the types, for languages where the field
- * would hide the type from the code after it. The suffix keeps the JSON key readable.
- */
+/** Renames fields that share a name with a type, where the field would hide the type from later code. */
 export const apartFromTypes = (types: TypeDecl[], suffix = "_"): TypeDecl[] => {
   const typeNames = new Set(types.map((decl) => decl.name));
   return types.map((decl) => {

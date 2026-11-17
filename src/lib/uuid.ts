@@ -1,7 +1,5 @@
 import { ToolInputError } from "@/lib/toolError";
 
-/** UUIDs per RFC 9562 (which replaced RFC 4122 in 2024). */
-
 const HEX = Array.from({ length: 256 }, (_, i) => i.toString(16).padStart(2, "0"));
 
 const toHex = (bytes: Uint8Array) => {
@@ -10,7 +8,7 @@ const toHex = (bytes: Uint8Array) => {
   return `${out.slice(0, 8)}-${out.slice(8, 12)}-${out.slice(12, 16)}-${out.slice(16, 20)}-${out.slice(20)}`;
 };
 
-/** Random v4. Uses getRandomValues, which unlike randomUUID also works outside HTTPS. */
+/** v4 via getRandomValues, which unlike randomUUID works outside HTTPS. */
 export const uuidV4 = () => {
   const bytes = crypto.getRandomValues(new Uint8Array(16));
   bytes[6] = (bytes[6] & 0x0f) | 0x40;
@@ -18,11 +16,8 @@ export const uuidV4 = () => {
   return toHex(bytes);
 };
 
-/**
- * Time-ordered v7: 48-bit Unix milliseconds, then a 12-bit counter, then random bits.
- * UUIDs from one generator always sort in creation order, even within one millisecond
- * (RFC 9562 §6.2, method 1). When the counter runs out the timestamp moves ahead by 1 ms.
- */
+/** v7: 48-bit Unix ms, a 12-bit counter, then random bits. Sorts in creation order even within a millisecond
+ *  (RFC 9562 §6.2 method 1); when the counter runs out the timestamp advances 1 ms. */
 export const createV7Generator = (now: () => number = Date.now) => {
   let lastMs = -1;
   let counter = 0;
@@ -42,7 +37,6 @@ export const createV7Generator = (now: () => number = Date.now) => {
     lastMs = ms;
 
     const bytes = crypto.getRandomValues(new Uint8Array(16));
-    // 48-bit big-endian timestamp (2^48 ms is past the year 10000).
     const high = Math.floor(ms / 2 ** 32);
     const low = ms >>> 0;
     bytes[0] = (high >>> 8) & 0xff;
@@ -70,15 +64,12 @@ export const formatUuid = (uuid: string, { uppercase, hyphens, braces }: UuidFor
   return braces ? `{${out}}` : out;
 };
 
-/* ---------- Inspecting ---------- */
-
 export interface UuidField {
   label: string;
   value: string;
 }
 
 export interface UuidInfo {
-  /** Canonical lowercase, hyphenated form. */
   canonical: string;
   version: number | null;
   summary: string;
@@ -96,7 +87,7 @@ const VERSION_NAMES: Record<number, string> = {
   8: "Version 8, custom layout",
 };
 
-/** 100 ns intervals between 1582-10-15 (the Gregorian epoch of v1 and v6) and 1970-01-01. */
+/** 100 ns intervals from 1582-10-15 (v1/v6 epoch) to 1970-01-01. */
 const GREGORIAN_OFFSET = 122_192_928_000_000_000n;
 
 const gregorianToIso = (ticks: bigint) => {
@@ -108,7 +99,6 @@ const fail = (message: string): never => {
   throw new ToolInputError({ message });
 };
 
-/** Read any common UUID spelling: hyphens or not, braces, urn:uuid:, any case. */
 export const inspectUuid = (input: string): UuidInfo => {
   const text = input.trim().replace(/^urn:uuid:/i, "").replace(/^\{(.*)\}$/, "$1");
   const hex = text.replace(/-/g, "").toLowerCase();

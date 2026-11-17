@@ -1,12 +1,6 @@
 /**
- * Ready-made patterns for the Regex Tester.
- *
- * "Validate" presets check a whole value, so they are anchored (^…$) and use the m flag:
- * each line of the sample is tested on its own, and only the valid lines match.
- * "Find" presets pick values out of running text.
- *
- * Every preset's sample lists matching and non-matching cases, and `expected` is exactly
- * what should match, so the presets can be checked automatically.
+ * Presets for the Regex Tester. "Validate" presets are anchored (^…$) with the m flag, so each sample line is tested on its own.
+ * `expected` is exactly what should match, so the presets can be checked automatically.
  */
 
 export type PresetGroup = "Numbers" | "Text and characters" | "Contact" | "Web" | "Dates and times" | "Identifiers" | "Security";
@@ -17,10 +11,8 @@ export interface RegexPreset {
   label: string;
   pattern: string;
   flags: string;
-  /** What it accepts and rejects, and any limits worth knowing. */
   description: string;
   sample: string;
-  /** Exactly the matches the pattern should find in `sample`, in order. */
   expected: string[];
   replacement?: string;
 }

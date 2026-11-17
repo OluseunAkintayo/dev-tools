@@ -4,9 +4,7 @@ import { cn } from "@/lib/utils";
 export interface HighlightRange {
   start: number;
   end: number;
-  /** Alternate tints so neighbouring matches stay distinguishable. */
   tone: 0 | 1;
-  /** Emphasise one range, e.g. the match selected in a list. */
   active?: boolean;
 }
 
@@ -15,20 +13,15 @@ interface HighlightEditorProps {
   label: string;
   value: string;
   onChange: (value: string) => void;
-  /** Sorted, non-overlapping ranges to tint behind the text. */
   ranges: HighlightRange[];
   placeholder?: string;
   autoFocus?: boolean;
 }
 
-// Shared by the backdrop and the textarea so their text lays out identically.
-// scrollbar-gutter keeps the wrap width equal whether or not the textarea shows a scrollbar.
+// Shared by the backdrop and textarea so text lays out identically; scrollbar-gutter keeps the wrap width equal.
 const TEXT = "px-4 py-3.5 font-mono text-[13px] leading-6 whitespace-pre-wrap break-words [overflow-wrap:anywhere] [scrollbar-gutter:stable]";
 
-/**
- * A soft-wrapping textarea with highlighted ranges. The textarea's text is transparent and
- * a backdrop renders the same text with <mark>s underneath, scrolled in sync.
- */
+/** Transparent textarea over a backdrop that renders the same text with <mark>s, scrolled in sync. */
 export const HighlightEditor = ({ id, label, value, onChange, ranges, placeholder, autoFocus }: HighlightEditorProps) => {
   const backdrop = React.useRef<HTMLDivElement>(null);
 
@@ -53,7 +46,7 @@ export const HighlightEditor = ({ id, label, value, onChange, ranges, placeholde
       last = range.end;
     });
     parts.push(value.slice(last));
-    // A trailing newline needs a character after it, or the backdrop is one line short.
+    // A trailing newline needs a character after it, or the backdrop is a line short.
     parts.push("\u200b");
     return parts;
   }, [value, ranges]);

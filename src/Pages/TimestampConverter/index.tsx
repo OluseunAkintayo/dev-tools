@@ -32,7 +32,7 @@ const TimestampConverter = () => {
   const [input, setInput] = usePersistentState("timestamp", "input", handoff?.input ?? "");
   const [unit, setUnit] = usePersistentState<TimestampUnit>("timestamp", "unit", "auto");
   const [timeZone, setTimeZone] = usePersistentState("timestamp", "timeZone", localTimeZone);
-  // Offsets are taken once on load; they only change at DST transitions.
+  // Offsets are read once; they change only at DST transitions.
   const zones = React.useMemo(() => timeZoneOptions(), []);
   const now = useNow();
 

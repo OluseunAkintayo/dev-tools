@@ -17,7 +17,7 @@ const TooltipContent = React.forwardRef<
     ref={ref}
     sideOffset={sideOffset}
     className={cn(
-      // Fades in after the initial delay; adjacent tooltips ("instant-open") appear with no animation.
+      // Fades in after the delay; adjacent tooltips appear instantly.
       "z-50 overflow-hidden rounded-md bg-ink px-2 py-1 text-xs font-medium text-paper shadow-lift data-[state=delayed-open]:animate-fade-in",
       className
     )}

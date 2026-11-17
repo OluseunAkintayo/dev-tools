@@ -1,20 +1,15 @@
-/**
- * MD5 (RFC 1321). Web Crypto does not offer MD5, so it is implemented here.
- * Incremental: call update() any number of times, then digest() once.
- * MD5 is broken for security use; it is here for checksums and legacy systems.
- */
+/** MD5 (RFC 1321), since Web Crypto lacks it. Call update() any number of times, then digest(). Not for security. */
 
-// Per-round shift amounts.
 const S = [7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21];
 
-// K[i] = floor(|sin(i + 1)| * 2^32).
+// K[i] = floor(|sin(i + 1)| * 2^32)
 const K = Uint32Array.from({ length: 64 }, (_, i) => Math.floor(Math.abs(Math.sin(i + 1)) * 2 ** 32));
 
 export class Md5 {
   private state = Uint32Array.of(0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476);
   private buffer = new Uint8Array(64);
   private buffered = 0;
-  private length = 0; // bytes processed, for the final length field
+  private length = 0;
   private words = new Uint32Array(16);
   private done = false;
 
@@ -95,7 +90,6 @@ export class Md5 {
 
 export const md5 = (data: Uint8Array) => new Md5().update(data).digest();
 
-/** HMAC-MD5 (RFC 2104), streaming the message once. */
 export const hmacMd5 = (key: Uint8Array, data: Uint8Array) => {
   const block = new Uint8Array(64);
   block.set(key.length > 64 ? md5(key) : key);

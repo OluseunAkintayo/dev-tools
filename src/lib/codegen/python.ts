@@ -5,13 +5,12 @@ import type { EmitResult, LanguageSpec } from "./types";
 const KEYWORDS = new Set(
   "False None True and as assert async await break class continue def del elif else except finally for from global if import in is lambda nonlocal not or pass raise return try while with yield".split(" ")
 );
-// Names pydantic's BaseModel already has; a field with one of these shadows it.
+// Names BaseModel already has; a field with one of these shadows it.
 const BASE_MODEL_ATTRIBUTES = new Set(
   "copy dict json schema schema_json construct validate parse_obj parse_raw parse_file from_orm update_forward_refs".split(" ")
 );
 
-// A field named like one of these would shadow it for the annotations that follow in the class body
-// (`list: int` makes a later `list[str]` fail), so these get a trailing underscore too.
+// A field named like these would shadow them in later annotations (`list: int` breaks `list[str]`), so they get a trailing underscore.
 const SHADOWABLE_NAMES = new Set(
   "int str float bool bytes list dict set tuple object type Any Optional Union Field BaseModel ConfigDict".split(" ")
 );

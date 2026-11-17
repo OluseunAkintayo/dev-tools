@@ -50,7 +50,6 @@ const RegexTester = () => {
     setFlags(normaliseFlags(next));
   };
 
-  // The preset in use, as long as its pattern and flags are unchanged.
   const preset = REGEX_PRESETS.find((item) => item.pattern === pattern && normaliseFlags(item.flags) === flags);
 
   const loadPreset = (id: string) => {

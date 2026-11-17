@@ -8,7 +8,6 @@ interface ErrorNoticeProps {
   onFix?: () => void;
 }
 
-/** Inline, located error with an optional one-click fix. Sits at the bottom of the input pane. */
 export const ErrorNotice = ({ error, onFix }: ErrorNoticeProps) => (
   <div
     role="alert"

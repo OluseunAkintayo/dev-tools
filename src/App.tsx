@@ -22,7 +22,6 @@ import UrlTools from "./Pages/UrlTools/index.tsx";
 import HashGenerator from "./Pages/HashGenerator/index.tsx";
 import UuidGenerator from "./Pages/UuidGenerator/index.tsx";
 
-/** Shared shell: ⌘K menu, tooltips and scroll restoration for every route. */
 const Root = () => (
   <TooltipProvider delayDuration={500} skipDelayDuration={300}>
     <CommandMenuProvider>
@@ -41,7 +40,7 @@ const router = createBrowserRouter([
       { path: "/json-to-csv", element: <JsonToCsv /> },
       { path: "/csv-to-json", element: <CsvToJson /> },
       { path: "/json-to-code", element: <JsonToCode /> },
-      // The tool used to be the TypeScript-only "TS Interface Generator".
+      // Old address of the TypeScript-only generator.
       { path: "/json-to-interface", element: <Redirect to="/json-to-code" /> },
       { path: "/json-to-zod", element: <JsonToZod /> },
       { path: "/json-diff", element: <JsonDiff /> },
@@ -55,7 +54,7 @@ const router = createBrowserRouter([
       { path: "/url-encoder-decoder", element: <UrlTools /> },
       { path: "/hash-generator", element: <HashGenerator /> },
       { path: "/uuid-generator", element: <UuidGenerator /> },
-      // Loaded on demand so the yaml library (~30 kB gzipped) stays out of the main bundle.
+      // Lazy, so the yaml library stays out of the main bundle.
       { path: "/yaml-to-json", lazy: () => import("./Pages/YamlJson/index.tsx").then((page) => ({ Component: page.default })) },
       { path: "/json-to-yaml", lazy: () => import("./Pages/YamlJson/JsonToYaml.tsx").then((page) => ({ Component: page.default })) },
       { path: "/shadcn-theme-generator", element: <ComingSoon /> },
