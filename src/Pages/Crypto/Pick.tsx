@@ -1,4 +1,4 @@
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dropdown } from "@/components/workspace/Dropdown";
 import { ToolbarLabel } from "@/components/workspace/Workspace";
 
 interface PickProps<T extends string> {
@@ -13,18 +13,7 @@ export function Pick<T extends string>({ id, label, value, options, onChange }: 
   return (
     <div className="flex items-center gap-2">
       <ToolbarLabel htmlFor={id}>{label}</ToolbarLabel>
-      <Select value={value} onValueChange={(next) => onChange(next as T)}>
-        <SelectTrigger id={id}>
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <Dropdown id={id} label={label} value={value} options={options} onChange={onChange} />
     </div>
   );
 }

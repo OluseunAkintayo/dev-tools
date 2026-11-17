@@ -162,7 +162,7 @@ const EncryptDecrypt = () => {
   const output = job.kind === "done" ? job.output : "";
 
   return (
-    <ToolLayout toolId="encrypt">
+    <ToolLayout toolId="encrypt" shareable={false}>
       <Toolbar>
         <Segmented label="Mode" value={mode} options={MODE_OPTIONS} onChange={goTo} />
         <Pick id="crypto-algorithm" label="Algorithm" value={algorithmValue} options={algorithms} onChange={setAlgorithm} />
