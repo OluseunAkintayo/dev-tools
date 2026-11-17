@@ -95,7 +95,6 @@ interface SelectProps<T extends string> {
   className?: string;
 }
 
-/** Native dropdown styled to match the toolbar. */
 export function Select<T extends string>({ id, label, value, options, onChange, className }: SelectProps<T>) {
   return (
     <span className={cn("relative inline-flex", className)}>

@@ -6,7 +6,7 @@ export const goRules: NamingRules = {
   autoStyle: "pascal",
   cleanStyle: "pascal",
   isValid: /^[A-Za-z_]\w*$/,
-  // Exported names start with a capital, and every Go keyword is lower case.
+  // Exported names start with a capital; every Go keyword is lower case.
   reserved: new Set<string>(),
   escape: (name) => name,
   digitPrefix: "Field",
@@ -42,10 +42,9 @@ const typeOf = (ref: TypeRef): string => {
   }
 };
 
-/** Slices, maps and interfaces are already nil-able; everything else needs a pointer to hold null. */
+/** Slices, maps and interfaces are already nil-able; the rest need a pointer. */
 const pointerTo = (type: string) => (/^(\[\]|map\[|\*|any$)/.test(type) ? type : `*${type}`);
 
-/** The rule encoding/json uses to accept a name in a struct tag. */
 const isValidTagName = (key: string) => key !== "" && [...key].every((char) => "!#$%&()*+-./:;<=>?@[]^_{|}~ ".includes(char) || /[\p{L}\p{N}]/u.test(char));
 
 const fieldType = (field: FieldDecl) => (field.optional && field.type.kind !== "nullable" ? pointerTo(typeOf(field.type)) : typeOf(field.type));
@@ -83,7 +82,6 @@ export const go: LanguageSpec = {
   library: "encoding/json",
   rules: goRules,
   needsObjectRoot: true,
-  // Go files are conventionally lower_snake_case.
   fileName: (typeName) => `${splitWords(typeName).join("_").toLowerCase() || "model"}.go`,
   emit,
 };

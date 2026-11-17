@@ -6,7 +6,6 @@ export type StringFormat = "email" | "url" | "uuid" | "datetime" | "date";
 
 export type Shape =
   | { kind: "string"; format?: StringFormat }
-  /** `integer` is false for decimals; `wide` marks whole numbers too big for 32 bits. */
   | { kind: "number"; integer: boolean; wide: boolean }
   | { kind: "boolean" }
   | { kind: "null" }

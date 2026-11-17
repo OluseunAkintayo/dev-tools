@@ -40,7 +40,7 @@ const router = createBrowserRouter([
       { path: "/json-to-csv", element: <JsonToCsv /> },
       { path: "/csv-to-json", element: <CsvToJson /> },
       { path: "/json-to-code", element: <JsonToCode /> },
-      // The tool used to be the TypeScript-only "TS Interface Generator".
+      // Old address of the TypeScript-only generator.
       { path: "/json-to-interface", element: <Redirect to="/json-to-code" /> },
       { path: "/json-to-zod", element: <JsonToZod /> },
       { path: "/json-diff", element: <JsonDiff /> },

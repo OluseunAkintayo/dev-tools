@@ -17,10 +17,8 @@ export { CASE_LABELS, type NamingStyle } from "./naming";
 
 export const LANGUAGES: Record<LanguageId, LanguageSpec> = { typescript, csharp, java, kotlin, swift, go, rust, dart, python };
 
-/** In the order the language picker shows them. */
 export const LANGUAGE_IDS: LanguageId[] = ["typescript", "csharp", "java", "kotlin", "swift", "go", "rust", "dart", "python"];
 
-/** Types for a JSON sample, in the chosen language, with names fixed up to be valid there. */
 export const generateCode = (data: unknown, options: CodeOptions): GeneratedCode => {
   const spec = LANGUAGES[options.language];
   const model = buildModel(data, { rootName: options.name, naming: options.naming, rules: spec.rules, integers: options.integers });

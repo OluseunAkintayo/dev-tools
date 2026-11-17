@@ -1,27 +1,14 @@
-/**
- * Turning JSON keys into names that are valid in the target language.
- *
- * Spaces and other characters a name can't contain are always removed. How the words are
- * joined (camelCase, PascalCase, snake_case) follows the user's choice, or the language's
- * own convention for "Auto".
- */
+/** Turns JSON keys into valid names: unwanted characters are removed, and words are joined per the chosen case (or the language's own for "Auto"). */
 
 export type CaseStyle = "camel" | "pascal" | "snake";
-/** "auto" picks the language's convention; "keep" leaves valid names as they are in the JSON. */
 export type NamingStyle = "auto" | "keep" | CaseStyle;
 
 export interface NamingRules {
-  /** What "Auto" means for this language. */
   autoStyle: Exclude<NamingStyle, "auto">;
-  /** How to rewrite a key that is not a valid name when keys are otherwise kept. */
   cleanStyle: CaseStyle;
-  /** A key matching this can be used as a name unchanged. */
   isValid: RegExp;
-  /** Words that can't be used as names. */
   reserved: { has: (name: string) => boolean };
-  /** Makes a reserved word usable, e.g. `class` → `class_`. */
   escape: (name: string) => string;
-  /** Put in front of a name that would start with a digit. */
   digitPrefix: string;
   /** Go exports (and JSON-decodes) only fields that start with a capital letter. */
   upperFirst: boolean;
@@ -29,15 +16,13 @@ export interface NamingRules {
   avoidTypeName: boolean;
   /** Identifiers may only use ASCII letters and digits (Dart). Accents are dropped: "über" → "uber". */
   asciiOnly?: boolean;
-  /** Type names that would shadow something the generated code uses. */
   reservedTypes: ReadonlySet<string>;
 }
 
-/** Words of a key: split on anything that is not a letter or digit, and at case changes. */
 export const splitWords = (text: string): string[] =>
   text
-    .replace(/([\p{Ll}\p{N}])(\p{Lu})/gu, "$1 $2") // fooBar → foo Bar
-    .replace(/(\p{Lu}+)(\p{Lu}\p{Ll})/gu, "$1 $2") // HTTPStatus → HTTP Status
+    .replace(/([\p{Ll}\p{N}])(\p{Lu})/gu, "$1 $2")
+    .replace(/(\p{Lu}+)(\p{Lu}\p{Ll})/gu, "$1 $2")
     .split(/[^\p{L}\p{N}]+/u)
     .filter(Boolean);
 
@@ -56,10 +41,8 @@ export const joinWords = (words: string[], style: CaseStyle): string => {
 
 export const CASE_LABELS: Record<CaseStyle, string> = { camel: "camelCase", pascal: "PascalCase", snake: "snake_case" };
 
-/** Plain ASCII for a language that has no Unicode identifiers: accents are dropped and other characters become separators. */
 export const foldAscii = (text: string): string => text.normalize("NFD").replace(/\p{M}/gu, "").replace(/[^ -~]/g, " ");
 
-/** The name for a field. See NamingRules for the pieces. */
 export const fieldName = (key: string, naming: NamingStyle, rules: NamingRules): string => {
   const style = naming === "auto" ? rules.autoStyle : naming;
   let name: string;
@@ -74,7 +57,6 @@ export const fieldName = (key: string, naming: NamingStyle, rules: NamingRules):
   return rules.reserved.has(name) ? rules.escape(name) : name;
 };
 
-/** The root type's name from what the user typed: "order item" → "OrderItem", "MyAPI" unchanged. */
 export const rootTypeName = (input: string): string =>
   input
     .split(/[^\p{L}\p{N}]+/u)
@@ -83,7 +65,6 @@ export const rootTypeName = (input: string): string =>
     .join("")
     .replace(/^\p{N}+/u, "");
 
-/** "orders" → "order", "categories" → "category", "addresses" → "address"; unchanged if no plural ending. */
 export const singular = (word: string): string => {
   if (/ies$/i.test(word) && word.length > 3) return `${word.slice(0, -3)}y`;
   if (/(ss|us|is)$/i.test(word)) return word;
@@ -92,7 +73,6 @@ export const singular = (word: string): string => {
   return word;
 };
 
-/** A type name from the key that holds it: "billing address" → "BillingAddress". Items of a list are singular. */
 export const typeNameFromKey = (key: string, inList: boolean): string => {
   const words = splitWords(key);
   if (!words.length) return inList ? "Item" : "Object";
@@ -107,7 +87,6 @@ export const typeNameFromKey = (key: string, inList: boolean): string => {
   return /^\p{N}/u.test(name) ? `Type${name}` : name;
 };
 
-/** `base`, or `base2`, `base3`… so that no name is used twice. */
 export const uniqueName = (base: string, taken: ReadonlySet<string>): string => {
   let name = base;
   for (let count = 2; taken.has(name); count++) name = `${base}${count}`;

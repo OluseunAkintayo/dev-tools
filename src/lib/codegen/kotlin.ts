@@ -2,7 +2,7 @@ import type { FieldDecl, Model, TypeDecl, TypeRef } from "./model";
 import type { NamingRules } from "./naming";
 import type { EmitResult, LanguageSpec } from "./types";
 
-// Kotlin's hard keywords; soft keywords such as `value` and `data` are fine as property names.
+// Hard keywords only; soft ones such as `value` and `data` are fine as property names.
 const KEYWORDS = new Set(
   "as break class continue do else false for fun if in interface is null object package return super this throw true try typealias typeof val var when while".split(" ")
 );
@@ -52,7 +52,6 @@ const typeOf = (ref: TypeRef): string => {
 const isNullable = (field: FieldDecl) => field.optional || field.type.kind === "nullable" || field.type.kind === "null";
 
 const declare = (decl: TypeDecl) => {
-  // A data class needs at least one property.
   if (!decl.fields.length) return `@Serializable\nclass ${decl.name}`;
   const properties = decl.fields.map((field) => {
     const type = typeOf(field.type);

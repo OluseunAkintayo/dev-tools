@@ -45,8 +45,7 @@ const UuidGenerator = () => {
     setUuids(next);
   }, [count, version, v7, setUuids]);
 
-  // Generate on first visit and whenever the version or count changes, but keep a list
-  // restored after a reload or opened from a share link. Keyed, so running twice is safe.
+  // Generate on first visit and when the version or count changes, but keep a list restored from a reload or share link. Keyed, so running twice is safe.
   const generatedFor = React.useRef(uuids.length > 0 ? `${version}:${count}` : null);
   React.useEffect(() => {
     const key = `${version}:${count}`;

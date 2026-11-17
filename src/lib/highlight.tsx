@@ -60,11 +60,8 @@ const classifyTs = (m: RegExpExecArray): Piece[] => {
   return [{ text: m[0], className: "text-ink-3" }];
 };
 
-/* ---------- C-family languages and Python, from one pattern per language ---------- */
-
 interface CodeSyntax {
   comment: string;
-  /** Annotations or attributes, e.g. @JsonProperty or the name inside [JsonPropertyName(...)]. */
   annotation: string;
   keywords: string[];
   types: string[];

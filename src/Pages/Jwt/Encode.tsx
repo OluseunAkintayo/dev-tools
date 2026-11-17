@@ -78,7 +78,7 @@ export const JwtEncode = ({ modeControl, seed, onVerify, onSnapshot }: EncodePro
     override: seed?.headerText ?? (seed?.header ? headerTextWithoutAlg(seed.header) : undefined),
   });
   const [editing, setEditing] = usePersistentState<Editing>("jwt:encode", "editing", "payload");
-  // The signing key is deliberately plain state: secrets are never saved or shared.
+  // Plain state on purpose: secrets are never saved or shared.
   const [key, setKey] = React.useState(seed?.key ?? "");
   const [encoding, setEncoding] = usePersistentState<SecretEncoding>("jwt:encode", "encoding", "utf8", { override: seed?.encoding });
 

@@ -10,7 +10,6 @@ export const typescriptRules: NamingRules = {
   autoStyle: "keep",
   cleanStyle: "camel",
   isValid: IDENTIFIER,
-  // Property names may be reserved words.
   reserved: new Set<string>(),
   escape: (name) => name,
   digitPrefix: "_",
@@ -19,13 +18,12 @@ export const typescriptRules: NamingRules = {
   reservedTypes: new Set(["Array", "Boolean", "Date", "Error", "Function", "Map", "Number", "Object", "Omit", "Partial", "Pick", "Promise", "Readonly", "Record", "Required", "Set", "String", "Symbol"]),
 };
 
-/** Types whose JSON keys differ from their property names, or that contain such a type. */
 const typesNeedingMapping = (model: Model): Set<TypeDecl> => {
   const memo = new Map<TypeDecl, boolean>();
   const needs = (decl: TypeDecl): boolean => {
     const known = memo.get(decl);
     if (known !== undefined) return known;
-    memo.set(decl, false); // guards against cycles; JSON can't have any
+    memo.set(decl, false);
     const result = decl.fields.some((field) => field.name !== field.key || referencedDecls(field.type).some(needs));
     memo.set(decl, result);
     return result;
@@ -96,7 +94,6 @@ const emit = (model: Model, options: CodeOptions): EmitResult => {
     const functionName = (decl: TypeDecl) => `${lowerFirst(decl.name)}FromJson`;
     const access = (key: string) => (IDENTIFIER.test(key) ? `json.${key}` : `json[${JSON.stringify(key)}]`);
 
-    /** The expression that converts `expr` to its clean type, or null when it needs no conversion. */
     const convert = (ref: TypeRef, expr: string, depth: number): string | null => {
       switch (ref.kind) {
         case "object":

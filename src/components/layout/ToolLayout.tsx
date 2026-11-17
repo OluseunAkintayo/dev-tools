@@ -17,9 +17,7 @@ interface ToolLayoutProps {
   toolId: ToolId;
   children: React.ReactNode;
   next?: NextStep[];
-  /** The usePersistentState scope the Share button links to; defaults to toolId. */
   shareScope?: string;
-  /** The tool takes a key or secret, which share links leave out. */
   shareHasSecrets?: boolean;
 }
 

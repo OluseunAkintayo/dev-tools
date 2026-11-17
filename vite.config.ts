@@ -7,8 +7,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      // Ask before switching to a new version, so an update never reloads the page
-      // while someone has unsaved input in a tool.
+      // Ask before switching versions, so an update never reloads the page over unsaved input.
       registerType: 'prompt',
       includeAssets: ['icon.svg', 'favicon-48x48.png', 'apple-touch-icon-180x180.png'],
       manifest: {
@@ -28,8 +27,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // Precache the whole app, including lazy routes (YAML) and the hash and regex
-        // workers, so every tool works offline after the first visit.
+        // Precache the whole app, including lazy routes and the hash and regex workers, so every tool works offline.
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         // Client-side routes such as /jwt?mode=encode fall back to the app shell.
         navigateFallback: '/index.html',

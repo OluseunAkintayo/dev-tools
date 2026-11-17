@@ -46,7 +46,7 @@ interface DecodeProps {
 
 export const JwtDecode = ({ modeControl, seed, onEditPayload, onSnapshot }: DecodeProps) => {
   const handoff = useHandoff();
-  // The key is deliberately plain state: secrets are never saved or shared.
+  // Plain state on purpose: secrets are never saved or shared.
   const [input, setInput] = usePersistentState("jwt:decode", "token", handoff?.input ?? "", { override: seed?.token });
   const [key, setKey] = React.useState(seed?.key ?? "");
   const [encoding, setEncoding] = usePersistentState<SecretEncoding>("jwt:decode", "encoding", "utf8", { override: seed?.encoding });

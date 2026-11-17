@@ -6,7 +6,7 @@ const KEYWORDS = new Set(
   "abstract as base bool break byte case catch char checked class const continue decimal default delegate do double else enum event explicit extern false finally fixed float for foreach goto if implicit in int interface internal is lock long namespace new null object operator out override params private protected public readonly ref return sbyte sealed short sizeof stackalloc static string struct switch this throw true try typeof uint ulong unchecked unsafe ushort using virtual void volatile while".split(" ")
 );
 
-// Members every object has, plus the ones the compiler adds to records.
+// Object members, plus those the compiler adds to records.
 const OBJECT_MEMBERS = new Set("Equals GetHashCode GetType ToString Finalize MemberwiseClone ReferenceEquals EqualityContract PrintMembers Clone".split(" "));
 export const csharpRules: NamingRules = {
   autoStyle: "pascal",
@@ -51,16 +51,12 @@ const typeOf = (ref: TypeRef): string => {
   }
 };
 
-/** A field that may be missing is nullable too. */
 const fieldType = (field: FieldDecl) => {
   const type = typeOf(field.type);
   return field.optional && !type.endsWith("?") ? `${type}?` : type;
 };
 
-/**
- * A non-null reference type needs a value, or every property raises a nullable warning
- * (CS8618) in a project with nullable reference types enabled, which is the default.
- */
+/** A non-null reference property needs an initialiser, or it raises nullable warning CS8618 (on by default). */
 const initialiser = (field: FieldDecl) => {
   if (fieldType(field).endsWith("?")) return "";
   switch (field.type.kind) {

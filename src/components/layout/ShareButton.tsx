@@ -9,11 +9,9 @@ import { cn } from "@/lib/utils";
 
 interface ShareButtonProps {
   scope: string;
-  /** Mention that keys are left out, for tools that take one. */
   hasSecrets?: boolean;
 }
 
-/** Copies a link that reopens this tool with its current inputs. */
 export const ShareButton = ({ scope, hasSecrets = false }: ShareButtonProps) => {
   const copy = useCopy();
   const { toast } = useToast();

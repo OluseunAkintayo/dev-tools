@@ -36,7 +36,7 @@ const HashGenerator = () => {
   const [file, setFile] = React.useState<File | null>(null);
   const [format, setFormat] = usePersistentState<DigestFormat>("hash", "format", "hex");
   const [hmac, setHmac] = usePersistentState("hash", "hmac", false);
-  // The HMAC key is deliberately plain state: secrets are never saved or shared.
+  // Plain state on purpose: secrets are never saved or shared.
   const [key, setKey] = React.useState("");
   const [keyEncoding, setKeyEncoding] = usePersistentState<KeyEncoding>("hash", "keyEncoding", "text");
   const [expected, setExpected] = usePersistentState("hash", "expected", "");
